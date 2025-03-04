@@ -12,6 +12,7 @@ class WaitListController extends Controller
         // Basic validation
         if (!$request->email) {
             return response()->json([
+                "status" => false,
                 'message' => 'Email is required'
             ], 400);
         }
@@ -19,6 +20,7 @@ class WaitListController extends Controller
         // Check if email is valid
         if (!filter_var($request->email, FILTER_VALIDATE_EMAIL)) {
             return response()->json([
+                "status" => false,
                 'message' => 'Please provide a valid email'
             ], 400);
         }
@@ -26,6 +28,7 @@ class WaitListController extends Controller
         // Check if email already exists
         if (Waitlist::where('email', $request->email)->exists()) {
             return response()->json([
+                "status" => false,
                 'message' => 'Email already registered'
             ], 400);
         }
@@ -37,6 +40,7 @@ class WaitListController extends Controller
 
         // Return success response
         return response()->json([
+            "status" => true,
             'message' => 'Successfully joined wait list'
         ], 201);
     }

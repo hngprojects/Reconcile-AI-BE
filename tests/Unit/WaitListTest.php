@@ -16,7 +16,10 @@ class WaitListTest extends TestCase
         $response = $this->postJson('/api/v1/wait-list', []);
 
         $response->assertStatus(400)
-            ->assertJson(['message' => 'Email is required']);
+            ->assertJson([
+                'status' => false,
+                'message' => 'Email is required'
+            ]);
     }
 
     /** @test */
@@ -27,7 +30,10 @@ class WaitListTest extends TestCase
         ]);
 
         $response->assertStatus(400)
-            ->assertJson(['message' => 'Please provide a valid email']);
+            ->assertJson([
+                'status' => false,
+                'message' => 'Please provide a valid email'
+            ]);
     }
 
     /** @test */
@@ -41,7 +47,10 @@ class WaitListTest extends TestCase
         ]);
 
         $response->assertStatus(400)
-            ->assertJson(['message' => 'Email already registered']);
+            ->assertJson([
+                'status' => false,
+                'message' => 'Email already registered'
+            ]);
     }
 
     /** @test */
@@ -52,7 +61,10 @@ class WaitListTest extends TestCase
         ]);
 
         $response->assertStatus(201)
-            ->assertJson(['message' => 'Successfully joined wait list']);
+            ->assertJson([
+                'status' => true,
+                'message' => 'Successfully joined wait list'
+            ]);
 
         $this->assertDatabaseHas('waitlist', [
             'email' => 'new@example.com'
