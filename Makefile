@@ -31,6 +31,7 @@ help:
 	@echo "Available targets:"
 	@echo " install - Install system and Laravel dependencies"
 	@echo " update  - Update installed dependencies"
+	@echo " setup   - copy and setup .env file and generate php key"
 	@echo " test    - Run Laravel tests"
 	@echo " serve   - Start the Laravel application"
 	@echo ""
