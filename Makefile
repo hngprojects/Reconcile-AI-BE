@@ -20,7 +20,7 @@ OS := $(shell \
 .PHONY: help install update test serve os-check
 
 # Default target
-all: install update test
+all: install update setup
 
 # Help target to show available commands
 help:
@@ -88,6 +88,12 @@ install: os-check
 	@composer install --no-interaction --prefer-dist
 	@npm install --silent
 	@echo "✅ Installation complete for $(OS)!"
+
+
+# Setting up .env 
+setup:
+	cp  .env.example .env
+	php artisan key:generate
 
 # Rest of the targets remain the same as in your original Makefile
 update: os-check
