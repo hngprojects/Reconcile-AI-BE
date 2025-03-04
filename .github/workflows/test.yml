@@ -14,7 +14,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install dependencies
-        run: make install
+        run: |
+          make install
+          make setup
+      # When database is ready
+      # - name: Run migrations
+      #   run: php artisan migrate --force
 
       - name: Run tests
         run: make test
