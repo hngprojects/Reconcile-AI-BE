@@ -1,12 +1,10 @@
 <?php
 
+use App\Http\Controllers\HomeController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\LoginController;
+
 /**
- * @OA\Info(
- *     title="ReconcieAI API",
- *     version="1.0.0",
- *     description="A simple API for ReconcieAI"
- * )
  * @OA\Get(
  *     path="/",
  *     summary="Welcome to ReconcieAI",
@@ -20,6 +18,5 @@ use Illuminate\Support\Facades\Route;
  *     )
  * )
  */
-Route::get('/', function () {
-    return response()->json(['message' => 'Welcome to ReconcieAI!']);
-});
+Route::get('/', [HomeController::class, 'index']);
+Route::post('/login', [LoginController::class, 'login']);
