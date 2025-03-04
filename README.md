@@ -1,91 +1,124 @@
-# Reconcile Project Setup
+# Reconcile AI API ~ An AI-Powered Financial Reconciliation
 
-## Introduction
-This is a Laravel project that includes JWT authentication and Swagger API documentation. This guide will walk you through setting up the project and ensuring all dependencies are installed properly.
+Reconcile AI is an easy-to-use reconciliation platform (web app) for comparing any two sets of financial records, like customer records (e.g., student payments, inventory sales, transaction alerts), with bank statements for any discrepancies or irregularities. It offers a simple file upload interface, AI-based matching algorithms with manual overrides, and multiple options for exporting results, thereby decreasing manual interventions by the users while increasing efficiency and accuracy.
 
----
+## 📑 Table of Contents
 
-## Prerequisites
-Ensure you have the following installed on your system:
-- PHP 8.2+
-- Composer
-- MySQL or SQLite (for database)
-- Node.js & npm (for frontend assets, if applicable)
+- [Features](#features)
+- [Tech Stack](#tech-stack)
+- [Getting Started](#getting-started)
+  - [Prerequisites](#prerequisites)
+  - [Installation](#installation)
+- [Project Structure](#project-structure)
+- [Contributing](#contributing)
 
----
+## <span id="features"> ✨ Core Functionality </span>
 
-## Installation Steps
+- **User Onboarding and Authentication:** Give users an excellent onboarding experience so that they may easily learn and use the product.
 
-### 1. Clone the Repository
+- **Reconciliation:** Identify discrepancies with high precision, minimizing the risk of errors in financial reporting by utilizing AI-based matching algorithms.
+
+- **Flexibility:** Provides manual override options that would allow its users to tackle complex or peculiar cases and provide accuracy in reconciliations.
+
+- **Optimize User Experience:** Provides an easy-to-use file upload interface for users.
+
+- **Results Export:** Ensures users can export reconciliation results for reports and further analysis.
+
+## <span id="tech-stack">🛠️ Tech Stack</span>
+
+- **Framework**: Laravel v11.6.1
+- **Database**: PostgreSQL
+
+## <span id="getting-started"> 🚀 Getting Started </span>
+
+### Prerequisites
+
+- PHP (v8.1^)
+- Package manager: **composer**
+
+### Installation
+
+1. Clone the repository:
+
 ```bash
-    git clone <repository-url>
-    cd <project-folder>
+git clone https://github.com/hngprojects/Reconcile-AI-BE/
 ```
 
-### 2. Install Dependencies
+2. Navigate to the project directory:
+
 ```bash
-    composer install
-    npm install
+cd Reconcile-AI-BE/
 ```
 
-### 3. Configure Environment
+3. Install dependencies:
+
 ```bash
-    cp .env.example .env
+composer install
 ```
-Update the `.env` file with your database and application settings.
 
----
+4. Run the development server:
 
-## Running the Application
-
-### Start the Development Server
 ```bash
-    php artisan serve
+composer run dev
 ```
 
-## API Documentation
+5. Open [http://localhost:3000](http://localhost:8000) in your browser to see the app.
 
-This project includes API documentation using Swagger. After starting the application, visit:
+## <span id="project-structure">📂 Project Structure</span>
+
+```plaintext
+Reconcile-AI-BE/
+│── app/
+│   ├── Console/
+│   ├── Exceptions/
+│   ├── Http/
+│   │   ├── Controllers/
+│   │   │   ├── API/
+│   │   │   ├── Web/
+│   │   ├── Middleware/
+│   │   ├── Requests/
+│   │   ├── Resources/
+│   ├── Models/
+│   ├── Providers/
+│   ├── Repositories/
+│   │   ├── Contracts/     # Interfaces for repositories
+│   │   ├── Eloquent/      # Eloquent-based implementations
+│   │   ├── BaseRepository.php
+│   ├── Services/          # Business logic layer
+│   ├── Helpers/           # Custom helper functions
+│
+│── bootstrap/
+│── config/
+│── database/
+│   ├── factories/
+│   ├── migrations/
+│   ├── seeders/
+│
+│── public/
+│── resources/
+│   ├── js/                
+│   ├── views/             
+│   ├── css/              
+│
+│── routes/
+│   ├── api.php
+│   ├── web.php
+│   ├── console.php
+│
+│── storage/
+│── tests/
+│── vendor/
+│── .env
+│── composer.json
+│── package.json
+│── artisan
+│── composer.lock
+│── phpunit.xml
+│── postcss.config.js
+│── tailwind.config.js
+│── vite.config.js
+
 ```
-    http://127.0.0.1:8000/api/docs
-```
 
-You can test API endpoints directly from Swagger using the **Try it out** feature.
-
----
-
-## Additional Commands
-
-### Run Tests
-```bash
-    php artisan test
-```
-
-### Update Swagger Documentation
-```bash
-    php artisan l5-swagger:generate
-```
-
----
-
-## Contribution Guidelines
-1. Fork the repository and create a feature branch.
-2. Follow PSR-4 coding standards.
-3. Ensure all new code includes tests.
-4. Run `composer test` before committing changes.
-
----
-
-## Troubleshooting
-
-### Common Issues:
-1. **Missing JWT secret:** Run `php artisan jwt:secret --force`.
-2. **Swagger docs not showing:** Run `php artisan l5-swagger:generate`.
-3. **Database issues:** Ensure `.env` has correct database credentials and run migrations again.
-
-For further support, please open an issue in the repository.
-
----
-
-## License
-This project is licensed under the MIT License.
+## <span id="contributing">Interested in Contribution to ReconcileAI?</span>
+Please review our [Contribution Guidelines](./CONTRIBUTING.md)
