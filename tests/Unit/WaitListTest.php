@@ -3,7 +3,7 @@
 namespace Tests\Unit;
 
 use Tests\TestCase;
-use App\Models\Waitlist;
+use App\Models\WaitList;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class WaitListTest extends TestCase
@@ -40,7 +40,7 @@ class WaitListTest extends TestCase
     public function it_prevents_duplicate_emails()
     {
         // Create initial waitlist entry
-        Waitlist::create(['email' => 'test@example.com']);
+        WaitList::create(['email' => 'test@example.com']);
 
         $response = $this->postJson('/api/v1/wait-list', [
             'email' => 'test@example.com'
