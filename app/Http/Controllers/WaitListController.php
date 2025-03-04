@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\Waitlist;
+use App\Models\WaitList;
 
 class WaitListController extends Controller
 {
@@ -34,7 +34,7 @@ class WaitListController extends Controller
         }
 
         // Save to database
-        $waitlist = new Waitlist();
+        $waitlist = new WaitList();
         $waitlist->email = $request->email;
         $waitlist->save();
 
