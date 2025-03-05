@@ -38,7 +38,6 @@ jobs:
       - name: Install Laravel dependencies
         run: |
           composer install --no-progress --prefer-dist --no-interaction
-          npm ci --silent
 
       - name: Set environment variables for CI
         run: |
