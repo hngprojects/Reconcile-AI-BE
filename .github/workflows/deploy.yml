@@ -53,5 +53,5 @@ jobs:
             # Step 5: Start a new tmux session and run the server
             tmux new-session -d -s 1 'php artisan serve --host=0.0.0.0 --port=8000'
 
-            # Step 6: Attach to tmux session 1 to see logs
+            # Step 6: Attach to tmux session 1 for logs
             tmux attach -t 1
