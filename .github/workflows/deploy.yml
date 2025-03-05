@@ -32,7 +32,7 @@ jobs:
         run: composer require mydnic/changelog-commit-for-laravel
 
       - name: Generate Changelog
-        run: php artisan changelog:generate
+        run: php artisan changelog:fetch
 
       - name: Commit and Push Changelog
         run: |
