@@ -62,4 +62,3 @@ jobs:
             tmux send-keys -t 1 "php artisan serve --host=0.0.0.0 --port=8000" C-m
 
             echo "Deployment complete. Laravel server is running."
-            EOF
