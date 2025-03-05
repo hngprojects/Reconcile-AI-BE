@@ -4,12 +4,6 @@ on:
   push:
     branches:
       - dev
-  pull_request:
-    branches:
-      - dev
-    types:
-      - opened
-      - synchronize
 
 jobs:
   tag_release:
@@ -27,7 +21,6 @@ jobs:
   deployment:
     needs: [tag_release]
     runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     steps:
       - uses: actions/checkout@v3
       - name: Deploy to EC2
@@ -51,12 +44,6 @@ jobs:
             # Pull the latest changes
             git pull origin dev
 
-
-            #
-            cp .env.example .env
-            php artisan key:generate
-
-
             # Install Composer dependencies
             composer install --no-interaction --prefer-dist
 
@@ -64,6 +51,8 @@ jobs:
             # php artisan migrate --force
 
             # Start the Laravel server in tmux session 1
-            tmux send-keys -t 1 "php artisan serve --host=0.0.0.0 --port=8000" C-m
+            # tmux send-keys -t 1 "php artisan serve --host=0.0.0.0 --port=8000" C-m
+
+            sudo systemctl restart nginx
 
             echo "Deployment complete. Laravel server is running."
