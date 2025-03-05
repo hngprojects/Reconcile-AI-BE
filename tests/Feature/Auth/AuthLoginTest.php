@@ -57,18 +57,18 @@ class AuthLoginTest extends TestCase
     /**
      * Test login failure with incorrect credentials.
      */
-    // public function test_user_cannot_login_with_invalid_credentials(): void
-    // {
-    //     $response = $this->postJson(route('auth.login'), [
-    //         'email' => 'wrong@example.com',
-    //         'password' => 'wrongpassword',
-    //     ]);
+    public function test_user_cannot_login_with_invalid_credentials(): void
+    {
+        $response = $this->postJson(route('auth.login'), [
+            'email' => 'wrong@example.com',
+            'password' => 'wrongpassword',
+        ]);
 
-    //     // Assertions
-    //     $response->assertStatus(401)
-    //         ->assertJson([
-    //             'code' => 401,
-    //             'message' => 'Invalid credentials',
-    //         ]);
-    // }
+        // Assertions
+        $response->assertStatus(401)
+            ->assertJson([
+                'code' => 401,
+                'message' => 'Invalid credentials',
+            ]);
+    }
 }
