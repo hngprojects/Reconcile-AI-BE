@@ -3,7 +3,7 @@
 namespace App\Repositories\Auth;
 
 use LaravelEasyRepository\Implementations\Eloquent;
-use App\Models\Auth;
+use App\Models\User;
 
 class AuthRepositoryImplement extends Eloquent implements AuthRepository{
 
@@ -12,9 +12,9 @@ class AuthRepositoryImplement extends Eloquent implements AuthRepository{
     * Don't remove or change $this->model variable name
     * @property Model|mixed $model;
     */
-    protected Auth $model;
+    protected User $model;
 
-    public function __construct(Auth $model)
+    public function __construct(User $model)
     {
         $this->model = $model;
     }
