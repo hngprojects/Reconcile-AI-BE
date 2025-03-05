@@ -71,4 +71,22 @@ class AuthLoginTest extends TestCase
                 'message' => 'Invalid credentials',
             ]);
     }
+
+    /**
+     * Test login failure with missing credentials.
+     */
+    public function test_user_cannot_login_with_missing_credentials(): void
+    {
+        $response = $this->postJson(route('auth.login'), []);
+
+        // Assertions
+        $response->assertStatus(422)
+            ->assertJsonStructure([
+                'message',
+                'errors' => [
+                    'email',
+                    'password',
+                ],
+            ]);
+    }
 }
