@@ -6,5 +6,5 @@ use LaravelEasyRepository\BaseService;
 
 interface AuthService extends BaseService{
 
-    // Write something awesome :)
+    public function login($request);
 }
