@@ -29,7 +29,7 @@ jobs:
         run: echo "New version is ${{ steps.versioning.outputs.new_tag }}"
 
       - name: Install Changelog Package
-        run: composer require consoletvs/changelog --dev
+        run: composer require mydnic/changelog-commit-for-laravel
 
       - name: Generate Changelog
         run: php artisan changelog:generate
@@ -51,22 +51,22 @@ jobs:
       - name: Deploy to EC2
         uses: appleboy/ssh-action@v0.1.10
         with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USERNAME }}
-          password: ${{ secrets.EC2_PASSWORD }}
+          host: ${{ secrets.SSH_SERVER }}
+          username: ${{ secrets.SSH_USERNAME }}
+          password: ${{ secrets.SSH_PASSWORD }}
           port: 22
           script: |
+
             # change to repo directory
             cd /var/www/html/Reconcile-AI-BE
 
             # pull changes
-            sudo git pull origin main
+            git pull origin main
 
             # install dependencies 
-            composer install --no-dev --prefer-dist --no-progress --no-interaction
+            composer install --no-interaction --prefer-dist
 
             # php artisan migrate --force # Apply DB migrations
-
 
             # close server running on tmux session 1
             tmux send-keys -t 1 C-c
