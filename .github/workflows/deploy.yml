@@ -9,7 +9,7 @@ jobs:
   tag_release:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Bump version and push tag
         id: versioning
         uses: anothrNick/github-tag-action@1.71.0
@@ -22,7 +22,7 @@ jobs:
     needs: [tag_release]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Deploy to EC2
         uses: appleboy/ssh-action@v0.1.10
         with:
@@ -31,28 +31,36 @@ jobs:
           password: ${{ secrets.SSH_PASSWORD }}
           port: 22
           script: |
-            # Stop the Laravel server in tmux session 1
-            tmux send-keys -t 1 C-c
-            sleep 2 # Wait for the server to stop
+            set -e  # Exit on error
 
-            # Kill any remaining processes on port 8000
-            kill -9 $(lsof -t -i :8000)
+            echo "Stopping Laravel server..."
+            tmux send-keys -t 1 C-c || true  # Stop Laravel in tmux
+            sleep 2 
 
-            # Navigate to the repository directory
+            echo "Stopping processes on port 8000..."
+            if lsof -t -i :8000; then
+              kill -9 $(lsof -t -i :8000)
+            fi
+
             cd /var/www/html/Reconcile-AI-BE
 
-            # Pull the latest changes
-            git pull origin dev
+            echo "Fetching latest changes..."
+            git fetch origin dev
+            # git reset --hard origin/dev  # Avoid merge issues
+            # git clean -df  # Remove untracked files
 
-            # Install Composer dependencies
-            composer install --no-interaction --prefer-dist
+            echo "Installing dependencies..."
+            composer install --no-interaction --prefer-dist --no-dev --quiet
 
-            # Run database migrations (if needed)
-            # php artisan migrate --force
+            echo "Setting permissions..."
+            chmod -R 775 storage bootstrap/cache
+            chown -R www-data:www-data storage bootstrap/cache
 
-            # Start the Laravel server in tmux session 1
-            # tmux send-keys -t 1 "php artisan serve --host=0.0.0.0 --port=8000" C-m
+            echo "Running migrations..."
+            php artisan migrate --force
 
+            echo "Restarting services..."
             sudo systemctl restart nginx
+            # sudo systemctl restart php8.2-fpm
 
-            echo "Deployment complete. Laravel server is running."
+            echo "Deployment complete."
