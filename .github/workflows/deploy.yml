@@ -38,25 +38,28 @@ jobs:
           password: ${{ secrets.SSH_PASSWORD }}
           port: 22
           script: |
-            # close server running on tmux session 1
+            # Stop the Laravel server in tmux session 1
             tmux send-keys -t 1 C-c
+            sleep 2 # Wait for the server to stop
 
-            # Detach
-            tmux detach
+            # Kill any remaining processes on port 8000
+            kill -9 $(lsof -t -i :8000)
 
-            # change to repo
+            # Navigate to the repository directory
             cd /var/www/html/Reconcile-AI-BE
 
-            # pull changes
-            git pull origin main
+            # Pull the latest changes
+            git fetch pull origin main
 
-            # install dependencies
+
+            # Install Composer dependencies
             composer install --no-interaction --prefer-dist
 
-            # php artisan migrate --force # Apply DB migrations
+            # Run database migrations (if needed)
+            # php artisan migrate --force
 
-            # attach to session (tmux)
-            tmux attach -t 1
+            # Start the Laravel server in tmux session 1
+            tmux send-keys -t 1 "php artisan serve --host=0.0.0.0 --port=8000" C-m
 
-            # start the server
-            php artisan serve --host=0.0.0.0 --port=8000
+            echo "Deployment complete. Laravel server is running."
+            EOF
