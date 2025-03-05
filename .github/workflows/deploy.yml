@@ -25,23 +25,6 @@ jobs:
           DEFAULT_BUMP: auto
           WITH_V: true
 
-      - name: Show New Version
-        run: echo "New version is ${{ steps.versioning.outputs.new_tag }}"
-
-      - name: Install Changelog Package
-        run: composer require mydnic/changelog-commit-for-laravel
-
-      - name: Generate Changelog
-        run: php artisan changelog:fetch
-
-      - name: Commit and Push Changelog
-        run: |
-          git config --global user.email "github-actions@github.com"
-          git config --global user.name "GitHub Actions"
-          git add CHANGELOG.md
-          git commit -m "chore(changelog): update changelog for $(git describe --tags --abbrev=0)"
-          git push origin main
-
   deployment:
     needs: [tag_release]
     runs-on: ubuntu-latest
