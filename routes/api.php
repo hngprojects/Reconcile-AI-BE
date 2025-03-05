@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\WaitListController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ReconciliationController;
@@ -10,4 +11,5 @@ Route::prefix('v1')->group(function () {
     });
 
     Route::post('/reconcile', [ReconciliationController::class, 'reconcile']);
+    Route::post('/wait-list', [WaitListController::class, 'store']);
 });
