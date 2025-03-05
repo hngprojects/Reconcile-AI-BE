@@ -34,6 +34,18 @@ jobs:
           cp .env.example .env
           php artisan key:generate
 
+      - name: Generate Application Key
+        run: php artisan key:generate
+
+      - name: Run Database Migrations
+        run: php artisan migrate --force
+        env:
+          DB_CONNECTION: pgsql
+          DB_HOST: reconxi.internal
+          DB_PORT: 5432
+          DB_DATABASE: postgres
+          DB_USERNAME: postgres
+
       #   when necessary
       # - name: Run Laravel migrations (optional)
       #   run: php artisan migrate --force
