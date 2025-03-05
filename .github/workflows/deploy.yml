@@ -52,10 +52,6 @@ jobs:
             echo "Installing dependencies..."
             composer install --no-interaction --prefer-dist --no-dev --quiet
 
-            echo "Setting permissions..."
-            chmod -R 775 storage bootstrap/cache
-            chown -R www-data:www-data storage bootstrap/cache
-
             echo "Running migrations..."
             php artisan migrate --force
 
