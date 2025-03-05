@@ -17,6 +17,55 @@ class AuthController extends Controller
         $this->authService = $authService;
     }
 
+        /**
+     * @OA\Post(
+     *     path="/api/auth/login",
+     *     summary="User login",
+     *     description="Authenticates a user and returns a JWT token",
+     *     tags={"Authentication"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"email", "password"},
+     *             @OA\Property(property="email", type="string", format="email", example="test@example.com"),
+     *             @OA\Property(property="password", type="string", format="password", example="password123")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Login successful",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="code", type="integer", example=200),
+     *             @OA\Property(property="message", type="string", example="Login Success"),
+     *             @OA\Property(property="data", type="object",
+     *                 @OA\Property(property="user", type="object",
+     *                     @OA\Property(property="id", type="integer", example=1),
+     *                     @OA\Property(property="name", type="string", example="John Doe"),
+     *                     @OA\Property(property="email", type="string", example="test@example.com"),
+     *                 ),
+     *                 @OA\Property(property="token", type="string", example="eyJhbGciOiJIUzI1NiIsInR...")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Invalid credentials",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="code", type="integer", example=401),
+     *             @OA\Property(property="message", type="string", example="Invalid credentials")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Login failed due to validation error or server issue",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="code", type="integer", example=400),
+     *             @OA\Property(property="message", type="string", example="Login Failed"),
+     *             @OA\Property(property="error", type="string", example="Invalid email format")
+     *         )
+     *     )
+     * )
+     */
     public function login(AuthLogin $request) : JsonResponse
     {
         return $this->authService->login($request)->toJson();
