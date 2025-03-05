@@ -341,8 +341,8 @@
                 "tags": [
                     "Reconciliation"
                 ],
-                "summary": "Reconcile two CSV files",
-                "description": "Uploads two CSV files, compares them based on a key column, and returns matched/different records.",
+                "summary": "Reconcile two CSV or Excel files",
+                "description": "Uploads two files, compares based on detected name and amount columns, and returns matched/different records.",
                 "operationId": "47cda2733290d3ed5e6ef36ed538bbd2",
                 "requestBody": {
                     "required": true,
@@ -351,23 +351,18 @@
                             "schema": {
                                 "required": [
                                     "file1",
-                                    "file2",
-                                    "key_column"
+                                    "file2"
                                 ],
                                 "properties": {
                                     "file1": {
-                                        "description": "First CSV file",
+                                        "description": "First CSV or Excel file",
                                         "type": "string",
                                         "format": "binary"
                                     },
                                     "file2": {
-                                        "description": "Second CSV file",
+                                        "description": "Second CSV or Excel file",
                                         "type": "string",
                                         "format": "binary"
-                                    },
-                                    "key_column": {
-                                        "description": "The column used for reconciliation",
-                                        "type": "string"
                                     }
                                 },
                                 "type": "object"
@@ -385,13 +380,6 @@
                                         "matches": {
                                             "description": "Number of matched rows",
                                             "type": "integer"
-                                        },
-                                        "differences": {
-                                            "description": "Differences between files",
-                                            "type": "array",
-                                            "items": {
-                                                "type": "object"
-                                            }
                                         },
                                         "only_in_file1": {
                                             "description": "Rows only in first file",
