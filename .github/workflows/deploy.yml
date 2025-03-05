@@ -49,7 +49,7 @@ jobs:
             cd /var/www/html/Reconcile-AI-BE
 
             # Pull the latest changes
-            git pull origin main
+            git pull origin dev
 
 
             # Install Composer dependencies
