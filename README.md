@@ -56,6 +56,12 @@ cd Reconcile-AI-BE/
 composer install
 ```
 
+
+```bash
+php artisan install:api
+```
+
+
 4. Run the development server:
 
 ```bash
