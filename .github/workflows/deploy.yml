@@ -33,6 +33,6 @@ jobs:
           script: |
             
             echo "Starting Laravel deployment service..."
-            sudo systemctl daemon-reload
-            sudo systemctl start laravel-deploy.service
+            sudo -n systemctl daemon-reload
+            sudo -n systemctl start laravel-deploy.service
             echo "Deployment triggered successfully!"
