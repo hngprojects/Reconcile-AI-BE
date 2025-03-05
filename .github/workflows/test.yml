@@ -55,9 +55,6 @@ jobs:
       - name: Run Database Migrations
         run: php artisan migrate --force
 
-      # - name: Generate Application Key
-      #   run: php artisan key:generate
-
       - name: Run Database Migrations
         run: php artisan migrate --force
 
