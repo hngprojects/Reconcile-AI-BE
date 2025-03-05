@@ -52,6 +52,11 @@ jobs:
             git pull origin dev
 
 
+            #
+            cp .env.example .env
+            php artisan key:generate
+
+
             # Install Composer dependencies
             composer install --no-interaction --prefer-dist
 
