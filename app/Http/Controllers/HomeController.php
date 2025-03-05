@@ -9,7 +9,7 @@ class HomeController extends Controller
 {
     /**
      * @OA\Get(
-     *     path="/",
+     *     path="/api/v1",
      *     summary="Home Endpoint",
      *     description="Welcome message or API overview",
      *     tags={"Home"},

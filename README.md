@@ -56,11 +56,69 @@ cd Reconcile-AI-BE/
 composer install
 ```
 
+
+```bash
+php artisan install:api
+```
+
+
 4. Run the development server:
 
 ```bash
 composer run dev
 ```
+
+### 3. Configure Environment
+```bash
+    cp .env.example .env
+```
+Update the `.env` file with your database and application settings.
+
+---
+
+### Update Swagger Documentation
+
+
+Publish JWT & Swagger configuration files (only needed for first-time setup)
+```bash
+    php artisan vendor:publish --provider="Tymon\JWTAuth\Providers\LaravelServiceProvider"
+```
+```bash
+    php artisan vendor:publish --provider="L5Swagger\L5SwaggerServiceProvider"
+```
+
+Generate API documentation
+```bash
+    php artisan l5-swagger:generate
+```
+
+---
+## Running the Application
+
+### Start the Development Server
+```bash
+    php artisan serve
+```
+
+## API Documentation
+
+This project includes API documentation using Swagger. After starting the application, visit:
+```
+    http://127.0.0.1:8000/api/docs
+```
+
+You can test API endpoints directly from Swagger using the **Try it out** feature.
+
+---
+
+## Additional Commands
+
+### Run Tests
+```bash
+    php artisan test
+```
+
+---
 
 5. Open [http://localhost:3000](http://localhost:8000) in your browser to see the app.
 

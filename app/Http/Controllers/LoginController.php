@@ -9,8 +9,9 @@ class LoginController extends Controller
 {
     /**
      * @OA\Post(
-     *     path="/api/login",
+     *     path="/api/v1/login",
      *     summary="Authenticate user and generate JWT token",
+     *     tags={"Authentication"}, 
      *     @OA\Parameter(
      *         name="email",
      *         in="query",

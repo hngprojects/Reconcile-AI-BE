@@ -10,14 +10,14 @@
         }
     ],
     "paths": {
-        "/": {
+        "/api/v1": {
             "get": {
                 "tags": [
                     "Home"
                 ],
                 "summary": "Home Endpoint",
                 "description": "Welcome message or API overview",
-                "operationId": "ac5f32eec336b092a10a014ae5e0d4ed",
+                "operationId": "a86d5eefc2bb09a10d67b99b5403d49e",
                 "responses": {
                     "200": {
                         "description": "Success",
@@ -38,10 +38,13 @@
                 }
             }
         },
-        "/api/login": {
+        "/api/v1/login": {
             "post": {
+                "tags": [
+                    "Authentication"
+                ],
                 "summary": "Authenticate user and generate JWT token",
-                "operationId": "c5e838284c7f343f0e5e5fd589161c96",
+                "operationId": "2bd778ac594b753b1466d635caf32e28",
                 "parameters": [
                     {
                         "name": "email",
@@ -71,6 +74,89 @@
                     }
                 }
             }
+        },
+        "/api/v1/reconcile": {
+            "post": {
+                "tags": [
+                    "Reconciliation"
+                ],
+                "summary": "Reconcile two CSV files",
+                "description": "Uploads two CSV files, compares them based on a key column, and returns matched/different records.",
+                "operationId": "47cda2733290d3ed5e6ef36ed538bbd2",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "required": [
+                                    "file1",
+                                    "file2",
+                                    "key_column"
+                                ],
+                                "properties": {
+                                    "file1": {
+                                        "description": "First CSV file",
+                                        "type": "string",
+                                        "format": "binary"
+                                    },
+                                    "file2": {
+                                        "description": "Second CSV file",
+                                        "type": "string",
+                                        "format": "binary"
+                                    },
+                                    "key_column": {
+                                        "description": "The column used for reconciliation",
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Reconciliation successful",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "matches": {
+                                            "description": "Number of matched rows",
+                                            "type": "integer"
+                                        },
+                                        "differences": {
+                                            "description": "Differences between files",
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        },
+                                        "only_in_file1": {
+                                            "description": "Rows only in first file",
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        },
+                                        "only_in_file2": {
+                                            "description": "Rows only in second file",
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Validation or processing error"
+                    }
+                }
+            }
         }
     },
     "components": {
@@ -86,6 +172,14 @@
         {
             "name": "Home",
             "description": "Home"
+        },
+        {
+            "name": "Authentication",
+            "description": "Authentication"
+        },
+        {
+            "name": "Reconciliation",
+            "description": "Reconciliation"
         }
     ]
 }
