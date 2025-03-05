@@ -1,0 +1,261 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Reconcile AI Apis",
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "/"
+        }
+    ],
+    "paths": {
+        "/api/v1": {
+            "get": {
+                "tags": [
+                    "Home"
+                ],
+                "summary": "Home Endpoint",
+                "description": "Welcome message or API overview",
+                "operationId": "a86d5eefc2bb09a10d67b99b5403d49e",
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Welcome to the API"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/login": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Authenticate user and generate JWT token",
+                "operationId": "2bd778ac594b753b1466d635caf32e28",
+                "parameters": [
+                    {
+                        "name": "email",
+                        "in": "query",
+                        "description": "User's email",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "password",
+                        "in": "query",
+                        "description": "User's password",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Login successful"
+                    },
+                    "401": {
+                        "description": "Invalid credentials"
+                    }
+                }
+            }
+        },
+        "/api/v1/reconcile": {
+            "post": {
+                "tags": [
+                    "Reconciliation"
+                ],
+                "summary": "Reconcile two CSV files",
+                "description": "Uploads two CSV files, compares them based on a key column, and returns matched/different records.",
+                "operationId": "47cda2733290d3ed5e6ef36ed538bbd2",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "required": [
+                                    "file1",
+                                    "file2",
+                                    "key_column"
+                                ],
+                                "properties": {
+                                    "file1": {
+                                        "description": "First CSV file",
+                                        "type": "string",
+                                        "format": "binary"
+                                    },
+                                    "file2": {
+                                        "description": "Second CSV file",
+                                        "type": "string",
+                                        "format": "binary"
+                                    },
+                                    "key_column": {
+                                        "description": "The column used for reconciliation",
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Reconciliation successful",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "matches": {
+                                            "description": "Number of matched rows",
+                                            "type": "integer"
+                                        },
+                                        "differences": {
+                                            "description": "Differences between files",
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        },
+                                        "only_in_file1": {
+                                            "description": "Rows only in first file",
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        },
+                                        "only_in_file2": {
+                                            "description": "Rows only in second file",
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Validation or processing error"
+                    }
+                }
+            }
+        },
+        "/api/v1/wait-list": {
+            "post": {
+                "tags": [
+                    "WaitList"
+                ],
+                "summary": "Add email to waitlist",
+                "description": "Adds a new email address to the wait list",
+                "operationId": "b186c1247e260332911484977fad8abb",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "email"
+                                ],
+                                "properties": {
+                                    "email": {
+                                        "description": "Email address to add to waitlist",
+                                        "type": "string",
+                                        "format": "email"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Successfully joined wait list",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Successfully joined wait list"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Email is required"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "securitySchemes": {
+            "bearerAuth": {
+                "type": "http",
+                "bearerFormat": "JWT",
+                "scheme": "bearer"
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Home",
+            "description": "Home"
+        },
+        {
+            "name": "Authentication",
+            "description": "Authentication"
+        },
+        {
+            "name": "Reconciliation",
+            "description": "Reconciliation"
+        },
+        {
+            "name": "WaitList",
+            "description": "WaitList"
+        }
+    ]
+}
