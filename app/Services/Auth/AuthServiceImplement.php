@@ -3,6 +3,7 @@
 namespace App\Services\Auth;
 
 use Tymon\JWTAuth\Facades\JWTAuth;
+use App\Http\Resources\UserResource;
 use Illuminate\Support\Facades\Auth;
 use LaravelEasyRepository\ServiceApi;
 use App\Repositories\Auth\AuthRepository;
@@ -35,7 +36,7 @@ class AuthServiceImplement extends ServiceApi implements AuthService
             return $this->setCode(200)
                 ->setMessage("Login Success")
                 ->setData([
-                    'user' => $user,
+                    'user' => new UserResource($user),
                     'token' => $token
                 ]);
         } catch (\Exception $e) {
