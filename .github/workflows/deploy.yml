@@ -1,0 +1,78 @@
+name: Deployment
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+    types:
+      - opened
+      - synchronize
+
+jobs:
+  tag_release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Bump version and push tag
+        id: versioning
+        uses: anothrNick/github-tag-action@1.64.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DEFAULT_BUMP: auto
+          WITH_V: true
+
+      - name: Show New Version
+        run: echo "New version is ${{ steps.versioning.outputs.new_tag }}"
+
+      - name: Install Changelog Package
+        run: composer require consoletvs/changelog --dev
+
+      - name: Generate Changelog
+        run: php artisan changelog:generate
+
+      - name: Commit and Push Changelog
+        run: |
+          git config --global user.email "github-actions@github.com"
+          git config --global user.name "GitHub Actions"
+          git add CHANGELOG.md
+          git commit -m "chore(changelog): update changelog for $(git describe --tags --abbrev=0)"
+          git push origin main
+
+  deployment:
+    needs: [tag_release]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          password: ${{ secrets.EC2_PASSWORD }}
+          port: 22
+          script: |
+            # change to repo directory
+            cd /var/www/html/Reconcile-AI-BE
+
+            # pull changes
+            sudo git pull origin main
+
+            # install dependencies 
+            composer install --no-dev --prefer-dist --no-progress --no-interaction
+
+            # php artisan migrate --force # Apply DB migrations
+
+
+            # close server running on tmux session 1
+            tmux send-keys -t 1 C-c
+
+            # attach to session (tmux)
+            tmux attach -t 1
+
+            # start the server
+            php artisan serve --host=0.0.0.0 --port=8000
