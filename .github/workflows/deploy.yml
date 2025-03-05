@@ -47,11 +47,11 @@ jobs:
             # Step 3: Install dependencies
             composer install --no-interaction --prefer-dist
 
-            # Step 4: Close the server running in tmux session (session 1)
-            tmux send-keys -t 1 C-c
+            # Step 4: Kill the tmux session if it's running
+            tmux kill-session -t 1 || true
 
-            # Step 5: Restart the server in tmux session 1
-            tmux send-keys -t 1 'php artisan serve --host=0.0.0.0 --port=8000' Enter
+            # Step 5: Start a new tmux session and run the server
+            tmux new-session -d -s 1 'php artisan serve --host=0.0.0.0 --port=8000'
 
             # Step 6: Attach to tmux session 1 to see logs
             tmux attach -t 1
