@@ -38,20 +38,25 @@ jobs:
           password: ${{ secrets.SSH_PASSWORD }}
           port: 22
           script: |
-            # Step 1: Change to the project directory
+            # close server running on tmux session 1
+            tmux send-keys -t 1 C-c
+
+            # Detach
+            tmux detach
+
+            # change to repo
             cd /var/www/html/Reconcile-AI-BE
 
-            # Step 2: Pull the latest code from the repository
+            # pull changes
             git pull origin main
 
-            # Step 3: Install dependencies
+            # install dependencies
             composer install --no-interaction --prefer-dist
 
-            # Step 4: Kill the tmux session if it's running
-            tmux kill-session -t 1 || true
+            # php artisan migrate --force # Apply DB migrations
 
-            # Step 5: Start a new tmux session and run the server
-            tmux new-session -d -s 1 'php artisan serve --host=0.0.0.0 --port=8000'
-
-            # Step 6: Attach to tmux session 1 to see logs
+            # attach to session (tmux)
             tmux attach -t 1
+
+            # start the server
+            php artisan serve --host=0.0.0.0 --port=8000
