@@ -51,12 +51,6 @@ jobs:
             # Pull the latest changes
             git pull origin dev
 
-
-            #
-            cp .env.example .env
-            php artisan key:generate
-
-
             # Install Composer dependencies
             composer install --no-interaction --prefer-dist
 
@@ -64,6 +58,8 @@ jobs:
             # php artisan migrate --force
 
             # Start the Laravel server in tmux session 1
-            tmux send-keys -t 1 "php artisan serve --host=0.0.0.0 --port=8000" C-m
+            # tmux send-keys -t 1 "php artisan serve --host=0.0.0.0 --port=8000" C-m
+
+            sudo systemctl restart nginx
 
             echo "Deployment complete. Laravel server is running."
