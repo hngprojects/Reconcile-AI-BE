@@ -70,6 +70,23 @@ Update the `.env` file with your database and application settings.
 
 ---
 
+### Update Swagger Documentation
+
+
+Publish JWT & Swagger configuration files (only needed for first-time setup)
+```bash
+    php artisan vendor:publish --provider="Tymon\JWTAuth\Providers\LaravelServiceProvider"
+```
+```bash
+    php artisan vendor:publish --provider="L5Swagger\L5SwaggerServiceProvider"
+```
+
+Generate API documentation
+```bash
+    php artisan l5-swagger:generate
+```
+
+---
 ## Running the Application
 
 ### Start the Development Server
@@ -93,11 +110,6 @@ You can test API endpoints directly from Swagger using the **Try it out** featur
 ### Run Tests
 ```bash
     php artisan test
-```
-
-### Update Swagger Documentation
-```bash
-    php artisan l5-swagger:generate
 ```
 
 ---
