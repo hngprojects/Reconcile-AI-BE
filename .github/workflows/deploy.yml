@@ -51,7 +51,7 @@ jobs:
             tmux send-keys -t 1 C-c
 
             # Step 5: Restart the server in tmux session 1
-            tmux new-session -d -s 1 'php artisan serve --host=0.0.0.0 --port=8000'
+            tmux send-keys -t 1 'php artisan serve --host=0.0.0.0 --port=8000' Enter
 
             # Step 6: Attach to tmux session 1 to see logs
             tmux attach -t 1
