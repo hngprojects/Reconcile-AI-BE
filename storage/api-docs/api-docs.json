@@ -157,6 +157,78 @@
                     }
                 }
             }
+        },
+        "/api/v1/wait-list": {
+            "post": {
+                "tags": [
+                    "WaitList"
+                ],
+                "summary": "Add email to waitlist",
+                "description": "Adds a new email address to the wait list",
+                "operationId": "b186c1247e260332911484977fad8abb",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "email"
+                                ],
+                                "properties": {
+                                    "email": {
+                                        "description": "Email address to add to waitlist",
+                                        "type": "string",
+                                        "format": "email"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Successfully joined wait list",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Successfully joined wait list"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Email is required"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     },
     "components": {
@@ -180,6 +252,10 @@
         {
             "name": "Reconciliation",
             "description": "Reconciliation"
+        },
+        {
+            "name": "WaitList",
+            "description": "WaitList"
         }
     ]
 }
