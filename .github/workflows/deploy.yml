@@ -32,12 +32,13 @@ jobs:
           port: 22
           script: |
             echo "Starting Laravel deployment..."
-            sudo chmod +x /usr/local/bin/deploy_processor.sh
+            
+            # Start the deployment service (using explicit sudo with NOPASSWD permission)
             sudo systemctl daemon-reload
             sudo systemctl start laravel-deploy.service
+            
             echo "Deployment triggered, checking status..."
-            sleep 5
+            sleep 10
             sudo systemctl status laravel-deploy.service --no-pager
-            echo "Checking deployment log..."
-            sudo tail -n 20 /var/log/laravel-deploy.log
+            
             echo "Deployment process completed!"
