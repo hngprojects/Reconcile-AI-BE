@@ -70,4 +70,34 @@ class AuthController extends Controller
     {
         return $this->authService->login($request)->toJson();
     }
+
+    /**
+     * @OA\Post(
+     *     path="/api/auth/logout",
+     *     summary="User logout",
+     *     description="Logs out the authenticated user and invalidates the token",
+     *     tags={"Authentication"},
+     *     security={{ "bearerAuth":{} }},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Logout successful",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="code", type="integer", example=200),
+     *             @OA\Property(property="message", type="string", example="Logout successful")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthorized, token missing or invalid",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="code", type="integer", example=401),
+     *             @OA\Property(property="message", type="string", example="Unauthorized")
+     *         )
+     *     )
+     * )
+     */
+    public function logout(Request $request) : JsonResponse
+    {
+        return $this->authService->logout($request)->toJson();
+    }
 }
