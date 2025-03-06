@@ -10,6 +10,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch all history for proper versioning
+      
       - name: Bump version and push tag
         id: versioning
         uses: anothrNick/github-tag-action@1.71.0
@@ -23,6 +26,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      
       - name: Deploy to EC2
         uses: appleboy/ssh-action@v0.1.10
         with:
@@ -35,10 +39,15 @@ jobs:
             
             # Start the deployment service (using explicit sudo with NOPASSWD permission)
             sudo systemctl daemon-reload
-            sudo systemctl start laravel-deploy.service
+            sudo systemctl restart laravel-deploy.service
             
             echo "Deployment triggered, checking status..."
-            sleep 10
+            sleep 15
             sudo systemctl status laravel-deploy.service --no-pager
+            
+            # Verify the deployment was successful
+            echo "Checking that the correct version was deployed..."
+            cd /var/www/html/Reconcile-AI-BE
+            git rev-parse HEAD
             
             echo "Deployment process completed!"
