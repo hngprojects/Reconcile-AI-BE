@@ -10,7 +10,7 @@ use Illuminate\Http\JsonResponse;
 /**
  * @OA\Post(
  *     path="/api/v1/reconcile",
- *     summary="Reconcile two CSV",
+ *     summary="Reconcile two CSV or Excel files",
  *     description="Uploads two files, compares them based on detected name and amount columns, and returns matched/different records. You can choose to reconcile using AI or manually. Defaults to AI reconciliation if no option is provided.",
  *     tags={"Reconciliation"},
  *     @OA\RequestBody(
@@ -19,12 +19,12 @@ use Illuminate\Http\JsonResponse;
  *             mediaType="multipart/form-data",
  *             @OA\Schema(
  *                 required={"file1", "file2"},
- *                 @OA\Property(property="file1", type="string", format="binary", description="First CSV"),
- *                 @OA\Property(property="file2", type="string", format="binary", description="Second CSV"),
+ *                 @OA\Property(property="file1", type="string", format="binary", description="First CSV or Excel file"),
+ *                 @OA\Property(property="file2", type="string", format="binary", description="Second CSV or Excel file"),
  *                 @OA\Property(
  *                     property="reconcile_option", 
  *                     type="string", 
- *                     enum={"reconcile_with_Gemini", "reconcile_with_recox_ai", "reconcile_with_openAI","reconcile_with_deepSeek"},
+ *                     enum={"reconcile_with_recox_ai", "reconcile_with_openAI","reconcile_with_deepSeek","reconcile_with_Gemini"},
  *                     description="Reconciliation method. Defaults to AI if not provided."
  *                 )
  *             )
