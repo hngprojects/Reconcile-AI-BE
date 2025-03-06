@@ -9,7 +9,7 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: hng12interns
 
     services:
       postgres:
@@ -51,12 +51,6 @@ jobs:
           echo "DB_DATABASE=test_db" >> .env
           echo "DB_USERNAME=test_user" >> .env
           echo "DB_PASSWORD=test_pass" >> .env
-
-      - name: Run Database Migrations
-        run: php artisan migrate --force
-
-      # - name: Generate Application Key
-      #   run: php artisan key:generate
 
       - name: Run Database Migrations
         run: php artisan migrate --force
