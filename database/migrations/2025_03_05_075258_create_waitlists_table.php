@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('wait_lists', function (Blueprint $table) {
+        Schema::create('waitlists', function (Blueprint $table) {
             $table->id();
             $table->string('email')->unique();
             $table->timestamps();
@@ -17,6 +17,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('wait_lists');
+        Schema::dropIfExists('waitlists');
     }
 };
