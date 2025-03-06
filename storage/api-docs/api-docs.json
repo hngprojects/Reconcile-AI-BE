@@ -13,7 +13,7 @@
         "/api/auth/login": {
             "post": {
                 "tags": [
-                    "Auth"
+                    "Authentication"
                 ],
                 "summary": "User login",
                 "description": "Authenticates a user and returns a JWT token",
@@ -172,7 +172,7 @@
                     "Reconciliation"
                 ],
                 "summary": "Reconcile two CSV files",
-                "description": "Uploads two CSV files, compares them based on a key column, and returns matched/different records.",
+                "description": "Uploads two CSV files and returns reconciled records.",
                 "operationId": "47cda2733290d3ed5e6ef36ed538bbd2",
                 "requestBody": {
                     "required": true,
@@ -180,24 +180,19 @@
                         "multipart/form-data": {
                             "schema": {
                                 "required": [
-                                    "file1",
-                                    "file2",
-                                    "key_column"
+                                    "bank_statement",
+                                    "company_ledger"
                                 ],
                                 "properties": {
-                                    "file1": {
+                                    "bank_statement": {
                                         "description": "First CSV file",
                                         "type": "string",
                                         "format": "binary"
                                     },
-                                    "file2": {
+                                    "company_ledger": {
                                         "description": "Second CSV file",
                                         "type": "string",
                                         "format": "binary"
-                                    },
-                                    "key_column": {
-                                        "description": "The column used for reconciliation",
-                                        "type": "string"
                                     }
                                 },
                                 "type": "object"
@@ -212,30 +207,73 @@
                             "application/json": {
                                 "schema": {
                                     "properties": {
-                                        "matches": {
-                                            "description": "Number of matched rows",
+                                        "message": {
+                                            "description": "Response message",
+                                            "type": "string"
+                                        },
+                                        "status": {
+                                            "description": "Response status",
+                                            "type": "string"
+                                        },
+                                        "status_code": {
+                                            "description": "Response status code",
                                             "type": "integer"
                                         },
-                                        "differences": {
-                                            "description": "Differences between files",
-                                            "type": "array",
-                                            "items": {
-                                                "type": "object"
-                                            }
-                                        },
-                                        "only_in_file1": {
-                                            "description": "Rows only in first file",
-                                            "type": "array",
-                                            "items": {
-                                                "type": "object"
-                                            }
-                                        },
-                                        "only_in_file2": {
-                                            "description": "Rows only in second file",
-                                            "type": "array",
-                                            "items": {
-                                                "type": "object"
-                                            }
+                                        "data": {
+                                            "properties": {
+                                                "reconciliationSummary": {
+                                                    "description": "Summary of reconciliation results",
+                                                    "properties": {
+                                                        "totalMatchedTransactions": {
+                                                            "description": "Number of matched transactions",
+                                                            "type": "integer"
+                                                        },
+                                                        "totalUnmatchedTransactions": {
+                                                            "description": "Number of unmatched transactions",
+                                                            "type": "integer"
+                                                        },
+                                                        "accuracyRate": {
+                                                            "description": "Percentage of accuracy",
+                                                            "type": "number",
+                                                            "format": "float"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                },
+                                                "matchedTransactions": {
+                                                    "description": "List of matched transactions",
+                                                    "type": "array",
+                                                    "items": {
+                                                        "properties": {
+                                                            "bank_statement": {
+                                                                "description": "Transaction data from bank statement",
+                                                                "type": "object",
+                                                                "example": {
+                                                                    "Date": "2025-01-01",
+                                                                    "Description": "Payment",
+                                                                    "Amount": 1000
+                                                                }
+                                                            },
+                                                            "company_ledger": {
+                                                                "description": "Transaction data from company ledger",
+                                                                "type": "object",
+                                                                "example": {
+                                                                    "Date": "2025-01-01",
+                                                                    "Description": "Payment",
+                                                                    "Amount": 1000
+                                                                }
+                                                            },
+                                                            "status": {
+                                                                "description": "Match status",
+                                                                "type": "string",
+                                                                "example": "matched"
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
                                         }
                                     },
                                     "type": "object"
@@ -243,8 +281,33 @@
                             }
                         }
                     },
-                    "400": {
-                        "description": "Validation or processing error"
+                    "422": {
+                        "description": "Validation or processing error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "description": "Error message",
+                                            "type": "string"
+                                        },
+                                        "errors": {
+                                            "description": "Detailed validation errors",
+                                            "type": "object",
+                                            "example": {
+                                                "bank_statement": [
+                                                    "The bank statement file is required."
+                                                ],
+                                                "company_ledger": [
+                                                    "The company ledger file is required."
+                                                ]
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -333,8 +396,8 @@
     },
     "tags": [
         {
-            "name": "Auth",
-            "description": "Auth"
+            "name": "Authentication",
+            "description": "Authentication"
         },
         {
             "name": "Home",
