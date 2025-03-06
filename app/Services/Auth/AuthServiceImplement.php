@@ -45,4 +45,18 @@ class AuthServiceImplement extends ServiceApi implements AuthService
                 ->setError($e->getMessage());
         }
     }
+
+    public function logout($request)
+    {
+        try {
+            JWTAuth::parseToken()->invalidate();
+
+            return $this->setCode(200)
+                ->setMessage("Logout Success");
+        } catch (\Exception $e) {
+            return $this->setCode(400)
+                ->setMessage("Logout Failed")
+                ->setError($e->getMessage());
+        }
+    }
 }
