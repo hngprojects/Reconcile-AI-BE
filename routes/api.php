@@ -18,7 +18,7 @@ Route::prefix('v1')->group(function () {
         // Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('reset-password');
         // Route::post('/verify-email', [AuthController::class, 'verifyEmail'])->name('verify-email');
         // Route::post('/resend-verification-email', [AuthController::class, 'resendVerificationEmail'])->name('resend-verification-email');
-        Route::post('/logout', [AuthController::class, 'logout'])->withoutMiddleware('guest')->middleware('auth:sanctum')->name('logout');
+        Route::post('/logout', [AuthController::class, 'logout'])->withoutMiddleware('guest')->middleware('jwt.auth')->name('logout');
     });
 
     Route::post('/reconcile', [ReconciliationController::class, 'reconcile']);
