@@ -1,0 +1,62 @@
+name: Testing
+
+on:
+  pull_request:
+    branches:
+      - dev
+      - main
+    types: [opened, synchronize]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: test_db
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_pass
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U test_user -d test_db"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.2"
+          extensions: mbstring, xml, ctype, json, pdo, bcmath, pgsql, pdo_pgsql, zip, apcu
+
+      - name: Install Laravel dependencies
+        run: |
+          composer install --no-progress --prefer-dist --no-interaction
+
+      - name: Set environment variables for CI
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+          php artisan jwt:secret
+          echo "APP_KEY=${{ secrets.APP_KEY }}" >> .env
+          echo "DB_CONNECTION=pgsql" >> .env
+          echo "DB_HOST=localhost" >> .env
+          echo "DB_PORT=5432" >> .env
+          echo "DB_DATABASE=test_db" >> .env
+          echo "DB_USERNAME=test_user" >> .env
+          echo "DB_PASSWORD=test_pass" >> .env
+
+      - name: Run Database Migrations
+        run: php artisan migrate --force
+
+      - name: Run Database Migrations
+        run: php artisan migrate --force
+
+      - name: Run Laravel tests
+        run: php artisan test

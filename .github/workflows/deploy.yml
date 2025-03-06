@@ -1,0 +1,53 @@
+name: Deployment
+
+on:
+  push:
+    branches:
+      - dev
+
+jobs:
+  tag_release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch all history for proper versioning
+      
+      - name: Bump version and push tag
+        id: versioning
+        uses: anothrNick/github-tag-action@1.71.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DEFAULT_BUMP: auto
+          WITH_V: true
+
+  deployment:
+    needs: [tag_release]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.SSH_SERVER }}
+          username: ${{ secrets.SSH_USERNAME }}
+          password: ${{ secrets.SSH_PASSWORD }}
+          port: 22
+          script: |
+            echo "Starting Laravel deployment..."
+            
+            # Start the deployment service (using explicit sudo with NOPASSWD permission)
+            sudo systemctl daemon-reload
+            sudo systemctl restart laravel-deploy.service
+            
+            echo "Deployment triggered, checking status..."
+            sleep 15
+            sudo systemctl status laravel-deploy.service --no-pager
+            
+            # Verify the deployment was successful
+            echo "Checking that the correct version was deployed..."
+            cd /var/www/html/Reconcile-AI-BE
+            git rev-parse HEAD
+            
+            echo "Deployment process completed!"
