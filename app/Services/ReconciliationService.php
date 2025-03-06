@@ -57,6 +57,7 @@ class ReconciliationService
    "         },\n" .
    "         \"company_ledger\": {\n" .
    "           \"description\": \"\",\n" .
+   "           \"date\": \"\",\n" .
    "           \"amount\": \"\"\n" .
    "         }\n" .
    "       },\n" .
@@ -72,6 +73,7 @@ class ReconciliationService
    "         },\n" .
    "         \"company_ledger\": {\n" .
    "           \"description\": \"\",\n" .
+   "           \"date\": \"\",\n" .
    "           \"amount\": \"\"\n" .
    "         }\n" .
    "       },\n" .
