@@ -41,6 +41,9 @@ jobs:
             git pull origin main
 
             composer install --no-interaction --prefer-dist --no-dev
+            php artisan jwt:secret
+
+            php artisan optimize:clear
 
             php artisan migrate --force
             sudo systemctl restart nginx

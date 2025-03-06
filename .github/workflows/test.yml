@@ -55,8 +55,5 @@ jobs:
       - name: Run Database Migrations
         run: php artisan migrate --force
 
-      - name: Run Database Migrations
-        run: php artisan migrate --force
-
       - name: Run Laravel tests
         run: php artisan test
