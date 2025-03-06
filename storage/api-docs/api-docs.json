@@ -10,14 +10,14 @@
         }
     ],
     "paths": {
-        "/api/auth/login": {
+        "/api/v1/auth/login": {
             "post": {
                 "tags": [
                     "Authentication"
                 ],
                 "summary": "User login",
                 "description": "Authenticates a user and returns a JWT token",
-                "operationId": "dd51a484b7fa0f97c7680fdbde14cf5f",
+                "operationId": "fb66b153966d9fac2e999136ef0ade67",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -171,7 +171,7 @@
                 "tags": [
                     "Reconciliation"
                 ],
-                "summary": "Reconcile two CSV",
+                "summary": "Reconcile two CSV or Excel files",
                 "description": "Uploads two files, compares them based on detected name and amount columns, and returns matched/different records. You can choose to reconcile using AI or manually. Defaults to AI reconciliation if no option is provided.",
                 "operationId": "47cda2733290d3ed5e6ef36ed538bbd2",
                 "requestBody": {
@@ -185,12 +185,12 @@
                                 ],
                                 "properties": {
                                     "file1": {
-                                        "description": "First CSV",
+                                        "description": "First CSV or Excel file",
                                         "type": "string",
                                         "format": "binary"
                                     },
                                     "file2": {
-                                        "description": "Second CSV",
+                                        "description": "Second CSV or Excel file",
                                         "type": "string",
                                         "format": "binary"
                                     },
@@ -198,10 +198,10 @@
                                         "description": "Reconciliation method. Defaults to AI if not provided.",
                                         "type": "string",
                                         "enum": [
-                                            "reconcile_with_Gemini",
                                             "reconcile_with_recox_ai",
                                             "reconcile_with_openAI",
-                                            "reconcile_with_deepSeek"
+                                            "reconcile_with_deepSeek",
+                                            "reconcile_with_Gemini"
                                         ]
                                     }
                                 },
