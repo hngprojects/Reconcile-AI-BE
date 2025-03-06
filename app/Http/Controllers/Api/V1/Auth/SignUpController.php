@@ -103,7 +103,6 @@ class SignUpController extends Controller
             
         } catch (\Throwable $th) {
             //throw $th;
-            print($th);
             DB::rollBack();
             return response()->json([
                 'status_code' => 500,
