@@ -21,6 +21,12 @@ class AuthServiceImplement extends ServiceApi implements AuthService
         $this->mainRepository = $mainRepository;
     }
 
+    /**
+     * Handles the login process for the application.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function login($request)
     {
         try {
@@ -46,6 +52,12 @@ class AuthServiceImplement extends ServiceApi implements AuthService
         }
     }
 
+    /**
+     * Handles the logout process for the application.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function logout($request)
     {
         try {
