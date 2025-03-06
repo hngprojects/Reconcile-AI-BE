@@ -13,7 +13,7 @@
         "/api/auth/login": {
             "post": {
                 "tags": [
-                    "Auth"
+                    "Authentication"
                 ],
                 "summary": "User login",
                 "description": "Authenticates a user and returns a JWT token",
@@ -128,6 +128,176 @@
                                         "error": {
                                             "type": "string",
                                             "example": "Invalid email format"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/newsletter/subscribe": {
+            "post": {
+                "tags": [
+                    "Newsletter"
+                ],
+                "summary": "Subscribe to the newsletter",
+                "description": "Allows a user to subscribe to the newsletter.",
+                "operationId": "subscribeNewsletter",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "email"
+                                ],
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "user@example.com"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Subscription successful",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "code": {
+                                            "type": "integer",
+                                            "example": 200
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Subscription Successful"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "email": {
+                                                    "type": "string",
+                                                    "example": "user@example.com"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "The email field is required."
+                                        },
+                                        "errors": {
+                                            "properties": {
+                                                "email": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string",
+                                                        "example": "The email must be a valid email address."
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/newsletter/unsubscribe": {
+            "post": {
+                "tags": [
+                    "Newsletter"
+                ],
+                "summary": "Unsubscribe from the newsletter",
+                "description": "Allows a user to unsubscribe from the newsletter.",
+                "operationId": "unsubscribeNewsletter",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "email"
+                                ],
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "user@example.com"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Unsubscription successful",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "code": {
+                                            "type": "integer",
+                                            "example": 200
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Unsubscribed Successfully"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "email": {
+                                                    "type": "string",
+                                                    "example": "user@example.com"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Unsubscription failed (email not found)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "code": {
+                                            "type": "integer",
+                                            "example": 400
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Unsubscription Failed"
                                         }
                                     },
                                     "type": "object"
@@ -333,8 +503,12 @@
     },
     "tags": [
         {
-            "name": "Auth",
-            "description": "Auth"
+            "name": "Authentication",
+            "description": "Authentication"
+        },
+        {
+            "name": "Newsletter",
+            "description": "Newsletter"
         },
         {
             "name": "Home",
