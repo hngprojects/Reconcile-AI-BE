@@ -80,7 +80,7 @@ class ReconciliationController extends Controller
                 return response()->json(['error' => 'One or both files are not in the correct format.'], 422);
             }
 
-            $reconcileOption = $request->input('reconcile_option', 'reconcile_with_recox_ai');
+            $reconcileOption = $request->input('reconcile_option', 'reconcile_with_Gemini');
 
             switch ($reconcileOption) {
                 case 'reconcile_with_recox_ai':
@@ -97,7 +97,7 @@ class ReconciliationController extends Controller
                     break;
                 case 'reconcile_manually':
                 default:
-                    $result = $this->reconciliationService->reconcileWithRecox($file1FullPath, $file2FullPath);
+                    $result = $this->reconciliationService->reconcileWithGemini($file1FullPath, $file2FullPath);
                     break;
             }
 
