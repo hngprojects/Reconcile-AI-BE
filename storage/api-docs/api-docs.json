@@ -80,8 +80,8 @@
                 "tags": [
                     "Reconciliation"
                 ],
-                "summary": "Reconcile two CSV files",
-                "description": "Uploads two CSV files, compares them based on a key column, and returns matched/different records.",
+                "summary": "Reconcile two CSV or Excel files",
+                "description": "Uploads two files, compares them based on detected name and amount columns, and returns matched/different records. You can choose to reconcile using AI or manually. Defaults to AI reconciliation if no option is provided.",
                 "operationId": "47cda2733290d3ed5e6ef36ed538bbd2",
                 "requestBody": {
                     "required": true,
@@ -90,23 +90,28 @@
                             "schema": {
                                 "required": [
                                     "file1",
-                                    "file2",
-                                    "key_column"
+                                    "file2"
                                 ],
                                 "properties": {
                                     "file1": {
-                                        "description": "First CSV file",
+                                        "description": "First CSV or Excel file",
                                         "type": "string",
                                         "format": "binary"
                                     },
                                     "file2": {
-                                        "description": "Second CSV file",
+                                        "description": "Second CSV or Excel file",
                                         "type": "string",
                                         "format": "binary"
                                     },
-                                    "key_column": {
-                                        "description": "The column used for reconciliation",
-                                        "type": "string"
+                                    "reconcile_option": {
+                                        "description": "Reconciliation method. Defaults to AI if not provided.",
+                                        "type": "string",
+                                        "enum": [
+                                            "reconcile_with_recox_ai",
+                                            "reconcile_with_openAI",
+                                            "reconcile_with_deepSeek",
+                                            "reconcile_with_Gemini"
+                                        ]
                                     }
                                 },
                                 "type": "object"
@@ -121,30 +126,33 @@
                             "application/json": {
                                 "schema": {
                                     "properties": {
-                                        "matches": {
-                                            "description": "Number of matched rows",
-                                            "type": "integer"
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Reconciliation successful"
                                         },
-                                        "differences": {
-                                            "description": "Differences between files",
-                                            "type": "array",
-                                            "items": {
-                                                "type": "object"
-                                            }
-                                        },
-                                        "only_in_file1": {
-                                            "description": "Rows only in first file",
-                                            "type": "array",
-                                            "items": {
-                                                "type": "object"
-                                            }
-                                        },
-                                        "only_in_file2": {
-                                            "description": "Rows only in second file",
-                                            "type": "array",
-                                            "items": {
-                                                "type": "object"
-                                            }
+                                        "data": {
+                                            "properties": {
+                                                "matches": {
+                                                    "description": "Number of matched rows",
+                                                    "type": "integer",
+                                                    "example": 5
+                                                },
+                                                "only_in_file1": {
+                                                    "description": "Rows only in first file",
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object"
+                                                    }
+                                                },
+                                                "only_in_file2": {
+                                                    "description": "Rows only in second file",
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object"
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
                                         }
                                     },
                                     "type": "object"
@@ -154,6 +162,9 @@
                     },
                     "400": {
                         "description": "Validation or processing error"
+                    },
+                    "422": {
+                        "description": "Invalid file format"
                     }
                 }
             }

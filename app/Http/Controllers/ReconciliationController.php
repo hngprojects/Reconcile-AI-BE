@@ -10,18 +10,23 @@ use Illuminate\Http\JsonResponse;
 /**
  * @OA\Post(
  *     path="/api/v1/reconcile",
- *     summary="Reconcile two CSV files",
- *     description="Uploads two CSV files, compares them based on a key column, and returns matched/different records.",
+ *     summary="Reconcile two CSV or Excel files",
+ *     description="Uploads two files, compares them based on detected name and amount columns, and returns matched/different records. You can choose to reconcile using AI or manually. Defaults to AI reconciliation if no option is provided.",
  *     tags={"Reconciliation"},
  *     @OA\RequestBody(
  *         required=true,
  *         @OA\MediaType(
  *             mediaType="multipart/form-data",
  *             @OA\Schema(
- *                 required={"file1", "file2", "key_column"},
- *                 @OA\Property(property="file1", type="string", format="binary", description="First CSV file"),
- *                 @OA\Property(property="file2", type="string", format="binary", description="Second CSV file"),
- *                 @OA\Property(property="key_column", type="string", description="The column used for reconciliation")
+ *                 required={"file1", "file2"},
+ *                 @OA\Property(property="file1", type="string", format="binary", description="First CSV or Excel file"),
+ *                 @OA\Property(property="file2", type="string", format="binary", description="Second CSV or Excel file"),
+ *                 @OA\Property(
+ *                     property="reconcile_option", 
+ *                     type="string", 
+ *                     enum={"reconcile_with_recox_ai", "reconcile_with_openAI","reconcile_with_deepSeek","reconcile_with_Gemini"},
+ *                     description="Reconciliation method. Defaults to AI if not provided."
+ *                 )
  *             )
  *         )
  *     ),
@@ -29,15 +34,19 @@ use Illuminate\Http\JsonResponse;
  *         response=200,
  *         description="Reconciliation successful",
  *         @OA\JsonContent(
- *             @OA\Property(property="matches", type="integer", description="Number of matched rows"),
- *             @OA\Property(property="differences", type="array", @OA\Items(type="object"), description="Differences between files"),
- *             @OA\Property(property="only_in_file1", type="array", @OA\Items(type="object"), description="Rows only in first file"),
- *             @OA\Property(property="only_in_file2", type="array", @OA\Items(type="object"), description="Rows only in second file")
+ *             @OA\Property(property="message", type="string", example="Reconciliation successful"),
+ *             @OA\Property(property="data", type="object",
+ *                 @OA\Property(property="matches", type="integer", example=5, description="Number of matched rows"),
+ *                 @OA\Property(property="only_in_file1", type="array", @OA\Items(type="object"), description="Rows only in first file"),
+ *                 @OA\Property(property="only_in_file2", type="array", @OA\Items(type="object"), description="Rows only in second file")
+ *             )
  *         )
  *     ),
- *     @OA\Response(response=400, description="Validation or processing error")
+ *     @OA\Response(response=400, description="Validation or processing error"),
+ *     @OA\Response(response=422, description="Invalid file format")
  * )
  */
+
 class ReconciliationController extends Controller
 {
     protected $reconciliationService;
@@ -52,16 +61,16 @@ class ReconciliationController extends Controller
         $request->validate([
             'file1' => 'required|file|mimes:csv,xlsx,xls',
             'file2' => 'required|file|mimes:csv,xlsx,xls',
-            'key_column' => 'required|string',
+            'reconcile_option' => 'nullable|in:reconcile_with_recox_ai,reconcile_with_openAI,reconcile_with_deepSeek,reconcile_with_Gemini',
         ], [
             'file1.mimes' => 'File 1 must be a CSV or Excel file.',
             'file2.mimes' => 'File 2 must be a CSV or Excel file.',
+            'reconcile_option' => 'nullable|in:reconcile_with_recox_ai,reconcile_with_openAI,reconcile_with_deepSeek,reconcile_with_Gemini',
         ]);
 
         try {
             $file1Path = $request->file('file1')->store('uploads');
             $file2Path = $request->file('file2')->store('uploads');
-            $keyColumn = $request->input('key_column');
 
             $file1FullPath = Storage::path($file1Path);
             $file2FullPath = Storage::path($file2Path);
@@ -71,11 +80,35 @@ class ReconciliationController extends Controller
                 return response()->json(['error' => 'One or both files are not in the correct format.'], 422);
             }
 
-            $result = $this->reconciliationService->reconcileFiles($file1FullPath, $file2FullPath, $keyColumn);
+            $reconcileOption = $request->input('reconcile_option', 'reconcile_with_Gemini');
+
+            switch ($reconcileOption) {
+                case 'reconcile_with_recox_ai':
+                    $result = $this->reconciliationService->reconcileWithRecox($file1FullPath, $file2FullPath);
+                    break;
+                case 'reconcile_with_openAI':
+                    $result = $this->reconciliationService->reconcileWithOpenAI($file1FullPath, $file2FullPath);
+                    break;
+                case 'reconcile_with_deepSeek':
+                    $result = $this->reconciliationService->reconcileWithDeepSeek($file1FullPath, $file2FullPath);
+                    break;
+                case 'reconcile_with_Gemini':
+                    $result = $this->reconciliationService->reconcileWithGemini($file1FullPath, $file2FullPath);
+                    break;
+                case 'reconcile_manually':
+                default:
+                    $result = $this->reconciliationService->reconcileWithGemini($file1FullPath, $file2FullPath);
+                    break;
+            }
 
             Storage::delete([$file1Path, $file2Path]);
 
-            return response()->json(['message' => 'Reconciliation successful', 'data' => $result], 200);
+            return response()->json([
+                "message" => "Reconciliation successful",
+                "status" => "success",
+                "status_code" => 200,
+                'data' => $result
+            ], 200);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 400);
         }
