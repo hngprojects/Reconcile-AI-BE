@@ -17,11 +17,12 @@ jobs:
           POSTGRES_DB: test_db
     steps:
       - checkout
+      
       - run:
           name: Install Dependencies
           command: |
-            sudo apt update && sudo apt install -y unzip libpq-dev
-            composer install --no-progress --prefer-dist --no-interaction
+            composer install --no-progress --prefer-dist --no-interaction --no-scripts --no-suggest
+
       - run:
           name: Set Up Environment Variables
           command: |
@@ -34,9 +35,20 @@ jobs:
             echo "DB_DATABASE=test_db" >> .env
             echo "DB_USERNAME=test_user" >> .env
             echo "DB_PASSWORD=test_pass" >> .env
+
+      - restore_cache:
+          keys:
+            - composer-v1-{{ checksum "composer.lock" }}
+
+      - save_cache:
+          paths:
+            - vendor
+          key: composer-v1-{{ checksum "composer.lock" }}
+
       - run:
           name: Run Database Migrations
           command: php artisan migrate --force
+
       - run:
           name: Run Laravel Tests
           command: php artisan test
@@ -48,17 +60,19 @@ jobs:
       - add_ssh_keys:
           fingerprints:
             - "SHA256:zvuo567ZQyOTTi0BDMRoal+EAjVFaY3OTvTptn1QNGA"
+
       - run:
           name: Deploy Laravel App
           command: |
-            ssh -o StrictHostKeyChecking=no $SSH_USERNAME@$SSH_SERVER '\<<EOF'
-            echo "Starting Laravel deployment..."
-            sudo systemctl daemon-reload
-            sudo systemctl restart laravel-deploy.service
-            echo "Deployment process completed!"
-            EOF
+            ssh -o StrictHostKeyChecking=no $SSH_USERNAME@$SSH_SERVER "bash -c '
+              echo \"Starting Laravel deployment...\";
+              sudo systemctl daemon-reload;
+              sudo systemctl restart laravel-deploy.service;
+              echo \"Deployment process completed!\";
+            '"
 
 workflows:
+  version: 2
   test_and_deploy:
     jobs:
       - test
