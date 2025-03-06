@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\WaitListController;
+use App\Http\Controllers\Api\NewsLetterController;
 use App\Http\Controllers\ReconciliationController;
 
 Route::prefix('v1')->group(function () {
@@ -19,6 +20,11 @@ Route::prefix('v1')->group(function () {
         // Route::post('/verify-email', [AuthController::class, 'verifyEmail'])->name('verify-email');
         // Route::post('/resend-verification-email', [AuthController::class, 'resendVerificationEmail'])->name('resend-verification-email');
         // Route::post('/logout', [AuthController::class, 'logout'])->withoutMiddleware('guest')->middleware('auth:sanctum')->name('logout');
+    });
+
+    Route::prefix('newsletter')->name('newsletter.')->group(function () {
+        Route::post('/subscribe', [NewsLetterController::class, 'subscribe'])->name('subscribe');
+        Route::post('/unsubscribe', [NewsLetterController::class, 'unsubscribe'])->name('unsubscribe');
     });
 
     Route::post('/reconcile', [ReconciliationController::class, 'reconcile']);
