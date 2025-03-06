@@ -13,7 +13,7 @@
         "/api/auth/login": {
             "post": {
                 "tags": [
-                    "Auth"
+                    "Authentication"
                 ],
                 "summary": "User login",
                 "description": "Authenticates a user and returns a JWT token",
@@ -136,6 +136,63 @@
                         }
                     }
                 }
+            }
+        },
+        "/api/v1/auth/logout": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "User logout",
+                "description": "Logs out the authenticated user and invalidates the token",
+                "operationId": "307ed0512855922b2280792376bb2095",
+                "responses": {
+                    "200": {
+                        "description": "Logout successful",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "code": {
+                                            "type": "integer",
+                                            "example": 200
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Logout successful"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized, token missing or invalid",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "code": {
+                                            "type": "integer",
+                                            "example": 401
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Unauthorized"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
             }
         },
         "/api/v1": {
@@ -333,8 +390,8 @@
     },
     "tags": [
         {
-            "name": "Auth",
-            "description": "Auth"
+            "name": "Authentication",
+            "description": "Authentication"
         },
         {
             "name": "Home",
