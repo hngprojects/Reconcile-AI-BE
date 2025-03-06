@@ -13,7 +13,7 @@ Route::prefix('v1')->group(function () {
     });
 
     Route::prefix('auth')->middleware('guest')->name('auth.')->group(function () {
-        Route::post('/sign-up', [SignUpController::class, 'store']);
+        Route::post('/sign-up', [AuthController::class, 'signUp']);
         Route::post('/login', [AuthController::class, 'login'])->name('login');
         // Route::post('/register', [AuthController::class, 'register'])->name('register');
         // Route::post('/forgot-password', [AuthController::class, 'forgotPassword'])->name('forgot-password');

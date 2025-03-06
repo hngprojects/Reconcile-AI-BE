@@ -70,4 +70,9 @@ class AuthController extends Controller
     {
         return $this->authService->login($request)->toJson();
     }
+
+    public function signUp(Request $request): JsonResponse
+    {
+        return $this->authService->signUp($request);
+    }
 }
