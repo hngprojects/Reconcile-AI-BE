@@ -81,7 +81,7 @@
                     "Reconciliation"
                 ],
                 "summary": "Reconcile two CSV or Excel files",
-                "description": "Uploads two files, compares based on detected name and amount columns, and returns matched/different records.",
+                "description": "Uploads two files, compares them based on detected name and amount columns, and returns matched/different records. You can choose to reconcile using AI or manually. Defaults to AI reconciliation if no option is provided.",
                 "operationId": "47cda2733290d3ed5e6ef36ed538bbd2",
                 "requestBody": {
                     "required": true,
@@ -102,6 +102,16 @@
                                         "description": "Second CSV or Excel file",
                                         "type": "string",
                                         "format": "binary"
+                                    },
+                                    "reconcile_option": {
+                                        "description": "Reconciliation method. Defaults to AI if not provided.",
+                                        "type": "string",
+                                        "enum": [
+                                            "reconcile_with_recox_ai",
+                                            "reconcile_with_openAI",
+                                            "reconcile_with_deepSeek",
+                                            "reconcile_with_Gemini"
+                                        ]
                                     }
                                 },
                                 "type": "object"
@@ -116,23 +126,33 @@
                             "application/json": {
                                 "schema": {
                                     "properties": {
-                                        "matches": {
-                                            "description": "Number of matched rows",
-                                            "type": "integer"
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Reconciliation successful"
                                         },
-                                        "only_in_file1": {
-                                            "description": "Rows only in first file",
-                                            "type": "array",
-                                            "items": {
-                                                "type": "object"
-                                            }
-                                        },
-                                        "only_in_file2": {
-                                            "description": "Rows only in second file",
-                                            "type": "array",
-                                            "items": {
-                                                "type": "object"
-                                            }
+                                        "data": {
+                                            "properties": {
+                                                "matches": {
+                                                    "description": "Number of matched rows",
+                                                    "type": "integer",
+                                                    "example": 5
+                                                },
+                                                "only_in_file1": {
+                                                    "description": "Rows only in first file",
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object"
+                                                    }
+                                                },
+                                                "only_in_file2": {
+                                                    "description": "Rows only in second file",
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object"
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
                                         }
                                     },
                                     "type": "object"
@@ -142,6 +162,9 @@
                     },
                     "400": {
                         "description": "Validation or processing error"
+                    },
+                    "422": {
+                        "description": "Invalid file format"
                     }
                 }
             }
