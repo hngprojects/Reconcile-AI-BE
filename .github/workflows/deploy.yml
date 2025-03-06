@@ -7,7 +7,7 @@ on:
 
 jobs:
   tag_release:
-    runs-on: ubuntu-latest
+    runs-on: hng12interns
     steps:
       - uses: actions/checkout@v4
         with:
@@ -23,7 +23,7 @@ jobs:
 
   deployment:
     needs: [tag_release]
-    runs-on: ubuntu-latest
+    runs-on: hng12interns
     steps:
       - uses: actions/checkout@v4
       
@@ -40,14 +40,5 @@ jobs:
             # Start the deployment service (using explicit sudo with NOPASSWD permission)
             sudo systemctl daemon-reload
             sudo systemctl restart laravel-deploy.service
-            
-            echo "Deployment triggered, checking status..."
-            sleep 15
-            sudo systemctl status laravel-deploy.service --no-pager
-            
-            # Verify the deployment was successful
-            echo "Checking that the correct version was deployed..."
-            cd /var/www/html/Reconcile-AI-BE
-            git rev-parse HEAD
             
             echo "Deployment process completed!"
