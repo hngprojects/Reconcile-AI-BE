@@ -4,17 +4,426 @@ namespace Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
+use App\Services\ReconciliationService;
+use Mockery;
 
 class ReconciliationTest extends TestCase
 {
-    /**
-     * A basic feature test example.
-     */
-    public function test_example(): void
+    use RefreshDatabase, WithFaker;
+
+    protected function setUp(): void
     {
-        $response = $this->get('/');
+        parent::setUp();
+        Storage::fake('local');
+    }
+
+    public function test_reconcile_with_gemini_returns_successful_response(): void
+    {
+        $mockService = Mockery::mock(ReconciliationService::class);
+        $mockService->shouldReceive('reconcileWithGemini')
+            ->once()
+            ->andReturn([
+                'matches' => [
+                    [
+                        'file1_transaction' => ['name' => 'John Doe', 'amount' => 100],
+                        'file2_transaction' => ['name' => 'Doe John', 'amount' => 100],
+                        'match_score' => 95
+                    ]
+                ],
+                'only_in_file1' => [['name' => 'Alice Brown', 'amount' => 300]],
+                'only_in_file2' => [['name' => 'Bob Martin', 'amount' => 400]],
+                'unmatched' => [
+                    'unmatched_file1' => [['name' => 'Alice Brown', 'amount' => 300]],
+                    'unmatched_file2' => [['name' => 'Bob Martin', 'amount' => 400]]
+                ],
+                'matchSummary' => [
+                    'totalMatched' => 1,
+                    'totalUnmatchedFile1' => 1,
+                    'totalUnmatchedFile2' => 1,
+                    'totalUnmatched' => 2
+                ]
+            ]);
+        $this->app->instance(ReconciliationService::class, $mockService);
+
+        $file1 = UploadedFile::fake()->create('file1.csv', 100);
+        $file2 = UploadedFile::fake()->create('file2.csv', 100);
+
+        $response = $this->postJson('/api/v1/reconcile', [
+            'file1' => $file1,
+            'file2' => $file2,
+            'reconcile_option' => 'reconcile_with_Gemini'
+        ]);
+
+        $response->assertStatus(200)
+            ->assertJson([
+                'message' => 'Reconciliation successful',
+                'status' => 'success',
+                'status_code' => 200,
+                'data' => [
+                    'matches' => [
+                        [
+                            'file1_transaction' => ['name' => 'John Doe', 'amount' => 100],
+                            'file2_transaction' => ['name' => 'Doe John', 'amount' => 100],
+                            'match_score' => 95
+                        ]
+                    ],
+                    'only_in_file1' => [['name' => 'Alice Brown', 'amount' => 300]],
+                    'only_in_file2' => [['name' => 'Bob Martin', 'amount' => 400]],
+                    'unmatched' => [
+                        'unmatched_file1' => [['name' => 'Alice Brown', 'amount' => 300]],
+                        'unmatched_file2' => [['name' => 'Bob Martin', 'amount' => 400]]
+                    ],
+                    'matchSummary' => [
+                        'totalMatched' => 1,
+                        'totalUnmatchedFile1' => 1,
+                        'totalUnmatchedFile2' => 1,
+                        'totalUnmatched' => 2
+                    ]
+                ]
+            ]);
+    }
+
+    public function test_reconcile_with_openai_returns_successful_response(): void
+    {
+        $mockService = Mockery::mock(ReconciliationService::class);
+        $mockService->shouldReceive('reconcileWithOpenAI')
+            ->once()
+            ->andReturn([
+                'matches' => [
+                    [
+                        'file1_transaction' => ['name' => 'Jane Smith', 'amount' => 200],
+                        'file2_transaction' => ['name' => 'Jane Smith', 'amount' => 200],
+                        'match_score' => 100
+                    ]
+                ],
+                'only_in_file1' => [['name' => 'Alice Brown', 'amount' => 300]],
+                'only_in_file2' => [['name' => 'Bob Martin', 'amount' => 400]]
+            ]);
+        $this->app->instance(ReconciliationService::class, $mockService);
+
+        $file1 = UploadedFile::fake()->create('file1.csv', 100);
+        $file2 = UploadedFile::fake()->create('file2.csv', 100);
+
+        $response = $this->postJson('/api/v1/reconcile', [
+            'file1' => $file1,
+            'file2' => $file2,
+            'reconcile_option' => 'reconcile_with_openAI'
+        ]);
+
+        $response->assertStatus(200)
+            ->assertJson([
+                'message' => 'Reconciliation successful',
+                'status' => 'success',
+                'status_code' => 200,
+                'data' => [
+                    'matches' => [
+                        [
+                            'file1_transaction' => ['name' => 'Jane Smith', 'amount' => 200],
+                            'file2_transaction' => ['name' => 'Jane Smith', 'amount' => 200],
+                            'match_score' => 100
+                        ]
+                    ],
+                    'only_in_file1' => [['name' => 'Alice Brown', 'amount' => 300]],
+                    'only_in_file2' => [['name' => 'Bob Martin', 'amount' => 400]]
+                ]
+            ]);
+    }
+
+    public function test_reconcile_with_deepseek_returns_successful_response(): void
+    {
+        $mockService = Mockery::mock(ReconciliationService::class);
+        $mockService->shouldReceive('reconcileWithDeepSeek')
+            ->once()
+            ->andReturn([
+                'matches' => [
+                    [
+                        'file1_transaction' => ['name' => 'Charlie Brown', 'amount' => 500],
+                        'file2_transaction' => ['name' => 'Brown Charlie', 'amount' => 500],
+                        'match_score' => 90
+                    ]
+                ],
+                'only_in_file1' => [['name' => 'David Jones', 'amount' => 600]],
+                'only_in_file2' => [['name' => 'Eve Wilson', 'amount' => 700]],
+                'decoded_response' => [
+                    'matches' => [
+                        [
+                            'file1_transaction' => ['name' => 'Charlie Brown', 'amount' => 500],
+                            'file2_transaction' => ['name' => 'Brown Charlie', 'amount' => 500],
+                            'match_score' => 90
+                        ]
+                    ]
+                ]
+            ]);
+        $this->app->instance(ReconciliationService::class, $mockService);
+
+        $file1 = UploadedFile::fake()->create('file1.csv', 100);
+        $file2 = UploadedFile::fake()->create('file2.csv', 100);
+
+        $response = $this->postJson('/api/v1/reconcile', [
+            'file1' => $file1,
+            'file2' => $file2,
+            'reconcile_option' => 'reconcile_with_deepSeek'
+        ]);
+
+        $response->assertStatus(200)
+            ->assertJson([
+                'message' => 'Reconciliation successful',
+                'status' => 'success',
+                'status_code' => 200,
+                'data' => [
+                    'matches' => [
+                        [
+                            'file1_transaction' => ['name' => 'Charlie Brown', 'amount' => 500],
+                            'file2_transaction' => ['name' => 'Brown Charlie', 'amount' => 500],
+                            'match_score' => 90
+                        ]
+                    ],
+                    'only_in_file1' => [['name' => 'David Jones', 'amount' => 600]],
+                    'only_in_file2' => [['name' => 'Eve Wilson', 'amount' => 700]]
+                ]
+            ]);
+    }
+
+    public function test_reconcile_with_recox_returns_successful_response(): void
+    {
+        $mockService = Mockery::mock(ReconciliationService::class);
+        $mockService->shouldReceive('reconcileWithRecox')
+            ->once()
+            ->andReturn([
+                'matches' => [
+                    [
+                        'file1_transaction' => ['name' => 'Frank Miller', 'amount' => 800],
+                        'file2_transaction' => ['name' => 'Miller Frank', 'amount' => 800],
+                        'match_score' => 85
+                    ]
+                ],
+                'matches_count' => 1,
+                'only_in_file1' => [['name' => 'Grace Lee', 'amount' => 900]],
+                'only_in_file2' => [['name' => 'Henry Davis', 'amount' => 1000]]
+            ]);
+        $this->app->instance(ReconciliationService::class, $mockService);
+
+        $file1 = UploadedFile::fake()->create('file1.csv', 100);
+        $file2 = UploadedFile::fake()->create('file2.csv', 100);
+
+        $response = $this->postJson('/api/v1/reconcile', [
+            'file1' => $file1,
+            'file2' => $file2,
+            'reconcile_option' => 'reconcile_with_recox_ai'
+        ]);
+
+        $response->assertStatus(200)
+            ->assertJson([
+                'message' => 'Reconciliation successful',
+                'status' => 'success',
+                'status_code' => 200,
+                'data' => [
+                    'matches' => [
+                        [
+                            'file1_transaction' => ['name' => 'Frank Miller', 'amount' => 800],
+                            'file2_transaction' => ['name' => 'Miller Frank', 'amount' => 800],
+                            'match_score' => 85
+                        ]
+                    ],
+                    'matches_count' => 1,
+                    'only_in_file1' => [['name' => 'Grace Lee', 'amount' => 900]],
+                    'only_in_file2' => [['name' => 'Henry Davis', 'amount' => 1000]]
+                ]
+            ]);
+    }
+
+    public function test_defaults_to_gemini_when_no_option_provided(): void
+    {
+        $mockService = Mockery::mock(ReconciliationService::class);
+        $mockService->shouldReceive('reconcileWithGemini')
+            ->once()
+            ->andReturn([
+                'matches' => [
+                    [
+                        'file1_transaction' => ['name' => 'John Doe', 'amount' => 100],
+                        'file2_transaction' => ['name' => 'Doe John', 'amount' => 100],
+                        'match_score' => 95
+                    ]
+                ],
+                'only_in_file1' => [],
+                'only_in_file2' => [],
+                'unmatched' => [
+                    'unmatched_file1' => [],
+                    'unmatched_file2' => []
+                ],
+                'matchSummary' => [
+                    'totalMatched' => 1,
+                    'totalUnmatchedFile1' => 0,
+                    'totalUnmatchedFile2' => 0,
+                    'totalUnmatched' => 0
+                ]
+            ]);
+        $this->app->instance(ReconciliationService::class, $mockService);
+
+        $file1 = UploadedFile::fake()->create('file1.csv', 100);
+        $file2 = UploadedFile::fake()->create('file2.csv', 100);
+
+        $response = $this->postJson('/api/v1/reconcile', [
+            'file1' => $file1,
+            'file2' => $file2
+        ]);
+
+        $response->assertStatus(200)
+            ->assertJson([
+                'message' => 'Reconciliation successful',
+                'status' => 'success',
+                'status_code' => 200
+            ]);
+    }
+
+    public function test_validates_file_types(): void
+    {
+        $file1 = UploadedFile::fake()->create('file1.pdf', 100);
+        $file2 = UploadedFile::fake()->create('file2.csv', 100);
+
+        $response = $this->postJson('/api/v1/reconcile', [
+            'file1' => $file1,
+            'file2' => $file2
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['file1']);
+    }
+
+    public function test_validates_reconcile_option(): void
+    {
+        $file1 = UploadedFile::fake()->create('file1.csv', 100);
+        $file2 = UploadedFile::fake()->create('file2.csv', 100);
+
+        $response = $this->postJson('/api/v1/reconcile', [
+            'file1' => $file1,
+            'file2' => $file2,
+            'reconcile_option' => 'invalid_option'
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['reconcile_option']);
+    }
+
+    public function test_handles_invalid_file_format(): void
+    {
+        $invalidContent = "This is not a valid CSV file";
+        $file1 = UploadedFile::fake()->createWithContent('file1.csv', $invalidContent);
+        $file2 = UploadedFile::fake()->createWithContent('file2.csv', $invalidContent);
+        
+        $mockService = Mockery::mock(ReconciliationService::class)
+            ->shouldAllowMockingProtectedMethods();
+        
+        $mockService->shouldReceive('loadFile')
+            ->andThrow(new \Exception('Unsupported file format.'));
+        
+        $mockService->shouldReceive('reconcileWithGemini')
+            ->andThrow(new \Exception('Unsupported file format.'));
+        
+        $this->app->instance(ReconciliationService::class, $mockService);
+
+        $response = $this->postJson('/api/v1/reconcile', [
+            'file1' => $file1,
+            'file2' => $file2
+        ]);
+
+        $response->assertStatus(400)
+            ->assertJson([
+                'error' => 'Unsupported file format.'
+            ]);
+    }
+
+    public function test_handles_exception_during_reconciliation(): void
+    {
+        $mockService = Mockery::mock(ReconciliationService::class);
+        $mockService->shouldReceive('reconcileWithGemini')
+            ->once()
+            ->andThrow(new \Exception('Test exception'));
+        $this->app->instance(ReconciliationService::class, $mockService);
+
+        $file1 = UploadedFile::fake()->create('file1.csv', 100);
+        $file2 = UploadedFile::fake()->create('file2.csv', 100);
+
+        $response = $this->postJson('/api/v1/reconcile', [
+            'file1' => $file1,
+            'file2' => $file2,
+            'reconcile_option' => 'reconcile_with_Gemini'
+        ]);
+
+        $response->assertStatus(400)
+            ->assertJson([
+                'error' => 'Test exception'
+            ]);
+    }
+
+    public function test_files_are_deleted_after_processing(): void
+    {
+        $mockService = Mockery::mock(ReconciliationService::class);
+        $mockService->shouldReceive('reconcileWithGemini')
+            ->once()
+            ->andReturn([
+                'matches' => [],
+                'only_in_file1' => [],
+                'only_in_file2' => []
+            ]);
+        $this->app->instance(ReconciliationService::class, $mockService);
+
+        // Create test files
+        $file1 = UploadedFile::fake()->create('file1.csv', 100);
+        $file2 = UploadedFile::fake()->create('file2.csv', 100);
+
+        $response = $this->postJson('/api/v1/reconcile', [
+            'file1' => $file1,
+            'file2' => $file2
+        ]);
 
         $response->assertStatus(200);
+
+        Storage::assertMissing('uploads/' . $file1->hashName());
+        Storage::assertMissing('uploads/' . $file2->hashName());
+    }
+
+    public function test_handles_excel_files(): void
+    {
+        $mockService = Mockery::mock(ReconciliationService::class);
+        $mockService->shouldReceive('reconcileWithGemini')
+            ->once()
+            ->andReturn([
+                'matches' => [],
+                'only_in_file1' => [],
+                'only_in_file2' => []
+            ]);
+        $this->app->instance(ReconciliationService::class, $mockService);
+
+        $file1 = UploadedFile::fake()->create('file1.xlsx', 100);
+        $file2 = UploadedFile::fake()->create('file2.xlsx', 100);
+
+        $response = $this->postJson('/api/v1/reconcile', [
+            'file1' => $file1,
+            'file2' => $file2
+        ]);
+
+        $response->assertStatus(200);
+    }
+
+    public function test_requires_both_files(): void
+    {
+        $file1 = UploadedFile::fake()->create('file1.csv', 100);
+
+        $response = $this->postJson('/api/v1/reconcile', [
+            'file1' => $file1
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['file2']);
+    }
+
+    protected function tearDown(): void
+    {
+        Mockery::close();
+        parent::tearDown();
     }
 }
