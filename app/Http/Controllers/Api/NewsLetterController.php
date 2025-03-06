@@ -20,7 +20,7 @@ class NewsLetterController extends Controller
 
     /**
      * @OA\Post(
-     *     path="/api/newsletter/subscribe",
+     *     path="/api/v1/newsletter/subscribe",
      *     summary="Subscribe to the newsletter",
      *     tags={"Newsletter"},
      *     description="Allows a user to subscribe to the newsletter.",
@@ -64,7 +64,7 @@ class NewsLetterController extends Controller
 
     /**
      * @OA\Post(
-     *     path="/api/newsletter/unsubscribe",
+     *     path="/api/v1/newsletter/unsubscribe",
      *     summary="Unsubscribe from the newsletter",
      *     tags={"Newsletter"},
      *     description="Allows a user to unsubscribe from the newsletter.",
