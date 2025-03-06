@@ -138,7 +138,7 @@
                 }
             }
         },
-        "/api/newsletter/subscribe": {
+        "/api/v1/newsletter/subscribe": {
             "post": {
                 "tags": [
                     "Newsletter"
@@ -227,7 +227,7 @@
                 }
             }
         },
-        "/api/newsletter/unsubscribe": {
+        "/api/v1/newsletter/unsubscribe": {
             "post": {
                 "tags": [
                     "Newsletter"
