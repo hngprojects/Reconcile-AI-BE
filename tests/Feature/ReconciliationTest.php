@@ -115,13 +115,7 @@ class ReconciliationTest extends TestCase
                         'reconciliationSummary' => [
                              'totalMatchedTransactions',
                             'totalUnmatchedTransactions',
-                            'matchedTransactions' => [
-                                '*' => [
-                                     'bankStatement',
-                                    'companyLedger',
-                                    'status'
-                                ]
-                        ]
+                            'accuracyRate'
                         ],
                  ]]);
     }

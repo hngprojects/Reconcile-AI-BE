@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\JsonResponse;
 use GuzzleHttp\Client;
+use Illuminate\Validation\ValidationException;
 
 /**
  * @OA\Post(
@@ -141,16 +142,15 @@ class ReconciliationController extends Controller
                         'data' => $result
                     ], 200);
 
-            }catch(\Exception $e){
+            } catch (\Exception $e) {
                 return response()->json([
                     'status' => 'error',
                     'status_code' => 500,
                     'message' => 'Internal Server Error',
-                    'data' => $e->errors()
+                    'data' => $e->getMessage()
                 ], 500);
-
-            }
-        } catch (\Exception $e) {
+        }
+        }catch(ValidationException $e){
             return response()->json([
                 'status' => 'error',
                 'status_code' => 422,

@@ -14,12 +14,11 @@ class ReconciliationService
 
     public function csvToJson($path)
     {
-        $fullPath = storage_path("app/$path");
-        if (!file_exists($fullPath)) {
+        if (!file_exists($path)) {
             return "Error: File not found!";
         }
 
-        $rows = array_map('str_getcsv', file($fullPath));
+        $rows = array_map('str_getcsv', file($path));
         $header = array_shift($rows);
         $data = array_map(fn($row) => array_combine($header, $row), $rows);
 
@@ -28,135 +27,65 @@ class ReconciliationService
 
     public function reconcileFiles($bankStatementPath, $ledgerPath)
     {
+        ini_set('max_execution_time', 300);
         $bankStatementJson = $this->csvToJson($bankStatementPath);
         $ledgerJson = $this->csvToJson($ledgerPath);
-        $data = [
-            "reconciliationSummary" => [
-                "totalMatchedTransactions" => 5,
-                "totalUnmatchedTransactions" => 1,
-                "matchedTransactions" => [
-                    [
-                        "bankStatement" => [
-                            "date" => "2025-03-01",
-                            "description" => "Deposit - Client A",
-                            "amount" => 5000.0
-                        ],
-                        "companyLedger" => [
-                            "date" => "2025-03-01",
-                            "description" => "Deposit - Client A",
-                            "amount" => 5000.0
-                        ],
-                        "status" => "Matched"
-                    ],
-                    [
-                        "bankStatement" => [
-                            "date" => "2025-03-02",
-                            "description" => "Withdrawal - Rent",
-                            "amount" => -2000.0
-                        ],
-                        "companyLedger" => [
-                            "date" => "2025-03-02",
-                            "description" => "Withdrawal - Rent",
-                            "amount" => -2000.0
-                        ],
-                        "status" => "Matched"
-                    ],
-                    [
-                        "bankStatement" => [
-                            "date" => "2025-03-03",
-                            "description" => "Deposit - Client B",
-                            "amount" => 3000.0
-                        ],
-                        "companyLedger" => [
-                            "date" => "2025-03-03",
-                            "description" => "Deposit - Client B",
-                            "amount" => 3000.0
-                        ],
-                        "status" => "Matched"
-                    ],
-                    [
-                        "bankStatement" => [
-                            "date" => "2025-03-04",
-                            "description" => "Card Payment - Supplies",
-                            "amount" => -500.0
-                        ],
-                        "companyLedger" => [
-                            "date" => "2025-03-04",
-                            "description" => "Card Payment - Supplies",
-                            "amount" => -500.0
-                        ],
-                        "status" => "Matched"
-                    ],
-                    [
-                        "bankStatement" => [
-                            "date" => "2025-03-05",
-                            "description" => "Deposit - Client C",
-                            "amount" => 4000.0
-                        ],
-                        "companyLedger" => [
-                            "date" => "2025-03-05",
-                            "description" => "Deposit - Client C",
-                            "amount" => 4000.0
-                        ],
-                        "status" => "Matched"
-                    ]
-                ],
-                "unmatchedTransactions" => [
-                    [
-                        "bankStatement" => [
-                            "date" => "2025-03-06",
-                            "description" => "Bank Fees",
-                            "amount" => -50.0
-                        ],
-                        "companyLedger" => [],
-                        "status" => "Unmatched"
-                    ]
-                ]
-            ]
-        ];
 
-        // Convert to JSON
-        $json = json_encode($data, JSON_PRETTY_PRINT);
+        $prompt = "Analyze these JSON strings: \n\nBank Statement JSON: $bankStatementJson \n\nCompany Ledger JSON: $ledgerJson\n\nReconciliation Instructions:\n\n" .
+    "1. **Column Mapping:**\n" .
+    "   - Bank Statement: Use the column named 'Date' for Date, 'ExtractedName' for Description, and 'Amount' for Amount. IMPORTANT: The Description is the 'ExtractedName' column, not the 'Description' column.Only use those 3 columns in the bank statement\n" .
+    "   - Company Ledger: Use the column named 'Student Name' for Description, and 'Amount' for Amount. IMPORTANT: The Description is 'Student Name' , not the 'Description' column . Only use those 2 columns in the ledger statement. There is no date in the ledger.\n" .
+    "2. **Matching Logic:**\n" .
+    "   - Amount: Amounts must match exactly.\n" .
+    "   - Description: Descriptions should be considered a match if at least 70% of the words are similar (case-insensitive). \n" .
+    "3. **Bank Statement Only:** Since the ledger statement does not have dates, only the amount and description are needed. The assumption is that the money came in that day to be considered matched\n" .
+    "4. **Response Format:**  Return the data in a JSON format that strictly adheres to the structure defined below. Do not include any other text or explanations. I only need the JSON response.\n\n" .
+   "```json\n" .
+   "   {\n" .
+   "     \"reconciliationSummary\": {\n" .
+   "       \"totalMatchedTransactions\": 0,\n" .
+   "       \"totalUnmatchedTransactions\": 0,\n" .
+   "       \"accuracyRate\": 0.0\n" .
+   "     },\n" .
+   "     \"matchedTransactions\": [\n" .
+   "        {\n" .
+   "         \"status\": \"Matched\",\n" .
+   "         \"bank_statement\": {\n" .
+   "           \"date\": \"\",\n" .
+   "           \"description\": \"\",\n" .
+   "           \"amount\": \"\"\n" .
+   "         },\n" .
+   "         \"company_ledger\": {\n" .
+   "           \"description\": \"\",\n" .
+   "           \"amount\": \"\"\n" .
+   "         }\n" .
+   "       },\n" .
+   "       ...\n" .
+   "     ],\n" .
+   "     \"unmatchedTransactions\": [\n" .
+   "        {\n" .
+   "         \"status\": \"Unmatched\",\n" .
+   "         \"bank_statement\": {\n" .
+   "           \"date\": \"\",\n" .
+   "           \"description\": \"\",\n" .
+   "           \"amount\": \"\"\n" .
+   "         },\n" .
+   "         \"company_ledger\": {\n" .
+   "           \"description\": \"\",\n" .
+   "           \"amount\": \"\"\n" .
+   "         }\n" .
+   "       },\n" .
+   "       ...\n" .
+   "     ]\n" .
+   "   }\n" .
+   "   ```\n\n" .
+    "Important Considerations:\n" .
+    "   - Ensure all credit transactions from the bank statement are accounted for, either as 'Matched' or 'Unmatched'.\n" .
+    "   - If a bank statement transaction has multiple possible matches in the ledger, choose the *best* match based on a combination of amount and description similarity.\n" .
+    "   - **Do not truncate the output.**  Return the complete reconciliation result, including *all* unmatched bank statement transactions.\n" .
+    "   - The ledger statement has no date. The assumption is that the date does not matter, the amount and description should be matched only\n" .
+    "   - Only respond with a response in JSON format following the Response Format provided, nothing more, nothing else, I only need the response.";
 
-        $prompt = "Compare these: $bankStatementJson and $ledgerJson by following these instructions for reconciliation then return a valid JSON:
-
-Dynamic Column Mapping:
-
-The system should automatically detect and map columns based on the uploaded file headers. For example:
-
-If the bank statement has columns like \"Date\", \"Narration\", and \"Amount\", the system will automatically map them to the appropriate fields in the company ledger.
-
-The company ledger might contain columns like \"Client Name\", \"Amount\", \"Invoice Number\", \"Description\", or any other custom header the user uploads.
-
-Transaction Matching Logic:
-
-Amount Matching: The system will compare Amount from both the bank statement and company ledger. If the amounts match exactly or are within an acceptable threshold (e.g., 0.01 variance), consider it a match.
-
-Description/Narration Matching: The system will compare the Narration (from the bank statement) to the Description (from the company ledger). If they are similar (case-insensitive, ignoring certain keywords), mark them as matched.
-
-Date Matching: The system will compare Transaction Dates from both files. Exact matches will be considered valid, while transactions with a slight date discrepancy (e.g., within a few days) will also be considered for matching.
-
-Handle Multiple Columns:
-
-If the company ledger contains extra columns like \"Client Name\", \"Invoice Number\", or any other column, these can be displayed for informational purposes but will not impact the reconciliation logic. Only the Amount and Description (or equivalent) fields will be used for matching transactions.
-
-For example, if the company ledger includes a \"Client Name\" or \"Student Name\" column, it will be displayed in the reconciliation results but will not be used for matching. The AI will focus on the relevant fields for the reconciliation process (e.g., Amount, Description, Date, Invoice Number, Narration).
-
-Identify and Highlight Unmatched Transactions:
-
-If transactions don’t match based on Amount, Description, Invoice Number, or Date, they will be flagged as Unmatched and highlighted in red for user review.
-
-Matched Transactions:
-
-Transactions that the AI successfully matches based on Amount, Description, and Date should be marked as \"Matched\" in green.
-
-Provide a green status tag for those transactions that are correctly matched.
-
-Reconciliation Summary:
-
-After performing the reconciliation, provide a summary showing the total number of matched transactions and the number of unmatched transactions.
-
-Calculate and display the accuracy rate, which should aim for 60% accuracy for the first version of the AI-powered reconciliation. Only respond with a response in that follows this Response Format, nothing more, nothing else, I only need the response.' The final output should be returned as a JSON object with the following structure: $json Please only return a valid JSON";
         $aiResponse = Gemini::geminiFlash()->generateContent($prompt);
 
         $jsonString = str_replace('\n', '', preg_replace('/```(?:json)?\s*([\s\S]*?)```/i', '$1', trim($aiResponse->text())));
