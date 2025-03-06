@@ -19,7 +19,7 @@ class AuthController extends Controller
 
         /**
      * @OA\Post(
-     *     path="/api/auth/login",
+     *     path="/api/v1/auth/login",
      *     summary="User login",
      *     description="Authenticates a user and returns a JWT token",
      *     tags={"Authentication"},
