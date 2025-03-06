@@ -8,6 +8,8 @@ on:
 jobs:
   tag_release:
     runs-on: hng12interns
+    timeout-minutes: 10
+
     steps:
       - uses: actions/checkout@v4
         with:
@@ -24,6 +26,8 @@ jobs:
   deployment:
     needs: [tag_release]
     runs-on: hng12interns
+    timeout-minutes: 10
+    
     steps:
       - uses: actions/checkout@v4
       

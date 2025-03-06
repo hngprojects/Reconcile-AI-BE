@@ -5,11 +5,11 @@ on:
     branches:
       - dev
       - main
-    types: [opened, synchronize]
 
 jobs:
   test:
     runs-on: hng12interns
+    timeout-minutes: 10
 
     services:
       postgres:
