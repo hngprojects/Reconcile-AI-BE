@@ -11,49 +11,121 @@ jobs:
     runs-on: hng12interns
     timeout-minutes: 10
 
-    # services:
-    #   postgres:
-    #     image: postgres:16
-    #     env:
-    #       POSTGRES_DB: test_db
-    #       POSTGRES_USER: test_user
-    #       POSTGRES_PASSWORD: test_pass
-    #     ports:
-    #       - 5432:5432
-    #     options: >-
-    #       --health-cmd="pg_isready -U test_user -d test_db"
-    #       --health-interval=10s
-    #       --health-timeout=5s
-    #       --health-retries=5
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: test_db
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_pass
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U test_user -d test_db"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Set unique container name
+        id: container_name
+        run: echo "CONTAINER_NAME=postgres_${{ github.run_id }}_${{ github.job }}" >> $GITHUB_ENV
+
+      - name: Start PostgreSQL container
+        run: |
+          docker run -d --name $CONTAINER_NAME \
+            -e POSTGRES_DB=postgres \
+            -e POSTGRES_USER=postgres \
+            -e POSTGRES_PASSWORD=postgres \
+            -p 0:5432 postgres:latest
+          
+          # Extract the dynamically assigned port
+          POSTGRES_PORT=$(docker inspect --format='{{(index (index .NetworkSettings.Ports "5432/tcp") 0).HostPort}}' $CONTAINER_NAME)
+          
+          # Export the port to the environment
+          echo "POSTGRES_PORT=$POSTGRES_PORT" >> $GITHUB_ENV
+      
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
 
       - name: Set up PHP
-        uses: shivammathur/setup-php@v2
+        uses: nanasess/setup-php@v4
         with:
-          php-version: "8.2"
-          extensions: mbstring, xml, ctype, json, pdo, bcmath, pgsql, pdo_pgsql, zip, apcu
+          php-version: '8.2'
+          extensions: pgsql, pdo_pgsql, zip, bcmath, apcu
+          ini-values: |
+            apc.enabled=1
+            apc.enable_cli=1
 
-      - name: Install Laravel dependencies
-        run: |
-          composer install --no-progress --prefer-dist --no-interaction
+      - name: Get Composer cache directory
+        id: composer-cache
+        run: echo "::set-output name=dir::$(composer config cache-dir)"
+
+      - name: Cache Composer dependencies
+        uses: actions/cache@v3
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-composer-
+
+      - name: Install PHP dependencies
+        run: composer install --no-interaction --prefer-dist --optimize-autoloader
 
       - name: Set environment variables for CI
         run: |
           cp .env.example .env
-          php artisan key:generate
-          php artisan jwt:secret
           echo "APP_KEY=${{ secrets.APP_KEY }}" >> .env
           echo "DB_CONNECTION=pgsql" >> .env
           echo "DB_HOST=localhost" >> .env
           echo "DB_PORT=5432" >> .env
-          echo "DB_DATABASE=test_db" >> .env
-          echo "DB_USERNAME=test_user" >> .env
-          echo "DB_PASSWORD=test_pass" >> .env
+          echo "DB_DATABASE=postgres" >> .env
+          echo "DB_USERNAME=postgres" >> .env
+          echo "DB_PASSWORD=postgres" >> .env
 
-      - name: Run Database Migrations
+      - name: Run database migrations
         run: php artisan migrate --force
 
       - name: Run Laravel tests
-        run: php artisan test
+        run: |
+          php artisan jwt:secret
+          php artisan test
+
+      - name: Stop and remove PostgreSQL container
+        if: always()  # Ensures this step runs even if the previous steps fail
+        run: |
+          docker stop $CONTAINER_NAME
+          docker rm $CONTAINER_NAME
+
+      # - uses: actions/checkout@v4
+
+      # - name: Set up PHP
+      #   uses: shivammathur/setup-php@v2
+      #   with:
+      #     php-version: "8.2"
+      #     extensions: mbstring, xml, ctype, json, pdo, bcmath, pgsql, pdo_pgsql, zip, apcu
+
+      # - name: Install Laravel dependencies
+      #   run: |
+      #     composer install --no-progress --prefer-dist --no-interaction
+
+      # - name: Set environment variables for CI
+      #   run: |
+      #     cp .env.example .env
+      #     php artisan key:generate
+      #     php artisan jwt:secret
+      #     echo "APP_KEY=${{ secrets.APP_KEY }}" >> .env
+      #     echo "DB_CONNECTION=pgsql" >> .env
+      #     echo "DB_HOST=localhost" >> .env
+      #     echo "DB_PORT=5432" >> .env
+      #     echo "DB_DATABASE=test_db" >> .env
+      #     echo "DB_USERNAME=test_user" >> .env
+      #     echo "DB_PASSWORD=test_pass" >> .env
+
+      # - name: Run Database Migrations
+      #   run: php artisan migrate --force
+
+      # - name: Run Laravel tests
+      #   run: php artisan test
