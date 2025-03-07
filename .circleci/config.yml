@@ -17,21 +17,17 @@ jobs:
           POSTGRES_DB: test_db
     steps:
       - checkout
-      
       - restore_cache:
           keys:
             - composer-v1-{{ checksum "composer.lock" }}
-      
       - run:
           name: Install Dependencies
           command: |
             composer install --no-progress --prefer-dist --no-interaction --no-scripts --no-suggest
-
       - save_cache:
           paths:
             - vendor
           key: composer-v1-{{ checksum "composer.lock" }}
-
       - run:
           name: Set Up Environment Variables
           command: |
@@ -44,11 +40,9 @@ jobs:
             echo "DB_DATABASE=test_db" >> .env
             echo "DB_USERNAME=test_user" >> .env
             echo "DB_PASSWORD=test_pass" >> .env
-
       - run:
           name: Run Database Migrations
           command: php artisan migrate --force
-
       - run:
           name: Run Laravel Tests
           command: php artisan test
@@ -58,11 +52,9 @@ jobs:
       - image: cimg/base:current
     steps:
       - checkout
-
       - add_ssh_keys:
           fingerprints:
             - "SHA256:zvuo567ZQyOTTi0BDMRoal+EAjVFaY3OTvTptn1QNGA"
-
       - run:
           name: Deploy Laravel App
           command: |
@@ -78,24 +70,19 @@ jobs:
       - image: cimg/base:current
     steps:
       - checkout
-
       - add_ssh_keys:
           fingerprints:
             - "SHA256:zvuo567ZQyOTTi0BDMRoal+EAjVFaY3OTvTptn1QNGA"
-
       - run:
           name: Deploy Laravel App to production
           command: |
             ssh -o StrictHostKeyChecking=no $SSH_USERNAME@$SSH_SERVER "bash -c '
               echo \"Starting Laravel deployment to production...\";
               cd /var/www/html/Reconcile-AI-BE-main
-              git pull origin main
-
+              git pull origin main 
               composer install --no-interaction --prefer-dist --no-dev
-              php artisan jwt:secret
-
-              php artisan optimize:clear
-
+              php artisan jwt:secret 
+              php artisan optimize:clear 
               php artisan migrate --force
               sudo systemctl restart nginx
               echo \"Deployment process completed to production!\";
