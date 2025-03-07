@@ -22,8 +22,7 @@ jobs:
       - checkout
 
       # Update GitHub status to pending
-      - github-status/update:
-          status: "pending"
+      - github-status/pending:
           context: "ci/circle: Laravel Tests"
           description: "Tests are running..."
       
@@ -63,8 +62,8 @@ jobs:
           command: php artisan test
 
       # Update GitHub status to success on test success
-      - github-status/update:
-          status: "success"
+      - github-status/post_status:
+          state: success
           context: "ci/circle: Laravel Tests"
           description: "Tests passed!"
 
@@ -74,8 +73,7 @@ jobs:
           command: |
             echo "Updating GitHub status to failure"
           when: on_fail
-      - github-status/update:
-          status: "failure"
+      - github-status/report_failed_only:
           context: "ci/circle: Laravel Tests"
           description: "Tests failed!"
           when: on_fail
@@ -87,8 +85,7 @@ jobs:
       - checkout
 
       # Update GitHub status to pending
-      - github-status/update:
-          status: "pending"
+      - github-status/pending:
           context: "ci/circle: Deployment"
           description: "Deployment in progress..."
 
@@ -107,8 +104,8 @@ jobs:
             '"
           
       # Update GitHub status to success on deployment success
-      - github-status/update:
-          status: "success"
+      - github-status/post_status:
+          state: success
           context: "ci/circle: Deployment"
           description: "Deployment successful!"
       
@@ -118,8 +115,7 @@ jobs:
           command: |
             echo "Updating GitHub status to failure"
           when: on_fail
-      - github-status/update:
-          status: "failure"
+      - github-status/report_failed_only:
           context: "ci/circle: Deployment"
           description: "Deployment failed!"
           when: on_fail
@@ -131,8 +127,7 @@ jobs:
       - checkout
 
       # Update GitHub status to pending
-      - github-status/update:
-          status: "pending"
+      - github-status/pending:
           context: "ci/circle: Production Deployment"
           description: "Deployment in progress to production..."
 
@@ -159,8 +154,8 @@ jobs:
             '"
           
       # Update GitHub status to success on deployment success
-      - github-status/update:
-          status: "success"
+      - github-status/post_status:
+          state: success
           context: "ci/circle: Production Deployment"
           description: "Deployment successful to production!"
       
@@ -170,8 +165,7 @@ jobs:
           command: |
             echo "Updating GitHub status to failure to production"
           when: on_fail
-      - github-status/update:
-          status: "failure"
+      - github-status/report_failed_only:
           context: "ci/circle: Production Deployment"
           description: "Deployment failed to production!"
           when: on_fail
