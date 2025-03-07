@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ContactController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
@@ -29,4 +30,5 @@ Route::prefix('v1')->group(function () {
 
     Route::post('/reconcile', [ReconciliationController::class, 'reconcile']);
     Route::post('/wait-list', [WaitListController::class, 'store']);
+    Route::post('/contact', [ContactController::class, 'contact']);
 });

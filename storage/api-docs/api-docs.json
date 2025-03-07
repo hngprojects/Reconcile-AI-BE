@@ -146,6 +146,14 @@
                 "summary": "Subscribe to the newsletter",
                 "description": "Allows a user to subscribe to the newsletter.",
                 "operationId": "subscribeNewsletter",
+        "/api/v1/contact": {
+            "post": {
+                "tags": [
+                    "Contact"
+                ],
+                "summary": "Submit a contact form",
+                "description": "Handles the submission of a contact form. Validates the input and saves the message to the database.",
+                "operationId": "59d9bf0fef984267b121145a83ffb2d7",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -159,6 +167,26 @@
                                         "type": "string",
                                         "format": "email",
                                         "example": "user@example.com"
+                                    "name",
+                                    "email",
+                                    "message"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "description": "Full name of the user",
+                                        "type": "string",
+                                        "example": "John Doe"
+                                    },
+                                    "email": {
+                                        "description": "Email address of the user",
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "john@example.com"
+                                    },
+                                    "message": {
+                                        "description": "Message content",
+                                        "type": "string",
+                                        "example": "Hello, this is a test message."
                                     }
                                 },
                                 "type": "object"
@@ -169,6 +197,8 @@
                 "responses": {
                     "200": {
                         "description": "Subscription successful",
+                    "201": {
+                        "description": "Message saved successfully",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -275,6 +305,31 @@
                                                 "email": {
                                                     "type": "string",
                                                     "example": "user@example.com"
+                                        "status": {
+                                            "type": "string",
+                                            "example": "success"
+                                        },
+                                        "status_code": {
+                                            "type": "integer",
+                                            "example": 201
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Message saved successfully."
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "name": {
+                                                    "type": "string",
+                                                    "example": "John Doe"
+                                                },
+                                                "email": {
+                                                    "type": "string",
+                                                    "example": "john@example.com"
+                                                },
+                                                "message": {
+                                                    "type": "string",
+                                                    "example": "Hello, this is a test message."
                                                 }
                                             },
                                             "type": "object"
@@ -287,17 +342,69 @@
                     },
                     "400": {
                         "description": "Unsubscription failed (email not found)",
+                        "description": "Validation failed",
                         "content": {
                             "application/json": {
                                 "schema": {
                                     "properties": {
                                         "code": {
+                                        "status": {
+                                            "type": "string",
+                                            "example": "error"
+                                        },
+                                        "status_code": {
                                             "type": "integer",
                                             "example": 400
                                         },
                                         "message": {
                                             "type": "string",
                                             "example": "Unsubscription Failed"
+                                            "example": "Validation failed."
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "name": {
+                                                    "type": "string",
+                                                    "example": "The name field is required."
+                                                },
+                                                "email": {
+                                                    "type": "string",
+                                                    "example": "The email field is required."
+                                                },
+                                                "message": {
+                                                    "type": "string",
+                                                    "example": "The message field is required."
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "example": "error"
+                                        },
+                                        "status_code": {
+                                            "type": "integer",
+                                            "example": 500
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Failed to save message."
+                                        },
+                                        "data": {
+                                            "type": "null",
+                                            "example": null
                                         }
                                     },
                                     "type": "object"
@@ -519,7 +626,9 @@
         },
         {
             "name": "Newsletter",
-            "description": "Newsletter"
+            "description": "Newsletter",
+            "name": "Contact",
+            "description": "Contact"
         },
         {
             "name": "Home",
