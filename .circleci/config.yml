@@ -1,8 +1,5 @@
 version: 2.1
 
-orbs:
-  github-status: assurance-maladie-digital/github-status@1.3.0
-
 executors:
   php-executor:
     docker:
@@ -20,11 +17,6 @@ jobs:
           POSTGRES_DB: test_db
     steps:
       - checkout
-
-      # Update GitHub status to pending
-      - github-status/pending:
-          context: "ci/circle: Laravel Tests"
-          description: "Tests are running..."
       
       - restore_cache:
           keys:
@@ -61,32 +53,11 @@ jobs:
           name: Run Laravel Tests
           command: php artisan test
 
-      # Update GitHub status to success on test success
-      - github-status/post_status:
-          state: success
-          context: "ci/circle: Laravel Tests"
-          description: "Tests passed!"
-
-      # If any command fails, update GitHub status to failure
-      - run:
-          name: Update GitHub Status on Failure
-          command: |
-            echo "Updating GitHub status to failure"
-          when: on_fail
-      - github-status/report_failed_only:
-          context: "ci/circle: Laravel Tests"
-          description: "Tests failed!"
-
   deploy:
     docker:
       - image: cimg/base:current
     steps:
       - checkout
-
-      # Update GitHub status to pending
-      - github-status/pending:
-          context: "ci/circle: Deployment"
-          description: "Deployment in progress..."
 
       - add_ssh_keys:
           fingerprints:
@@ -101,33 +72,12 @@ jobs:
               sudo systemctl restart laravel-deploy.service;
               echo \"Deployment process completed!\";
             '"
-          
-      # Update GitHub status to success on deployment success
-      - github-status/post_status:
-          state: success
-          context: "ci/circle: Deployment"
-          description: "Deployment successful!"
-      
-      # If deployment fails, update GitHub status
-      - run:
-          name: Update GitHub Status on Failure
-          command: |
-            echo "Updating GitHub status to failure"
-          when: on_fail
-      - github-status/report_failed_only:
-          context: "ci/circle: Deployment"
-          description: "Deployment failed!"
 
   deploy-prod:
     docker:
       - image: cimg/base:current
     steps:
       - checkout
-
-      # Update GitHub status to pending
-      - github-status/pending:
-          context: "ci/circle: Production Deployment"
-          description: "Deployment in progress to production..."
 
       - add_ssh_keys:
           fingerprints:
@@ -150,22 +100,6 @@ jobs:
               sudo systemctl restart nginx
               echo \"Deployment process completed to production!\";
             '"
-          
-      # Update GitHub status to success on deployment success
-      - github-status/post_status:
-          state: success
-          context: "ci/circle: Production Deployment"
-          description: "Deployment successful to production!"
-      
-      # If deployment fails, update GitHub status
-      - run:
-          name: Update GitHub Status on Failure to production
-          command: |
-            echo "Updating GitHub status to failure to production"
-          when: on_fail
-      - github-status/report_failed_only:
-          context: "ci/circle: Production Deployment"
-          description: "Deployment failed to production!"
 
 workflows:
   version: 2
@@ -182,12 +116,10 @@ workflows:
             - test
           filters:
             branches:
-              only:
-                - dev
+              only: dev
       - deploy-prod:
           requires:
             - test
           filters:
             branches:
-              only:
-                - main
+              only: main
