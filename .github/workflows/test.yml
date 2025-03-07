@@ -9,7 +9,7 @@ on:
 
 jobs:
   test:
-    runs-on: reconcile
+    runs-on: ubuntu-latest
 
     services:
       postgres:
