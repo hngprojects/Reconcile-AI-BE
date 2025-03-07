@@ -228,7 +228,7 @@
                 "tags": [
                     "Reconciliation"
                 ],
-                "summary": "Reconcile two CSV or Excel files",
+                "summary": "Reconcile two CSV",
                 "description": "Uploads two files, compares them based on detected name and amount columns, and returns matched/different records. You can choose to reconcile using AI or manually. Defaults to AI reconciliation if no option is provided.",
                 "operationId": "47cda2733290d3ed5e6ef36ed538bbd2",
                 "requestBody": {
@@ -242,12 +242,12 @@
                                 ],
                                 "properties": {
                                     "file1": {
-                                        "description": "First CSV or Excel file",
+                                        "description": "First CSV",
                                         "type": "string",
                                         "format": "binary"
                                     },
                                     "file2": {
-                                        "description": "Second CSV or Excel file",
+                                        "description": "Second CSV",
                                         "type": "string",
                                         "format": "binary"
                                     },
@@ -255,10 +255,10 @@
                                         "description": "Reconciliation method. Defaults to AI if not provided.",
                                         "type": "string",
                                         "enum": [
+                                            "reconcile_with_Gemini",
                                             "reconcile_with_recox_ai",
                                             "reconcile_with_openAI",
-                                            "reconcile_with_deepSeek",
-                                            "reconcile_with_Gemini"
+                                            "reconcile_with_deepSeek"
                                         ]
                                     }
                                 },
