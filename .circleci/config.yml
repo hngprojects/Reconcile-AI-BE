@@ -1,5 +1,9 @@
 version: 2.1
 
+orbs:
+  # Add the GitHub Status orb
+  github-status: supernovaic/github-status@1.0.0
+
 executors:
   php-executor:
     docker:
@@ -17,11 +21,26 @@ jobs:
           POSTGRES_DB: test_db
     steps:
       - checkout
+
+      # Update GitHub status to pending
+      - github-status/update:
+          status: "pending"
+          context: "ci/circle: Laravel Tests"
+          description: "Tests are running..."
+      
+      - restore_cache:
+          keys:
+            - composer-v1-{{ checksum "composer.lock" }}
       
       - run:
           name: Install Dependencies
           command: |
             composer install --no-progress --prefer-dist --no-interaction --no-scripts --no-suggest
+
+      - save_cache:
+          paths:
+            - vendor
+          key: composer-v1-{{ checksum "composer.lock" }}
 
       - run:
           name: Set Up Environment Variables
@@ -36,15 +55,6 @@ jobs:
             echo "DB_USERNAME=test_user" >> .env
             echo "DB_PASSWORD=test_pass" >> .env
 
-      - restore_cache:
-          keys:
-            - composer-v1-{{ checksum "composer.lock" }}
-
-      - save_cache:
-          paths:
-            - vendor
-          key: composer-v1-{{ checksum "composer.lock" }}
-
       - run:
           name: Run Database Migrations
           command: php artisan migrate --force
@@ -53,10 +63,36 @@ jobs:
           name: Run Laravel Tests
           command: php artisan test
 
+      # Update GitHub status to success on test success
+      - github-status/update:
+          status: "success"
+          context: "ci/circle: Laravel Tests"
+          description: "Tests passed!"
+
+      # If any command fails, update GitHub status to failure
+      - run:
+          name: Update GitHub Status on Failure
+          command: |
+            echo "Updating GitHub status to failure"
+          when: on_fail
+      - github-status/update:
+          status: "failure"
+          context: "ci/circle: Laravel Tests"
+          description: "Tests failed!"
+          when: on_fail
+
   deploy:
     docker:
       - image: cimg/base:current
     steps:
+      - checkout
+
+      # Update GitHub status to pending
+      - github-status/update:
+          status: "pending"
+          context: "ci/circle: Deployment"
+          description: "Deployment in progress..."
+
       - add_ssh_keys:
           fingerprints:
             - "SHA256:zvuo567ZQyOTTi0BDMRoal+EAjVFaY3OTvTptn1QNGA"
@@ -69,7 +105,24 @@ jobs:
               sudo systemctl daemon-reload;
               sudo systemctl restart laravel-deploy.service;
               echo \"Deployment process completed!\";
-            '"
+          
+      # Update GitHub status to success on deployment success
+      - github-status/update:
+          status: "success"
+          context: "ci/circle: Deployment"
+          description: "Deployment successful!"
+      
+      # If deployment fails, update GitHub status
+      - run:
+          name: Update GitHub Status on Failure
+          command: |
+            echo "Updating GitHub status to failure"
+          when: on_fail
+      - github-status/update:
+          status: "failure"
+          context: "ci/circle: Deployment"
+          description: "Deployment failed!"
+          when: on_fail  '"
 
 workflows:
   version: 2
@@ -78,9 +131,9 @@ workflows:
       - test:
           filters:
             branches:
-              only:
-                - dev
-                - main
+              only: /.*/
+            tags:
+              only: /.*/
       - deploy:
           requires:
             - test
