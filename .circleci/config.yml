@@ -76,7 +76,6 @@ jobs:
       - github-status/report_failed_only:
           context: "ci/circle: Laravel Tests"
           description: "Tests failed!"
-          when: on_fail
 
   deploy:
     docker:
@@ -118,7 +117,6 @@ jobs:
       - github-status/report_failed_only:
           context: "ci/circle: Deployment"
           description: "Deployment failed!"
-          when: on_fail
 
   deploy-prod:
     docker:
@@ -168,7 +166,6 @@ jobs:
       - github-status/report_failed_only:
           context: "ci/circle: Production Deployment"
           description: "Deployment failed to production!"
-          when: on_fail
 
 workflows:
   version: 2
