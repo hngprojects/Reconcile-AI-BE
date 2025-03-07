@@ -25,7 +25,7 @@ class HomeController extends Controller
      */
     public function index(): JsonResponse
     {
+        // testing on live 
         return response()->json(["message" => "Welcome to reconcile AI API o"]);
     }
-
 }
