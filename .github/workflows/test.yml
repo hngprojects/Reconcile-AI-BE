@@ -9,7 +9,7 @@ on:
 
 jobs:
   test:
-    runs-on: hng12interns
+    runs-on: reconcile
 
     services:
       postgres:
