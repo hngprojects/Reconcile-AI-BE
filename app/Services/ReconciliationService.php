@@ -350,6 +350,14 @@ class ReconciliationService
 
         return "You are a transaction reconciliation assistant. Match transactions from File1 and File2 based on names, amounts, and dates.
         
+        ## Reconciliation Rules
+        - Names may have **minor spelling differences** (e.g., 'Mark Essien' and 'Mark Essin' should be treated as the same person).
+        - Amounts can match exactly or be within a reasonable range that may cover for charges, taxes, VAT (e.g., 40,000 and 40,600 should be considered a match).
+        - **Dates are not a factor** in reconciliation and should be ignored for example a bank statement of 13/6/24 can match with a company ledger of 17/7/24 if other columns such as description and amount are a match .
+        - Ignore any special **symbols or formatting differences** in the name fields, for example (Peter's should match with Peter or Mitchell@ should match with Mitchell,.
+        - Some names may match based on nicknames for example, Sammy Song and Samuel Song, Goodness Samuel and Goody Samuel, Goddy Akpabio and Godswill Akpabio can match.
+        - **Case sensitivity** should be ignored in the name fields.
+
         Here is an example of how the reconciliation should work:
 
         Example File1 Transactions: " . json_encode($exampleFile1) . "
