@@ -1,11 +1,9 @@
 version: 2.1
-
 executors:
   php-executor:
     docker:
       - image: cimg/php:8.2
     resource_class: medium
-
 jobs:
   test:
     docker:
@@ -46,48 +44,7 @@ jobs:
       - run:
           name: Run Laravel Tests
           command: php artisan test
-
-  deploy:
-    docker:
-      - image: cimg/base:current
-    steps:
-      - checkout
-      - add_ssh_keys:
-          fingerprints:
-            - "SHA256:zvuo567ZQyOTTi0BDMRoal+EAjVFaY3OTvTptn1QNGA"
-      - run:
-          name: Deploy Laravel App
-          command: |
-            ssh -o StrictHostKeyChecking=no $SSH_USERNAME@$SSH_SERVER "bash -c '
-              echo \"Starting Laravel deployment...\";
-              sudo systemctl daemon-reload;
-              sudo systemctl restart laravel-deploy.service;
-              echo \"Deployment process completed!\";
             '"
-
-  deploy_prod:
-    docker:
-      - image: cimg/base:current
-    steps:
-      - checkout
-      - add_ssh_keys:
-          fingerprints:
-            - "SHA256:zvuo567ZQyOTTi0BDMRoal+EAjVFaY3OTvTptn1QNGA"
-      - run:
-          name: Deploy Laravel App to production
-          command: |
-            ssh -o StrictHostKeyChecking=no $SSH_USERNAME@$SSH_SERVER "bash -c '
-              echo \"Starting Laravel deployment to production...\";
-              cd /var/www/html/Reconcile-AI-BE-main
-              git pull origin main 
-              composer install --no-interaction --prefer-dist --no-dev
-              php artisan jwt:secret 
-              php artisan optimize:clear 
-              php artisan migrate --force
-              sudo systemctl restart nginx
-              echo \"Deployment process completed to production!\";
-            '"
-
 workflows:
   version: 2
   test_and_deploy:
@@ -98,15 +55,3 @@ workflows:
               only:
                 - dev
                 - main
-      - deploy:
-          requires:
-            - test
-          filters:
-            branches:
-              only: dev
-      - deploy_prod:
-          requires:
-            - test
-          filters:
-            branches:
-              only: main
