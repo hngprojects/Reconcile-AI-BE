@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\WaitListController;
 use App\Http\Controllers\Api\NewsLetterController;
 use App\Http\Controllers\ReconciliationController;
+use App\Http\Middleware\ThrottleUnauthenticated;
 
 Route::prefix('v1')->group(function () {
     Route::get('/', function () {
@@ -28,7 +29,7 @@ Route::prefix('v1')->group(function () {
         Route::post('/unsubscribe', [NewsLetterController::class, 'unsubscribe'])->name('unsubscribe');
     });
 
-    Route::post('/reconcile', [ReconciliationController::class, 'reconcile']);
+    Route::post('/reconcile', [ReconciliationController::class, 'reconcile'])->name('reconcile')->middleware(ThrottleUnauthenticated::class);
     Route::post('/wait-list', [WaitListController::class, 'store']);
     Route::post('/contact', [ContactController::class, 'contact']);
 });

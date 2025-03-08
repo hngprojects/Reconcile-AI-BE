@@ -1,14 +1,15 @@
 <?php
-
 namespace Tests\Feature;
 
+use App\Models\User;
+use App\Services\ReconciliationService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
-use Tests\TestCase;
-use App\Services\ReconciliationService;
 use Mockery;
+use Tests\TestCase;
 
 class ReconciliationTest extends TestCase
 {
@@ -26,25 +27,25 @@ class ReconciliationTest extends TestCase
         $mockService->shouldReceive('reconcileWithGemini')
             ->once()
             ->andReturn([
-                'matches' => [
+                'matches'       => [
                     [
                         'file1_transaction' => ['name' => 'John Doe', 'amount' => 100],
                         'file2_transaction' => ['name' => 'Doe John', 'amount' => 100],
-                        'match_score' => 95
-                    ]
+                        'match_score'       => 95,
+                    ],
                 ],
                 'only_in_file1' => [['name' => 'Alice Brown', 'amount' => 300]],
                 'only_in_file2' => [['name' => 'Bob Martin', 'amount' => 400]],
-                'unmatched' => [
+                'unmatched'     => [
                     'unmatched_file1' => [['name' => 'Alice Brown', 'amount' => 300]],
-                    'unmatched_file2' => [['name' => 'Bob Martin', 'amount' => 400]]
+                    'unmatched_file2' => [['name' => 'Bob Martin', 'amount' => 400]],
                 ],
-                'matchSummary' => [
-                    'totalMatched' => 1,
+                'matchSummary'  => [
+                    'totalMatched'        => 1,
                     'totalUnmatchedFile1' => 1,
                     'totalUnmatchedFile2' => 1,
-                    'totalUnmatched' => 2
-                ]
+                    'totalUnmatched'      => 2,
+                ],
             ]);
         $this->app->instance(ReconciliationService::class, $mockService);
 
@@ -52,37 +53,37 @@ class ReconciliationTest extends TestCase
         $file2 = UploadedFile::fake()->create('file2.csv', 100);
 
         $response = $this->postJson('/api/v1/reconcile', [
-            'file1' => $file1,
-            'file2' => $file2,
-            'reconcile_option' => 'reconcile_with_Gemini'
+            'file1'            => $file1,
+            'file2'            => $file2,
+            'reconcile_option' => 'reconcile_with_Gemini',
         ]);
 
         $response->assertStatus(200)
             ->assertJson([
-                'message' => 'Reconciliation successful',
-                'status' => 'success',
+                'message'     => 'Reconciliation successful',
+                'status'      => 'success',
                 'status_code' => 200,
-                'data' => [
-                    'matches' => [
+                'data'        => [
+                    'matches'       => [
                         [
                             'file1_transaction' => ['name' => 'John Doe', 'amount' => 100],
                             'file2_transaction' => ['name' => 'Doe John', 'amount' => 100],
-                            'match_score' => 95
-                        ]
+                            'match_score'       => 95,
+                        ],
                     ],
                     'only_in_file1' => [['name' => 'Alice Brown', 'amount' => 300]],
                     'only_in_file2' => [['name' => 'Bob Martin', 'amount' => 400]],
-                    'unmatched' => [
+                    'unmatched'     => [
                         'unmatched_file1' => [['name' => 'Alice Brown', 'amount' => 300]],
-                        'unmatched_file2' => [['name' => 'Bob Martin', 'amount' => 400]]
+                        'unmatched_file2' => [['name' => 'Bob Martin', 'amount' => 400]],
                     ],
-                    'matchSummary' => [
-                        'totalMatched' => 1,
+                    'matchSummary'  => [
+                        'totalMatched'        => 1,
                         'totalUnmatchedFile1' => 1,
                         'totalUnmatchedFile2' => 1,
-                        'totalUnmatched' => 2
-                    ]
-                ]
+                        'totalUnmatched'      => 2,
+                    ],
+                ],
             ]);
     }
 
@@ -92,15 +93,15 @@ class ReconciliationTest extends TestCase
         $mockService->shouldReceive('reconcileWithOpenAI')
             ->once()
             ->andReturn([
-                'matches' => [
+                'matches'       => [
                     [
                         'file1_transaction' => ['name' => 'Jane Smith', 'amount' => 200],
                         'file2_transaction' => ['name' => 'Jane Smith', 'amount' => 200],
-                        'match_score' => 100
-                    ]
+                        'match_score'       => 100,
+                    ],
                 ],
                 'only_in_file1' => [['name' => 'Alice Brown', 'amount' => 300]],
-                'only_in_file2' => [['name' => 'Bob Martin', 'amount' => 400]]
+                'only_in_file2' => [['name' => 'Bob Martin', 'amount' => 400]],
             ]);
         $this->app->instance(ReconciliationService::class, $mockService);
 
@@ -108,27 +109,27 @@ class ReconciliationTest extends TestCase
         $file2 = UploadedFile::fake()->create('file2.csv', 100);
 
         $response = $this->postJson('/api/v1/reconcile', [
-            'file1' => $file1,
-            'file2' => $file2,
-            'reconcile_option' => 'reconcile_with_openAI'
+            'file1'            => $file1,
+            'file2'            => $file2,
+            'reconcile_option' => 'reconcile_with_openAI',
         ]);
 
         $response->assertStatus(200)
             ->assertJson([
-                'message' => 'Reconciliation successful',
-                'status' => 'success',
+                'message'     => 'Reconciliation successful',
+                'status'      => 'success',
                 'status_code' => 200,
-                'data' => [
-                    'matches' => [
+                'data'        => [
+                    'matches'       => [
                         [
                             'file1_transaction' => ['name' => 'Jane Smith', 'amount' => 200],
                             'file2_transaction' => ['name' => 'Jane Smith', 'amount' => 200],
-                            'match_score' => 100
-                        ]
+                            'match_score'       => 100,
+                        ],
                     ],
                     'only_in_file1' => [['name' => 'Alice Brown', 'amount' => 300]],
-                    'only_in_file2' => [['name' => 'Bob Martin', 'amount' => 400]]
-                ]
+                    'only_in_file2' => [['name' => 'Bob Martin', 'amount' => 400]],
+                ],
             ]);
     }
 
@@ -138,24 +139,24 @@ class ReconciliationTest extends TestCase
         $mockService->shouldReceive('reconcileWithDeepSeek')
             ->once()
             ->andReturn([
-                'matches' => [
+                'matches'          => [
                     [
                         'file1_transaction' => ['name' => 'Charlie Brown', 'amount' => 500],
                         'file2_transaction' => ['name' => 'Brown Charlie', 'amount' => 500],
-                        'match_score' => 90
-                    ]
+                        'match_score'       => 90,
+                    ],
                 ],
-                'only_in_file1' => [['name' => 'David Jones', 'amount' => 600]],
-                'only_in_file2' => [['name' => 'Eve Wilson', 'amount' => 700]],
+                'only_in_file1'    => [['name' => 'David Jones', 'amount' => 600]],
+                'only_in_file2'    => [['name' => 'Eve Wilson', 'amount' => 700]],
                 'decoded_response' => [
                     'matches' => [
                         [
                             'file1_transaction' => ['name' => 'Charlie Brown', 'amount' => 500],
                             'file2_transaction' => ['name' => 'Brown Charlie', 'amount' => 500],
-                            'match_score' => 90
-                        ]
-                    ]
-                ]
+                            'match_score'       => 90,
+                        ],
+                    ],
+                ],
             ]);
         $this->app->instance(ReconciliationService::class, $mockService);
 
@@ -163,27 +164,27 @@ class ReconciliationTest extends TestCase
         $file2 = UploadedFile::fake()->create('file2.csv', 100);
 
         $response = $this->postJson('/api/v1/reconcile', [
-            'file1' => $file1,
-            'file2' => $file2,
-            'reconcile_option' => 'reconcile_with_deepSeek'
+            'file1'            => $file1,
+            'file2'            => $file2,
+            'reconcile_option' => 'reconcile_with_deepSeek',
         ]);
 
         $response->assertStatus(200)
             ->assertJson([
-                'message' => 'Reconciliation successful',
-                'status' => 'success',
+                'message'     => 'Reconciliation successful',
+                'status'      => 'success',
                 'status_code' => 200,
-                'data' => [
-                    'matches' => [
+                'data'        => [
+                    'matches'       => [
                         [
                             'file1_transaction' => ['name' => 'Charlie Brown', 'amount' => 500],
                             'file2_transaction' => ['name' => 'Brown Charlie', 'amount' => 500],
-                            'match_score' => 90
-                        ]
+                            'match_score'       => 90,
+                        ],
                     ],
                     'only_in_file1' => [['name' => 'David Jones', 'amount' => 600]],
-                    'only_in_file2' => [['name' => 'Eve Wilson', 'amount' => 700]]
-                ]
+                    'only_in_file2' => [['name' => 'Eve Wilson', 'amount' => 700]],
+                ],
             ]);
     }
 
@@ -193,16 +194,16 @@ class ReconciliationTest extends TestCase
         $mockService->shouldReceive('reconcileWithRecox')
             ->once()
             ->andReturn([
-                'matches' => [
+                'matches'       => [
                     [
                         'file1_transaction' => ['name' => 'Frank Miller', 'amount' => 800],
                         'file2_transaction' => ['name' => 'Miller Frank', 'amount' => 800],
-                        'match_score' => 85
-                    ]
+                        'match_score'       => 85,
+                    ],
                 ],
                 'matches_count' => 1,
                 'only_in_file1' => [['name' => 'Grace Lee', 'amount' => 900]],
-                'only_in_file2' => [['name' => 'Henry Davis', 'amount' => 1000]]
+                'only_in_file2' => [['name' => 'Henry Davis', 'amount' => 1000]],
             ]);
         $this->app->instance(ReconciliationService::class, $mockService);
 
@@ -210,28 +211,28 @@ class ReconciliationTest extends TestCase
         $file2 = UploadedFile::fake()->create('file2.csv', 100);
 
         $response = $this->postJson('/api/v1/reconcile', [
-            'file1' => $file1,
-            'file2' => $file2,
-            'reconcile_option' => 'reconcile_with_recox_ai'
+            'file1'            => $file1,
+            'file2'            => $file2,
+            'reconcile_option' => 'reconcile_with_recox_ai',
         ]);
 
         $response->assertStatus(200)
             ->assertJson([
-                'message' => 'Reconciliation successful',
-                'status' => 'success',
+                'message'     => 'Reconciliation successful',
+                'status'      => 'success',
                 'status_code' => 200,
-                'data' => [
-                    'matches' => [
+                'data'        => [
+                    'matches'       => [
                         [
                             'file1_transaction' => ['name' => 'Frank Miller', 'amount' => 800],
                             'file2_transaction' => ['name' => 'Miller Frank', 'amount' => 800],
-                            'match_score' => 85
-                        ]
+                            'match_score'       => 85,
+                        ],
                     ],
                     'matches_count' => 1,
                     'only_in_file1' => [['name' => 'Grace Lee', 'amount' => 900]],
-                    'only_in_file2' => [['name' => 'Henry Davis', 'amount' => 1000]]
-                ]
+                    'only_in_file2' => [['name' => 'Henry Davis', 'amount' => 1000]],
+                ],
             ]);
     }
 
@@ -241,25 +242,25 @@ class ReconciliationTest extends TestCase
         $mockService->shouldReceive('reconcileWithGemini')
             ->once()
             ->andReturn([
-                'matches' => [
+                'matches'       => [
                     [
                         'file1_transaction' => ['name' => 'John Doe', 'amount' => 100],
                         'file2_transaction' => ['name' => 'Doe John', 'amount' => 100],
-                        'match_score' => 95
-                    ]
+                        'match_score'       => 95,
+                    ],
                 ],
                 'only_in_file1' => [],
                 'only_in_file2' => [],
-                'unmatched' => [
+                'unmatched'     => [
                     'unmatched_file1' => [],
-                    'unmatched_file2' => []
+                    'unmatched_file2' => [],
                 ],
-                'matchSummary' => [
-                    'totalMatched' => 1,
+                'matchSummary'  => [
+                    'totalMatched'        => 1,
                     'totalUnmatchedFile1' => 0,
                     'totalUnmatchedFile2' => 0,
-                    'totalUnmatched' => 0
-                ]
+                    'totalUnmatched'      => 0,
+                ],
             ]);
         $this->app->instance(ReconciliationService::class, $mockService);
 
@@ -268,14 +269,14 @@ class ReconciliationTest extends TestCase
 
         $response = $this->postJson('/api/v1/reconcile', [
             'file1' => $file1,
-            'file2' => $file2
+            'file2' => $file2,
         ]);
 
         $response->assertStatus(200)
             ->assertJson([
-                'message' => 'Reconciliation successful',
-                'status' => 'success',
-                'status_code' => 200
+                'message'     => 'Reconciliation successful',
+                'status'      => 'success',
+                'status_code' => 200,
             ]);
     }
 
@@ -286,7 +287,7 @@ class ReconciliationTest extends TestCase
 
         $response = $this->postJson('/api/v1/reconcile', [
             'file1' => $file1,
-            'file2' => $file2
+            'file2' => $file2,
         ]);
 
         $response->assertStatus(422)
@@ -299,9 +300,9 @@ class ReconciliationTest extends TestCase
         $file2 = UploadedFile::fake()->create('file2.csv', 100);
 
         $response = $this->postJson('/api/v1/reconcile', [
-            'file1' => $file1,
-            'file2' => $file2,
-            'reconcile_option' => 'invalid_option'
+            'file1'            => $file1,
+            'file2'            => $file2,
+            'reconcile_option' => 'invalid_option',
         ]);
 
         $response->assertStatus(422)
@@ -311,28 +312,28 @@ class ReconciliationTest extends TestCase
     public function test_handles_invalid_file_format(): void
     {
         $invalidContent = "This is not a valid CSV file";
-        $file1 = UploadedFile::fake()->createWithContent('file1.csv', $invalidContent);
-        $file2 = UploadedFile::fake()->createWithContent('file2.csv', $invalidContent);
-        
+        $file1          = UploadedFile::fake()->createWithContent('file1.csv', $invalidContent);
+        $file2          = UploadedFile::fake()->createWithContent('file2.csv', $invalidContent);
+
         $mockService = Mockery::mock(ReconciliationService::class)
             ->shouldAllowMockingProtectedMethods();
-        
+
         $mockService->shouldReceive('loadFile')
             ->andThrow(new \Exception('Unsupported file format.'));
-        
+
         $mockService->shouldReceive('reconcileWithGemini')
             ->andThrow(new \Exception('Unsupported file format.'));
-        
+
         $this->app->instance(ReconciliationService::class, $mockService);
 
         $response = $this->postJson('/api/v1/reconcile', [
             'file1' => $file1,
-            'file2' => $file2
+            'file2' => $file2,
         ]);
 
         $response->assertStatus(400)
             ->assertJson([
-                'error' => 'Unsupported file format.'
+                'error' => 'Unsupported file format.',
             ]);
     }
 
@@ -348,14 +349,14 @@ class ReconciliationTest extends TestCase
         $file2 = UploadedFile::fake()->create('file2.csv', 100);
 
         $response = $this->postJson('/api/v1/reconcile', [
-            'file1' => $file1,
-            'file2' => $file2,
-            'reconcile_option' => 'reconcile_with_Gemini'
+            'file1'            => $file1,
+            'file2'            => $file2,
+            'reconcile_option' => 'reconcile_with_Gemini',
         ]);
 
         $response->assertStatus(400)
             ->assertJson([
-                'error' => 'Test exception'
+                'error' => 'Test exception',
             ]);
     }
 
@@ -365,9 +366,9 @@ class ReconciliationTest extends TestCase
         $mockService->shouldReceive('reconcileWithGemini')
             ->once()
             ->andReturn([
-                'matches' => [],
+                'matches'       => [],
                 'only_in_file1' => [],
-                'only_in_file2' => []
+                'only_in_file2' => [],
             ]);
         $this->app->instance(ReconciliationService::class, $mockService);
 
@@ -377,7 +378,7 @@ class ReconciliationTest extends TestCase
 
         $response = $this->postJson('/api/v1/reconcile', [
             'file1' => $file1,
-            'file2' => $file2
+            'file2' => $file2,
         ]);
 
         $response->assertStatus(200);
@@ -392,9 +393,9 @@ class ReconciliationTest extends TestCase
         $mockService->shouldReceive('reconcileWithGemini')
             ->once()
             ->andReturn([
-                'matches' => [],
+                'matches'       => [],
                 'only_in_file1' => [],
-                'only_in_file2' => []
+                'only_in_file2' => [],
             ]);
         $this->app->instance(ReconciliationService::class, $mockService);
 
@@ -403,7 +404,7 @@ class ReconciliationTest extends TestCase
 
         $response = $this->postJson('/api/v1/reconcile', [
             'file1' => $file1,
-            'file2' => $file2
+            'file2' => $file2,
         ]);
 
         $response->assertStatus(200);
@@ -414,11 +415,69 @@ class ReconciliationTest extends TestCase
         $file1 = UploadedFile::fake()->create('file1.csv', 100);
 
         $response = $this->postJson('/api/v1/reconcile', [
-            'file1' => $file1
+            'file1' => $file1,
         ]);
 
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['file2']);
+    }
+
+    public function test_unauthenticated_requests_are_throttled()
+    {
+        Cache::forget('throttle_unauthenticated_127.0.0.1');
+        $cacheKey = 'throttle_unauthenticated_127.0.0.1';
+        Cache::put($cacheKey, 0);
+
+        $file1 = UploadedFile::fake()->create('file1.csv', 100);
+        $file2 = UploadedFile::fake()->create('file2.csv', 100);
+
+        for ($i = 0; $i < 5; $i++) {
+            $response = $this->postJson(route('reconcile'), [
+                'file1'            => $file1,
+                'file2'            => $file2,
+                'reconcile_option' => 'reconcile_with_recox_ai',
+            ]);
+        }
+
+        $response = $this->postJson(route('reconcile'), [
+            'file1'            => $file1,
+            'file2'            => $file2,
+            'reconcile_option' => 'reconcile_with_recox_ai',
+        ]);
+
+        $response->assertStatus(429);
+        $response->assertJson(['message' => 'maximum number of request reached. Please login to continue']);
+
+        $this->assertEquals(5, Cache::get($cacheKey));
+    }
+
+    public function test_authenticated_requests_are_not_throttled()
+    {
+        Cache::forget('throttle_unauthenticated_127.0.0.1');
+        $cacheKey = 'throttle_unauthenticated_127.0.0.1';
+        Cache::put($cacheKey, 0);
+
+        $user = User::factory()->create();
+        $this->actingAs($user);
+
+        $file1 = UploadedFile::fake()->create('file1.csv', 100);
+        $file2 = UploadedFile::fake()->create('file2.csv', 100);
+
+        for ($i = 0; $i < 5; $i++) {
+            $response = $this->postJson(route('reconcile'), [
+                'file1'            => $file1,
+                'file2'            => $file2,
+                'reconcile_option' => 'reconcile_with_recox_ai',
+            ]);
+        }
+
+        $response = $this->postJson(route('reconcile'), [
+            'file1'            => $file1,
+            'file2'            => $file2,
+            'reconcile_option' => 'reconcile_with_recox_ai',
+        ]);
+
+        $this->assertNotEquals(5, Cache::get($cacheKey));
     }
 
     protected function tearDown(): void
