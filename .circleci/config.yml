@@ -55,4 +55,3 @@ workflows:
               only:
                 - dev
                 - main
-
