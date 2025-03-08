@@ -21,6 +21,12 @@ class AuthServiceImplement extends ServiceApi implements AuthService
         $this->mainRepository = $mainRepository;
     }
 
+    /**
+     * Handles the login process for the application.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function login($request)
     {
         try {
@@ -45,7 +51,33 @@ class AuthServiceImplement extends ServiceApi implements AuthService
                 ->setError($e->getMessage());
         }
     }
+  
+    /**
+     * Handles the logout process for the application.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function logout($request)
+    {
+        try {
+            JWTAuth::parseToken()->invalidate();
 
+            return $this->setCode(200)
+                ->setMessage("Logout Success");
+        } catch (\Exception $e) {
+            return $this->setCode(400)
+                ->setMessage("Logout Failed")
+                ->setError($e->getMessage());
+        }
+    }
+  
+  /**
+     * Handles the registration process for the application.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function register($request)
     {
         try {
@@ -65,6 +97,5 @@ class AuthServiceImplement extends ServiceApi implements AuthService
                 ->setMessage("User account registration failed")
                 ->setError($e->getMessage());
         }
-
     }
 }
