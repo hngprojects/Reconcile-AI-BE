@@ -3,35 +3,16 @@ name: Testing
 on:
   pull_request:
     branches: [main, dev] # Runs for same-repo PRs
-    # types: [opened, synchronize]
-  pull_request_target:
-    branches: [main, dev] # Runs for PRs from forks
 
 jobs:
   test:
-    runs-on: reconcile
-    timeout-minutes: 10
-
-    services:
-      postgres:
-        image: postgres:16
-        env:
-          POSTGRES_DB: test_db
-          POSTGRES_USER: test_user
-          POSTGRES_PASSWORD: test_pass
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd="pg_isready -U test_user -d test_db"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=5
+    runs-on: reconcile # Self-hosted runner
 
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.sha }} # Checkout the fork's branch
+          ref: ${{ github.event.pull_request.head.sha }}
           persist-credentials: false
 
       - name: Set up PHP
@@ -39,6 +20,40 @@ jobs:
         with:
           php-version: "8.2"
           extensions: mbstring, xml, ctype, json, pdo, bcmath, pgsql, pdo_pgsql, zip, apcu
+          coverage: none # Speeds up the setup
+
+      - name: Install PostgreSQL Client
+        run: |
+          # Check if PostgreSQL client is installed
+          if ! command -v psql &> /dev/null; then
+            echo "PostgreSQL client not found, installing..."
+            sudo apt update && sudo apt install -y postgresql-client
+          else
+            echo "PostgreSQL client found"
+          fi
+
+      - name: Create Database and User
+        run: |
+          # Check if database exists and drop it if it does
+          if sudo -u postgres psql -lqt | cut -d \| -f 1 | grep -qw test_db; then
+            echo "Database exists, dropping it"
+            sudo -u postgres psql -c "DROP DATABASE test_db;"
+          fi
+          
+          # Check if user exists and drop it if it does
+          if sudo -u postgres psql -c "SELECT 1 FROM pg_roles WHERE rolname='test_user'" | grep -q 1; then
+            echo "User exists, dropping it"
+            sudo -u postgres psql -c "DROP USER test_user;"
+          fi
+          
+          # Create fresh database and user
+          sudo -u postgres psql -c "CREATE DATABASE test_db;"
+          sudo -u postgres psql -c "CREATE USER test_user WITH PASSWORD 'test_pass';"
+          sudo -u postgres psql -c "ALTER ROLE test_user SET client_encoding TO 'utf8';"
+          sudo -u postgres psql -c "ALTER ROLE test_user SET default_transaction_isolation TO 'read committed';"
+          sudo -u postgres psql -c "ALTER ROLE test_user SET timezone TO 'UTC';"
+          sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE test_db TO test_user;"
+          echo "Database and user created successfully"
 
       - name: Install Laravel dependencies
         run: |
@@ -51,7 +66,7 @@ jobs:
           php artisan jwt:secret
           echo "APP_KEY=${{ secrets.APP_KEY }}" >> .env
           echo "DB_CONNECTION=pgsql" >> .env
-          echo "DB_HOST=localhost" >> .env
+          echo "DB_HOST=127.0.0.1" >> .env
           echo "DB_PORT=5432" >> .env
           echo "DB_DATABASE=test_db" >> .env
           echo "DB_USERNAME=test_user" >> .env
@@ -62,3 +77,11 @@ jobs:
 
       - name: Run Laravel tests
         run: php artisan test
+
+      - name: Cleanup
+        if: always()
+        run: |
+          # Attempt to clean up database and user after tests
+          sudo -u postgres psql -c "DROP DATABASE IF EXISTS test_db;"
+          sudo -u postgres psql -c "DROP USER IF EXISTS test_user;"
+          echo "Cleanup completed"
