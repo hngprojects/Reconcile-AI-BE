@@ -1,12 +1,11 @@
 <?php
 
-use App\Http\Controllers\ContactController;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
-use App\Http\Controllers\WaitListController;
+use App\Http\Controllers\Api\ContactUsController;
 use App\Http\Controllers\Api\NewsLetterController;
 use App\Http\Controllers\ReconciliationController;
+use App\Http\Controllers\WaitListController;
+use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
     Route::get('/', function () {
@@ -28,7 +27,10 @@ Route::prefix('v1')->group(function () {
         Route::post('/unsubscribe', [NewsLetterController::class, 'unsubscribe'])->name('unsubscribe');
     });
 
+    Route::prefix('contact')->name('contact.')->group(function () {
+        Route::post('/contact-us', [ContactUsController::class, 'saveContactMessage'])->name('contact-us');
+    });
+
     Route::post('/reconcile', [ReconciliationController::class, 'reconcile']);
     Route::post('/wait-list', [WaitListController::class, 'store']);
-    Route::post('/contact', [ContactController::class, 'contact']);
 });
