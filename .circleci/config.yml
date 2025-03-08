@@ -46,7 +46,6 @@ jobs:
       - run:
           name: Run Laravel Tests
           command: php artisan test
-
 workflows:
   version: 2
   test_and_deploy:
