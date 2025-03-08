@@ -3,7 +3,7 @@ name: Testing
 on:
   pull_request:
     branches: [main, dev] # Runs for same-repo PRs
-    types: [opened, synchronize]
+    # types: [opened, synchronize]
   pull_request_target:
     branches: [main, dev] # Runs for PRs from forks
 
