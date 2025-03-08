@@ -14,7 +14,7 @@ Route::prefix('v1')->group(function () {
 
     Route::prefix('auth')->middleware('guest')->name('auth.')->group(function () {
         Route::post('/login', [AuthController::class, 'login'])->name('login');
-        // Route::post('/register', [AuthController::class, 'register'])->name('register');
+        Route::post('/register', [AuthController::class, 'register'])->name('register');
         // Route::post('/forgot-password', [AuthController::class, 'forgotPassword'])->name('forgot-password');
         // Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('reset-password');
         // Route::post('/verify-email', [AuthController::class, 'verifyEmail'])->name('verify-email');

@@ -138,22 +138,6 @@
                 }
             }
         },
-<<<<<<< HEAD
-<<<<<<< HEAD
-        "/api/v1/auth/logout": {
-            "post": {
-                "tags": [
-                    "Authentication"
-                ],
-                "summary": "User logout",
-                "description": "Logs out the authenticated user and invalidates the token",
-                "operationId": "307ed0512855922b2280792376bb2095",
-                "responses": {
-                    "200": {
-                        "description": "Logout successful",
-=======
-=======
->>>>>>> 82e6368 (chore: update swagger api-docs)
         "/api/v1/contact": {
             "post": {
                 "tags": [
@@ -191,76 +175,17 @@
                                     }
                                 },
                                 "type": "object"
-=======
-        "/api/v1/auth/logout": {
-            "post": {
-                "tags": [
-                    "Authentication"
-                ],
-                "summary": "User logout",
-                "description": "Logs out the authenticated user and invalidates the token",
-                "operationId": "307ed0512855922b2280792376bb2095",
-                "responses": {
-                    "200": {
-                        "description": "Logout successful",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "code": {
-                                            "type": "integer",
-                                            "example": 200
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Logout successful"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized, token missing or invalid",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "code": {
-                                            "type": "integer",
-                                            "example": 401
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Unauthorized"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
->>>>>>> 74aa110 (chore: update swagger api-docs)
                             }
                         }
                     }
                 },
-<<<<<<< HEAD
                 "responses": {
                     "201": {
                         "description": "Message saved successfully",
->>>>>>> c480a90 (feat: implemented the contact us end point)
                         "content": {
                             "application/json": {
                                 "schema": {
                                     "properties": {
-<<<<<<< HEAD
-                                        "code": {
-                                            "type": "integer",
-                                            "example": 200
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Logout successful"
-=======
                                         "status": {
                                             "type": "string",
                                             "example": "success"
@@ -289,7 +214,6 @@
                                                 }
                                             },
                                             "type": "object"
->>>>>>> c480a90 (feat: implemented the contact us end point)
                                         }
                                     },
                                     "type": "object"
@@ -297,26 +221,12 @@
                             }
                         }
                     },
-<<<<<<< HEAD
-                    "401": {
-                        "description": "Unauthorized, token missing or invalid",
-=======
                     "400": {
                         "description": "Validation failed",
->>>>>>> c480a90 (feat: implemented the contact us end point)
                         "content": {
                             "application/json": {
                                 "schema": {
                                     "properties": {
-<<<<<<< HEAD
-                                        "code": {
-                                            "type": "integer",
-                                            "example": 401
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Unauthorized"
-=======
                                         "status": {
                                             "type": "string",
                                             "example": "error"
@@ -373,7 +283,6 @@
                                         "data": {
                                             "type": "null",
                                             "example": null
->>>>>>> c480a90 (feat: implemented the contact us end point)
                                         }
                                     },
                                     "type": "object"
@@ -381,26 +290,7 @@
                             }
                         }
                     }
-<<<<<<< HEAD
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
-=======
                 }
-<<<<<<< HEAD
->>>>>>> c480a90 (feat: implemented the contact us end point)
-=======
-=======
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
->>>>>>> 74aa110 (chore: update swagger api-docs)
->>>>>>> 82e6368 (chore: update swagger api-docs)
             }
         },
         "/api/v1": {
@@ -436,7 +326,7 @@
                 "tags": [
                     "Reconciliation"
                 ],
-                "summary": "Reconcile two CSV or Excel files",
+                "summary": "Reconcile two CSV",
                 "description": "Uploads two files, compares them based on detected name and amount columns, and returns matched/different records. You can choose to reconcile using AI or manually. Defaults to AI reconciliation if no option is provided.",
                 "operationId": "47cda2733290d3ed5e6ef36ed538bbd2",
                 "requestBody": {
@@ -450,12 +340,12 @@
                                 ],
                                 "properties": {
                                     "file1": {
-                                        "description": "First CSV or Excel file",
+                                        "description": "First CSV",
                                         "type": "string",
                                         "format": "binary"
                                     },
                                     "file2": {
-                                        "description": "Second CSV or Excel file",
+                                        "description": "Second CSV",
                                         "type": "string",
                                         "format": "binary"
                                     },
@@ -463,10 +353,10 @@
                                         "description": "Reconciliation method. Defaults to AI if not provided.",
                                         "type": "string",
                                         "enum": [
+                                            "reconcile_with_Gemini",
                                             "reconcile_with_recox_ai",
                                             "reconcile_with_openAI",
-                                            "reconcile_with_deepSeek",
-                                            "reconcile_with_Gemini"
+                                            "reconcile_with_deepSeek"
                                         ]
                                     }
                                 },
@@ -611,13 +501,6 @@
         {
             "name": "Authentication",
             "description": "Authentication"
-<<<<<<< HEAD
-        },
-        {
-            "name": "Contact",
-            "description": "Contact"
-=======
->>>>>>> 74aa110 (chore: update swagger api-docs)
         },
         {
             "name": "Home",

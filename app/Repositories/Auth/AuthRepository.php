@@ -6,5 +6,5 @@ use LaravelEasyRepository\Repository;
 
 interface AuthRepository extends Repository{
 
-    // Write something awesome :)
+    public function register($data);
 }

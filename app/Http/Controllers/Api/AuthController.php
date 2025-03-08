@@ -1,10 +1,9 @@
 <?php
-
 namespace App\Http\Controllers\Api;
 
-use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\AuthLogin;
+use App\Http\Requests\Auth\AuthRegister;
 use App\Services\Auth\AuthService;
 use Illuminate\Http\JsonResponse;
 
@@ -17,7 +16,7 @@ class AuthController extends Controller
         $this->authService = $authService;
     }
 
-        /**
+    /**
      * @OA\Post(
      *     path="/api/v1/auth/login",
      *     summary="User login",
@@ -66,7 +65,7 @@ class AuthController extends Controller
      *     )
      * )
      */
-    public function login(AuthLogin $request) : JsonResponse
+    public function login(AuthLogin $request): JsonResponse
     {
         return $this->authService->login($request)->toJson();
     }
@@ -99,5 +98,53 @@ class AuthController extends Controller
     public function logout(Request $request) : JsonResponse
     {
         return $this->authService->logout($request)->toJson();
+    }
+  
+    /**
+     * @OA\Post(
+     *     path="/api/v1/auth/register",
+     *     summary="User registration",
+     *     description="Registers a new user and returns a JWT token",
+     *     tags={"Authentication"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"name", "email", "password", "password_confirmation"},
+     *             @OA\Property(property="name", type="string", example="John Doe"),
+     *             @OA\Property(property="email", type="string", format="email", example="test@example.com"),
+     *             @OA\Property(property="password", type="string", format="password", example="password123"),
+     *             @OA\Property(property="password_confirmation", type="string", format="password", example="password123")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=201,
+     *         description="Registration successful",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="code", type="integer", example=201),
+     *             @OA\Property(property="message", type="string", example="Registration Successful"),
+     *             @OA\Property(property="data", type="object",
+     *                 @OA\Property(property="user", type="object",
+     *                     @OA\Property(property="id", type="integer", example=1),
+     *                     @OA\Property(property="name", type="string", example="John Doe"),
+     *                     @OA\Property(property="email", type="string", example="test@example.com"),
+     *                 ),
+     *                 @OA\Property(property="token", type="string", example="eyJhbGciOiJIUzI1NiIsInR...")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Registration failed due to validation error",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="code", type="integer", example=400),
+     *             @OA\Property(property="message", type="string", example="Registration Failed"),
+     *             @OA\Property(property="error", type="string", example="Email already taken")
+     *         )
+     *     )
+     * )
+     */
+    public function register(AuthRegister $request): JsonResponse
+    {
+        return $this->authService->register($request)->toJson();
     }
 }
