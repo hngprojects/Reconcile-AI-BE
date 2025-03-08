@@ -1,18 +1,15 @@
 name: Deployment
-
 on:
   push:
     branches:
+      - main
       - dev
-
 jobs:
   deployment:
     runs-on: reconcile
     timeout-minutes: 10
-
     steps:
       # - uses: actions/checkout@v4
-      
       - name: Deploy to the server
         uses: appleboy/ssh-action@master
         with:
@@ -21,10 +18,19 @@ jobs:
           password: ${{ secrets.SSH_PASSWORD }}
           # port: 22
           script: |
-            echo "Starting Laravel deployment..."
-            
-            # Start the deployment service (using explicit sudo with NOPASSWD permission)
-            sudo systemctl daemon-reload
-            sudo systemctl restart laravel-deploy.service
-            
-            echo "Deployment process completed!"
+            if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+              echo "Starting Laravel deployment for production..."
+              cd /var/www/html/Reconcile-AI-BE-main
+              git pull origin main
+              composer install --no-interaction --prefer-dist --no-dev
+              php artisan jwt:secret
+              php artisan optimize:clear
+              php artisan migrate --force
+              sudo systemctl restart nginx
+            else
+              echo "Starting Laravel deployment..."
+              # Start the deployment service (using explicit sudo with NOPASSWD permission)
+              sudo systemctl daemon-reload
+              sudo systemctl restart laravel-deploy.service
+            fi
+
