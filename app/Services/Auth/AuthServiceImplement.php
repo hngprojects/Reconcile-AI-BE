@@ -45,4 +45,26 @@ class AuthServiceImplement extends ServiceApi implements AuthService
                 ->setError($e->getMessage());
         }
     }
+
+    public function register($request)
+    {
+        try {
+            $validated = $request->validated();
+            $user = $this->mainRepository->register($validated);
+
+            $token = JWTAuth::fromUser($user);
+
+            return $this->setCode(200)
+                ->setMessage("User account registration successful")
+                ->setData([
+                    'user' => new UserResource($user),
+                    'token' => $token
+                ]);
+        } catch (\Exception $e) {
+            return $this->setCode(400)
+                ->setMessage("User account registration failed")
+                ->setError($e->getMessage());
+        }
+
+    }
 }
