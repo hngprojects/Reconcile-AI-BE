@@ -15,6 +15,7 @@ class ContactSubmission extends Model
         'name',
         'email',
         'message',
+        'phone_number',
     ];
 
     /**

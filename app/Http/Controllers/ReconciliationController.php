@@ -8,52 +8,90 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\JsonResponse;
 
 /**
- * @OA\Post(
- *     path="/api/v1/reconcile",
- *     summary="Reconcile two CSV or Excel files",
- *     description="Uploads two files, compares them based on detected name and amount columns, and returns matched/different records. You can choose to reconcile using AI> *     tags={"Reconciliation"},
- *     @OA\RequestBody(
- *         required=true,
- *         @OA\MediaType(
- *             mediaType="multipart/form-data",
- *             @OA\Schema(
- *                 required={"file1", "file2"},
- *                 @OA\Property(property="file1", type="string", format="binary", description="First CSV or Excel file"),
- *                 @OA\Property(property="file2", type="string", format="binary", description="Second CSV or Excel file"),
- *                 @OA\Property(
- *                     property="reconcile_option",
- *                     type="string",
- *                     enum={"reconcile_with_Gemini", "reconcile_with_recox_ai", "reconcile_with_openAI","reconcile_with_deepSeek"},
- *                     description="Reconciliation method. Defaults to AI if not provided."
- *                 )
- *             )
- *         )
- *     ),
- *     @OA\Response(
- *         response=200,
- *         description="Reconciliation successful",
- *         @OA\JsonContent(
- *             @OA\Property(property="message", type="string", example="Reconciliation successful"),
- *             @OA\Property(property="data", type="object",
- *                 @OA\Property(property="matches", type="integer", example=5, description="Number of matched rows"),
- *                 @OA\Property(property="only_in_file1", type="array", @OA\Items(type="object"), description="Rows only in first file"),
- *                 @OA\Property(property="only_in_file2", type="array", @OA\Items(type="object"), description="Rows only in second file")
- *             )
- *         )
- *     ),
- *     @OA\Response(response=400, description="Validation or processing error"),
- *     @OA\Response(response=422, description="Invalid file format")
+ * @OA\Tag(
+ *     name="Reconciliation",
+ *     description="API Endpoints for file reconciliation"
  * )
  */
-
 class ReconciliationController extends Controller
 {
     protected $reconciliationService;
+
     public function __construct(ReconciliationService $reconciliationService)
     {
         $this->reconciliationService = $reconciliationService;
     }
 
+    /**
+     * @OA\Post(
+     *     path="/api/v1/reconcile",
+     *     summary="Reconcile two CSV or Excel files",
+     *     description="Upload and compare two files using various reconciliation methods",
+     *     tags={"Reconciliation"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\MediaType(
+     *             mediaType="multipart/form-data",
+     *             @OA\Schema(
+     *                 required={"file1", "file2"},
+     *                 @OA\Property(
+     *                     property="file1",
+     *                     type="string",
+     *                     format="binary",
+     *                     description="First CSV or Excel file"
+     *                 ),
+     *                 @OA\Property(
+     *                     property="file2",
+     *                     type="string",
+     *                     format="binary",
+     *                     description="Second CSV or Excel file"
+     *                 ),
+     *                 @OA\Property(
+     *                     property="reconcile_option",
+     *                     type="string",
+     *                     enum={
+     *                         "reconcile_with_Gemini",
+     *                         "reconcile_with_recox_ai",
+     *                         "reconcile_with_openAI",
+     *                         "reconcile_with_deepSeek"
+     *                     },
+     *                     description="Reconciliation method to use"
+     *                 )
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful reconciliation",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Reconciliation successful"),
+     *             @OA\Property(property="status", type="string", example="success"),
+     *             @OA\Property(property="status_code", type="integer", example=200),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="object",
+     *                 @OA\Property(property="matches", type="integer", example=5),
+     *                 @OA\Property(property="only_in_file1", type="array", @OA\Items(type="object")),
+     *                 @OA\Property(property="only_in_file2", type="array", @OA\Items(type="object"))
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Bad request",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="error", type="string")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Validation error",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="error", type="string")
+     *         )
+     *     )
+     * )
+     */
     public function reconcile(Request $request): JsonResponse
     {
         $request->validate([
@@ -63,7 +101,6 @@ class ReconciliationController extends Controller
         ], [
             'file1.mimes' => 'File 1 must be a CSV or Excel file.',
             'file2.mimes' => 'File 2 must be a CSV or Excel file.',
-            'reconcile_option' => 'nullable|in:reconcile_with_recox_ai,reconcile_with_openAI,reconcile_with_deepSeek,reconcile_with_Gemini',
         ]);
 
         try {
@@ -80,24 +117,12 @@ class ReconciliationController extends Controller
 
             $reconcileOption = $request->input('reconcile_option', 'reconcile_with_Gemini');
 
-            switch ($reconcileOption) {
-                case 'reconcile_with_recox_ai':
-                    $result = $this->reconciliationService->reconcileWithRecox($file1FullPath, $file2FullPath);
-                    break;
-                case 'reconcile_with_openAI':
-                    $result = $this->reconciliationService->reconcileWithOpenAI($file1FullPath, $file2FullPath);
-                    break;
-                case 'reconcile_with_deepSeek':
-                    $result = $this->reconciliationService->reconcileWithDeepSeek($file1FullPath, $file2FullPath);
-                    break;
-                case 'reconcile_with_Gemini':
-                    $result = $this->reconciliationService->reconcileWithGemini($file1FullPath, $file2FullPath);
-                    break;
-                case 'reconcile_manually':
-                default:
-                    $result = $this->reconciliationService->reconcileWithGemini($file1FullPath, $file2FullPath);
-                    break;
-            }
+            $result = match ($reconcileOption) {
+                'reconcile_with_recox_ai' => $this->reconciliationService->reconcileWithRecox($file1FullPath, $file2FullPath),
+                'reconcile_with_openAI' => $this->reconciliationService->reconcileWithOpenAI($file1FullPath, $file2FullPath),
+                'reconcile_with_deepSeek' => $this->reconciliationService->reconcileWithDeepSeek($file1FullPath, $file2FullPath),
+                default => $this->reconciliationService->reconcileWithGemini($file1FullPath, $file2FullPath),
+            };
 
             Storage::delete([$file1Path, $file2Path]);
 
@@ -108,6 +133,9 @@ class ReconciliationController extends Controller
                 'data' => $result
             ], 200);
         } catch (\Exception $e) {
+            if (isset($file1Path, $file2Path)) {
+                Storage::delete([$file1Path, $file2Path]);
+            }
             return response()->json(['error' => $e->getMessage()], 400);
         }
     }
