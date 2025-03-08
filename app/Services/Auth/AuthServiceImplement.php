@@ -55,10 +55,9 @@ class AuthServiceImplement extends ServiceApi implements AuthService
     /**
      * Handles the logout process for the application.
      *
-     * @param \Illuminate\Http\Request $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function logout($request)
+    public function logout()
     {
         try {
             JWTAuth::parseToken()->invalidate();
