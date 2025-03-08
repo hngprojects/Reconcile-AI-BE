@@ -138,6 +138,352 @@
                 }
             }
         },
+        "/api/v1/auth/logout": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "User logout",
+                "description": "Logs out the authenticated user and invalidates the token",
+                "operationId": "307ed0512855922b2280792376bb2095",
+                "responses": {
+                    "200": {
+                        "description": "Logout successful",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "code": {
+                                            "type": "integer",
+                                            "example": 200
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Logout successful"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized, token missing or invalid",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "code": {
+                                            "type": "integer",
+                                            "example": 401
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Unauthorized"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/auth/register": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "User registration",
+                "description": "Registers a new user and returns a JWT token",
+                "operationId": "fb835c97347e657e2a627790c4c5817a",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "email",
+                                    "password",
+                                    "password_confirmation"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "John Doe"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "test@example.com"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "password123"
+                                    },
+                                    "password_confirmation": {
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "password123"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Registration successful",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "code": {
+                                            "type": "integer",
+                                            "example": 201
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Registration Successful"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "user": {
+                                                    "properties": {
+                                                        "id": {
+                                                            "type": "integer",
+                                                            "example": 1
+                                                        },
+                                                        "name": {
+                                                            "type": "string",
+                                                            "example": "John Doe"
+                                                        },
+                                                        "email": {
+                                                            "type": "string",
+                                                            "example": "test@example.com"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                },
+                                                "token": {
+                                                    "type": "string",
+                                                    "example": "eyJhbGciOiJIUzI1NiIsInR..."
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Registration failed due to validation error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "code": {
+                                            "type": "integer",
+                                            "example": 400
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Registration Failed"
+                                        },
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Email already taken"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/newsletter/subscribe": {
+            "post": {
+                "tags": [
+                    "Newsletter"
+                ],
+                "summary": "Subscribe to the newsletter",
+                "description": "Allows a user to subscribe to the newsletter.",
+                "operationId": "subscribeNewsletter",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "email"
+                                ],
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "user@example.com"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Subscription successful",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "code": {
+                                            "type": "integer",
+                                            "example": 200
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Subscription Successful"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "email": {
+                                                    "type": "string",
+                                                    "example": "user@example.com"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "The email field is required."
+                                        },
+                                        "errors": {
+                                            "properties": {
+                                                "email": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string",
+                                                        "example": "The email must be a valid email address."
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/newsletter/unsubscribe": {
+            "post": {
+                "tags": [
+                    "Newsletter"
+                ],
+                "summary": "Unsubscribe from the newsletter",
+                "description": "Allows a user to unsubscribe from the newsletter.",
+                "operationId": "unsubscribeNewsletter",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "email"
+                                ],
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "user@example.com"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Unsubscription successful",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "code": {
+                                            "type": "integer",
+                                            "example": 200
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Unsubscribed Successfully"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "email": {
+                                                    "type": "string",
+                                                    "example": "user@example.com"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Unsubscription failed (email not found)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "code": {
+                                            "type": "integer",
+                                            "example": 400
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Unsubscription Failed"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/contact": {
             "post": {
                 "tags": [
@@ -154,7 +500,8 @@
                                 "required": [
                                     "name",
                                     "email",
-                                    "message"
+                                    "message",
+                                    "phone_number"
                                 ],
                                 "properties": {
                                     "name": {
@@ -172,6 +519,11 @@
                                         "description": "Message content",
                                         "type": "string",
                                         "example": "Hello, this is a test message."
+                                    },
+                                    "phone_number": {
+                                        "description": "Phone number of the user",
+                                        "type": "string",
+                                        "example": "1234567890"
                                     }
                                 },
                                 "type": "object"
@@ -211,6 +563,10 @@
                                                 "message": {
                                                     "type": "string",
                                                     "example": "Hello, this is a test message."
+                                                },
+                                                "phone_number": {
+                                                    "type": "string",
+                                                    "example": "1234567890"
                                                 }
                                             },
                                             "type": "object"
@@ -239,7 +595,7 @@
                                             "type": "string",
                                             "example": "Validation failed."
                                         },
-                                        "data": {
+                                        "errors": {
                                             "properties": {
                                                 "name": {
                                                     "type": "string",
@@ -252,6 +608,10 @@
                                                 "message": {
                                                     "type": "string",
                                                     "example": "The message field is required."
+                                                },
+                                                "phone_number": {
+                                                    "type": "string",
+                                                    "example": "The phone number field is required."
                                                 }
                                             },
                                             "type": "object"
@@ -326,9 +686,9 @@
                 "tags": [
                     "Reconciliation"
                 ],
-                "summary": "Reconcile two CSV",
-                "description": "Uploads two files, compares them based on detected name and amount columns, and returns matched/different records. You can choose to reconcile using AI or manually. Defaults to AI reconciliation if no option is provided.",
-                "operationId": "47cda2733290d3ed5e6ef36ed538bbd2",
+                "summary": "Reconcile two CSV or Excel files",
+                "description": "Upload and compare two files using various reconciliation methods",
+                "operationId": "4901856bb5a62aa674d08ea00562ea29",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -340,17 +700,17 @@
                                 ],
                                 "properties": {
                                     "file1": {
-                                        "description": "First CSV",
+                                        "description": "First CSV or Excel file",
                                         "type": "string",
                                         "format": "binary"
                                     },
                                     "file2": {
-                                        "description": "Second CSV",
+                                        "description": "Second CSV or Excel file",
                                         "type": "string",
                                         "format": "binary"
                                     },
                                     "reconcile_option": {
-                                        "description": "Reconciliation method. Defaults to AI if not provided.",
+                                        "description": "Reconciliation method to use",
                                         "type": "string",
                                         "enum": [
                                             "reconcile_with_Gemini",
@@ -367,7 +727,7 @@
                 },
                 "responses": {
                     "200": {
-                        "description": "Reconciliation successful",
+                        "description": "Successful reconciliation",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -376,22 +736,27 @@
                                             "type": "string",
                                             "example": "Reconciliation successful"
                                         },
+                                        "status": {
+                                            "type": "string",
+                                            "example": "success"
+                                        },
+                                        "status_code": {
+                                            "type": "integer",
+                                            "example": 200
+                                        },
                                         "data": {
                                             "properties": {
                                                 "matches": {
-                                                    "description": "Number of matched rows",
                                                     "type": "integer",
                                                     "example": 5
                                                 },
                                                 "only_in_file1": {
-                                                    "description": "Rows only in first file",
                                                     "type": "array",
                                                     "items": {
                                                         "type": "object"
                                                     }
                                                 },
                                                 "only_in_file2": {
-                                                    "description": "Rows only in second file",
                                                     "type": "array",
                                                     "items": {
                                                         "type": "object"
@@ -407,10 +772,34 @@
                         }
                     },
                     "400": {
-                        "description": "Validation or processing error"
+                        "description": "Bad request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "error": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
                     },
                     "422": {
-                        "description": "Invalid file format"
+                        "description": "Validation error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "error": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -499,16 +888,24 @@
     },
     "tags": [
         {
+            "name": "Reconciliation",
+            "description": "API Endpoints for file reconciliation"
+        },
+        {
             "name": "Authentication",
             "description": "Authentication"
         },
         {
-            "name": "Home",
-            "description": "Home"
+            "name": "Newsletter",
+            "description": "Newsletter"
         },
         {
-            "name": "Reconciliation",
-            "description": "Reconciliation"
+            "name": "Contact",
+            "description": "Contact"
+        },
+        {
+            "name": "Home",
+            "description": "Home"
         },
         {
             "name": "WaitList",
