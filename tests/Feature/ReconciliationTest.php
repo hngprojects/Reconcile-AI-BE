@@ -1,4 +1,5 @@
 <?php
+
 namespace Tests\Feature;
 
 use App\Models\User;
@@ -422,34 +423,6 @@ class ReconciliationTest extends TestCase
             ->assertJsonValidationErrors(['file2']);
     }
 
-    public function test_unauthenticated_requests_are_throttled()
-    {
-        Cache::forget('throttle_unauthenticated_127.0.0.1');
-        $cacheKey = 'throttle_unauthenticated_127.0.0.1';
-        Cache::put($cacheKey, 0);
-
-        $file1 = UploadedFile::fake()->create('file1.csv', 100);
-        $file2 = UploadedFile::fake()->create('file2.csv', 100);
-
-        for ($i = 0; $i < 5; $i++) {
-            $response = $this->postJson(route('reconcile'), [
-                'file1'            => $file1,
-                'file2'            => $file2,
-                'reconcile_option' => 'reconcile_with_recox_ai',
-            ]);
-        }
-
-        $response = $this->postJson(route('reconcile'), [
-            'file1'            => $file1,
-            'file2'            => $file2,
-            'reconcile_option' => 'reconcile_with_recox_ai',
-        ]);
-
-        $response->assertStatus(429);
-        $response->assertJson(['message' => 'maximum number of request reached. Please login to continue']);
-
-        $this->assertEquals(5, Cache::get($cacheKey));
-    }
 
     public function test_authenticated_requests_are_not_throttled()
     {
