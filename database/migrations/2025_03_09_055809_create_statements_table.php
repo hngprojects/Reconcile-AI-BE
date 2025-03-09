@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('date');
             $table->string('description');
             $table->integer('amount');
+            $table->foreignUuid('reconciliation_id');
             $table->timestamps();
         });
     }

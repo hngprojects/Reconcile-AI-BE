@@ -7,13 +7,13 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use App\Models\User;
 use App\Models\Guest;
 
-class File extends Model
+class Reconciliation extends Model
 {
     protected $fillable = [
         'user_id',
         'guest_id',
-        'file_name',
-        'type'
+        'ledger_file',
+        'statement_file'
     ];
 
     public function user(): BelongsTo

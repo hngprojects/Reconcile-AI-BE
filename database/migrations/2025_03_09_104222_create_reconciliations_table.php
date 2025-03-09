@@ -11,14 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('files', function (Blueprint $table) {
+        Schema::create('reconciliations', function (Blueprint $table) {
             $table->uuid('id');
             $table->foreignUuid('user_id');
-            $table->foreignUuid('guest_id');
-            $table->string('file_name');
-            $table->enum('type', ['Bank Statement', 'Ledger']);
+            $table->string('ledger_file');
+            $table->string('statement_file');
             $table->timestamps();
         });
+
     }
 
     /**
@@ -26,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('files');
+        Schema::dropIfExists('reconciliations');
     }
 };

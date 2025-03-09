@@ -16,15 +16,15 @@ return new class extends Migration
             $table->string('date');
             $table->string('description');
             $table->integer('amount');
+            $table->foreignUuid('reconciliation_id');
             $table->timestamps();
         });
 
-        Schema::create('matched_ledgers_and_statements', function (Blueprint $table) {
+        Schema::create('matched_statements', function (Blueprint $table) {
             $table->uuid('id');
             $table->foreignUuid('user_id');
             $table->foreignUuid('ledger_id');
             $table->foreignUuid('statement_id');
-            $table->foreignUuid('guest_id');
             $table->enum('status', ['Matched', 'Unmatched']);
             $table->timestamps();
         });
@@ -36,5 +36,6 @@ return new class extends Migration
     public function down(): void
     {
         Schema::dropIfExists('ledgers');
+        Schema::dropIfExists('matched_statements');
     }
 };

@@ -11,7 +11,7 @@ use App\Models\Statement;
 
 class MatchingTransaction extends Pivot
 {
-    protected $table = "matched_ledgers_and_statements";
+    protected $table = "matched_statements";
     protected $fillable = [
         'statement_id',
         'ledger_id',

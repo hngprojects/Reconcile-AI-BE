@@ -5,7 +5,6 @@ namespace Database\Seeders;
 use App\Models\User;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use Database\Seeders\GuestSeeder;
 use Database\Seeders\LedgerSeeder;
 use Database\Seeders\StatementSeeder;
 use Database\Seeders\MatchingTransactionSeeder;
@@ -25,7 +24,6 @@ class DatabaseSeeder extends Seeder
         ]);
 
         $this->call([
-            GuestSeeder::class,
             LedgerSeeder::class,
             StatementSeeder::class,
             MatchingTransactionSeeder::class,
