@@ -30,7 +30,7 @@ Route::prefix('v1')->group(function () {
         Route::post('/unsubscribe', [NewsLetterController::class, 'unsubscribe'])->name('unsubscribe');
     });
 
-    Route::post('/reconcile', [ReconciliationController::class, 'reconcile']);
+    Route::post('/reconcile', [ReconciliationController::class, 'reconcile'])->name('reconcile');
     Route::post('/wait-list', [WaitListController::class, 'store']); //wait list route
     Route::post('/contact', [ContactController::class, 'contact']); //contact us route
 });

@@ -75,8 +75,10 @@ class GoogleAuthController extends Controller
         $token = JWTAuth::fromUser($user);
 
         return response()->json([
-            'user' => $user,
+            "status" => "success",
+            'message' => 'Successfully logged in',
+            'data' => $user,
             'token' => $token,
-        ]);
+        ], 200);
     }
 }
