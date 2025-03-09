@@ -313,16 +313,16 @@ class ReconciliationTest extends TestCase
         $invalidContent = "This is not a valid CSV file";
         $file1 = UploadedFile::fake()->createWithContent('file1.csv', $invalidContent);
         $file2 = UploadedFile::fake()->createWithContent('file2.csv', $invalidContent);
-        
+
         $mockService = Mockery::mock(ReconciliationService::class)
             ->shouldAllowMockingProtectedMethods();
-        
+
         $mockService->shouldReceive('loadFile')
             ->andThrow(new \Exception('Unsupported file format.'));
-        
+
         $mockService->shouldReceive('reconcileWithGemini')
             ->andThrow(new \Exception('Unsupported file format.'));
-        
+
         $this->app->instance(ReconciliationService::class, $mockService);
 
         $response = $this->postJson('/api/v1/reconcile', [
@@ -419,6 +419,91 @@ class ReconciliationTest extends TestCase
 
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['file2']);
+    }
+
+    public function test_export_generation_validation(): void
+    {
+        $response = $this->post('/api/v1/reconcile/export', [
+            'matches' => [],
+            'unmatched' => []
+        ]);
+        $response->assertStatus(422);
+    }
+
+    public function test_export_generation(): void
+    {
+        $response = $this->post('/api/v1/reconcile/export', [
+            'data' => [
+                'matches' => [
+                    [
+                        'file1_transaction' => [
+                            "Date" => "12/4/2023",
+                            "Description" => "Test",
+                            "Amount" => "650"
+                        ],
+                        'status' => "Matched",
+                        'file2_transaction' => [
+                            "Date" => "12/4/2023",
+                            "Description" => "Test",
+                            "Amount" => "650"
+                        ]
+                    ],
+                    [
+                        'file1_transaction' => [
+                            "Date" => "12/4/2023",
+                            "Description" => "Test",
+                            "Amount" => "650"
+                        ],
+                        'status' => "Matched",
+                        'file2_transaction' => [
+                            "Date" => "12/4/2023",
+                            "Description" => "Test",
+                            "Amount" => "650"
+                        ]
+                    ],
+                    [
+                        'file1_transaction' => [
+                            "Date" => "12/4/2023",
+                            "Description" => "Test",
+                            "Amount" => "650"
+                        ],
+                        'status' => "Matched",
+                        'file2_transaction' => [
+                            "Date" => "12/4/2023",
+                            "Description" => "Test",
+                            "Amount" => "650"
+                        ]
+                    ]
+                ],
+                'unmatched' => [
+                    'unmatched_file1' => [
+                        [
+                            "Date" => "12/4/2023",
+                            "Description" => "Test",
+                            "Amount" => "680"
+                        ],
+                        [
+                            "Date" => "12/4/2023",
+                            "Description" => "Test",
+                            "Amount" => "900"
+                        ]
+                    ],
+                    'unmatched_file2' => [
+                        [
+                            "Date" => "12/4/2023",
+                            "Description" => "Test",
+                            "Amount" => "450"
+                        ]
+                    ]
+                ]
+            ]
+        ]);
+        $file = "reconciled-data-" . now()->format('Y-m-d_H-i-s') . ".csv";
+        $response->assertStatus(200);
+        $response->assertHeader('Content-Type', 'text/plain; charset=UTF-8');
+        $response->assertHeader('Content-Disposition', "attachment; filename=$file");
+
+        $response->assertDownload($file);
     }
 
     protected function tearDown(): void
