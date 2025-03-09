@@ -8,6 +8,7 @@ use App\Http\Controllers\WaitListController;
 use App\Http\Controllers\Api\NewsLetterController;
 use App\Http\Controllers\GoogleAuthController;
 use App\Http\Controllers\ReconciliationController;
+use App\Http\Middleware\ThrottleUnauthenticated;
 
 Route::prefix('v1')->group(function () {
     Route::get('/', function () {
