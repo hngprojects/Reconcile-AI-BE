@@ -94,4 +94,11 @@ class NewsLetterTest extends TestCase
                 'message' => 'Unsubscription Failed',
             ]);
     }
+
+    public function test_user_cannot_subscribe_to_newsletter_with_same_email_twice()
+    {
+        $data = ['email' => 'duplicate@example.com'];
+        $this->postJson(route('newsletter.subscribe'), $data)->assertStatus(200);
+        $this->postJson(route('newsletter.subscribe'), $data)->assertStatus(422);
+    }
 }
