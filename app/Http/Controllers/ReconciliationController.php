@@ -140,6 +140,93 @@ class ReconciliationController extends Controller
         }
     }
 
+    /**
+ * @OA\Post(
+ *     path="/api/v1/reconcile/export",
+ *     summary="Export reconciled data as a CSV file",
+ *     description="Generates a CSV file containing matched and unmatched transactions from reconciliation.",
+ *     tags={"Reconciliation"},
+ *     @OA\RequestBody(
+ *         required=true,
+ *         @OA\JsonContent(
+ *             required={"data"},
+ *             @OA\Property(
+ *                 property="data",
+ *                 type="object",
+ *                 @OA\Property(
+ *                     property="matches",
+ *                     type="array",
+ *                     @OA\Items(
+ *                         type="object",
+ *                         @OA\Property(property="file1_transaction", type="object",
+ *                             @OA\Property(property="Date", type="string", example="12/4/2023"),
+ *                             @OA\Property(property="Description", type="string", example="Test"),
+ *                             @OA\Property(property="Amount", type="number", example=650)
+ *                         ),
+ *                         @OA\Property(property="status", type="string", example="Matched"),
+ *                         @OA\Property(property="file2_transaction", type="object",
+ *                             @OA\Property(property="Date", type="string", example="12/4/2023"),
+ *                             @OA\Property(property="Description", type="string", example="Test"),
+ *                             @OA\Property(property="Amount", type="number", example=650)
+ *                         )
+ *                     )
+ *                 ),
+ *                 @OA\Property(
+ *                     property="unmatched",
+ *                     type="object",
+ *                     @OA\Property(property="unmatched_file1", type="array", @OA\Items(type="object")),
+ *                     @OA\Property(property="unmatched_file2", type="array", @OA\Items(type="object"))
+ *                 ),
+ *                 @OA\Property(property="only_in_file1", type="array", @OA\Items(type="object")),
+ *                 @OA\Property(property="only_in_file2", type="array", @OA\Items(type="object"))
+ *             )
+ *         )
+ *     ),
+ *     @OA\Response(
+ *         response=200,
+ *         description="CSV file generated successfully",
+ *         @OA\Header(header="Content-Disposition", description="attachment; filename=reconciled-data.csv", @OA\Schema(type="string"))
+ *     ),
+ *     @OA\Response(response=400, description="Invalid request data"),
+ *     @OA\Response(response=500, description="Server error while generating CSV file")
+ * )
+ */
+    public function export(Request $request){
+        try {
+            $request->validate([
+                'data' => 'required|array',
+                'data.matches' => 'required|array',
+                'data.unmatched' => 'required|array',
+                'data.unmatched.unmatched_file1' => 'required|array',
+                'data.unmatched.unmatched_file2' => 'required|array',
+                'data.matches.*.file1_transaction' => 'required|array',
+                'data.matches.*.file2_transaction' => 'required|array',
+                'data.matches.*.status' => 'required|string',
+            ]);
+
+            return $this->reconciliationService->generateExport($request->input('data'));
+        } catch(\Exception $e) {
+            if(get_class($e) == "Illuminate\Validation\ValidationException"){
+                 return response()->json([
+                    "message" => "Failed to generate report",
+                    "status" => "error",
+                    "status_code" => 422,
+                    'data' => [
+                        'error' => $e->errors()
+                    ]
+                ], 422);
+            }
+             return response()->json([
+                "message" => "Failed to generate report",
+                "status" => "error",
+                "status_code" => 500,
+                'data' => [
+                    'error' => $e->getMessage()
+                ]
+            ], 500);
+        }
+    }
+
     private function isValidFileFormat(string $filePath): bool
     {
         $extension = pathinfo($filePath, PATHINFO_EXTENSION);
