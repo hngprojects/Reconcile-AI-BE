@@ -29,6 +29,7 @@ Route::prefix('v1')->group(function () {
     });
 
     Route::post('/reconcile', [ReconciliationController::class, 'reconcile']);
+    Route::post('/reconcile/export', [ReconciliationController::class, 'export']);
     Route::post('/wait-list', [WaitListController::class, 'store']);
     Route::post('/contact', [ContactController::class, 'contact']);
 });

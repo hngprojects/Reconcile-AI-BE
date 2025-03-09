@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use OpenAI;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Response;
 
 class ReconciliationService
 {
@@ -416,5 +417,33 @@ class ReconciliationService
                 'totalUnmatched' => count($unmatchedFile1) + count($unmatchedFile2)
             ]
         ];
+    }
+
+    public function generateExport(array $data){
+        $timestamp = now()->format('Y-m-d_H-i-s');
+        $exportFileName = public_path("reconciled-data-" . now()->format('Y-m-d_H-i-s') . ".csv");
+
+        $exportFile = fopen($exportFileName, 'w');
+        fputcsv($exportFile, ['Bank Statement', '', '', '', 'Ledger']);
+        fputcsv($exportFile, ['Date', 'Description', 'Amount', 'Status', 'Date', 'Description', 'Amount']);
+
+        foreach ($data['matches'] as $row) {
+            $rowData = [
+                ...$row['file1_transaction'],
+                $row['status']
+            ];
+            foreach ($row['file2_transaction'] as $value) {
+                array_push($rowData, $value);
+            }
+            fputcsv($exportFile, $rowData);
+        }
+
+        foreach ($data['unmatched']['unmatched_file1'] as $row) {
+            fputcsv($exportFile, [...$row, 'Unmatched']);
+        }
+
+        fclose($exportFile);
+
+        return Response::download($exportFileName);
     }
 }
