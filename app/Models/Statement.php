@@ -20,7 +20,7 @@ class Statement extends Model
         'reconciliation_id'
     ];
 
-    public function match(): BelongsTo
+    public function matched(): BelongsTo
     {
         return $this->belongsTo(MatchedTransaction::class);
     }

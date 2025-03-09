@@ -5,7 +5,6 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Relations\Pivot;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use App\Models\User;
-use App\Models\Guest;
 use App\Models\Ledger;
 use App\Models\Statement;
 
@@ -15,7 +14,6 @@ class MatchingTransaction extends Pivot
     protected $fillable = [
         'statement_id',
         'ledger_id',
-        'guest_id',
         'user_id',
         'status'
     ];
@@ -23,11 +21,6 @@ class MatchingTransaction extends Pivot
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
-    }
-
-    public function guest(): BelongsTo
-    {
-        return $this->belongsTo(Guest::class);
     }
 
     public function ledgers(): BelongsTo
