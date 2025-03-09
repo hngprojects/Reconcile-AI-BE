@@ -882,6 +882,130 @@
                 }
             }
         },
+        "/api/v1/reconcile/export": {
+            "post": {
+                "tags": [
+                    "Reconciliation"
+                ],
+                "summary": "Export reconciled data as a CSV file",
+                "description": "Generates a CSV file containing matched and unmatched transactions from reconciliation.",
+                "operationId": "49b2f5c943d6ed0e9a4e16e930cfddfc",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "data"
+                                ],
+                                "properties": {
+                                    "data": {
+                                        "properties": {
+                                            "matches": {
+                                                "type": "array",
+                                                "items": {
+                                                    "properties": {
+                                                        "file1_transaction": {
+                                                            "properties": {
+                                                                "Date": {
+                                                                    "type": "string",
+                                                                    "example": "12/4/2023"
+                                                                },
+                                                                "Description": {
+                                                                    "type": "string",
+                                                                    "example": "Test"
+                                                                },
+                                                                "Amount": {
+                                                                    "type": "number",
+                                                                    "example": 650
+                                                                }
+                                                            },
+                                                            "type": "object"
+                                                        },
+                                                        "status": {
+                                                            "type": "string",
+                                                            "example": "Matched"
+                                                        },
+                                                        "file2_transaction": {
+                                                            "properties": {
+                                                                "Date": {
+                                                                    "type": "string",
+                                                                    "example": "12/4/2023"
+                                                                },
+                                                                "Description": {
+                                                                    "type": "string",
+                                                                    "example": "Test"
+                                                                },
+                                                                "Amount": {
+                                                                    "type": "number",
+                                                                    "example": 650
+                                                                }
+                                                            },
+                                                            "type": "object"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "unmatched": {
+                                                "properties": {
+                                                    "unmatched_file1": {
+                                                        "type": "array",
+                                                        "items": {
+                                                            "type": "object"
+                                                        }
+                                                    },
+                                                    "unmatched_file2": {
+                                                        "type": "array",
+                                                        "items": {
+                                                            "type": "object"
+                                                        }
+                                                    }
+                                                },
+                                                "type": "object"
+                                            },
+                                            "only_in_file1": {
+                                                "type": "array",
+                                                "items": {
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "only_in_file2": {
+                                                "type": "array",
+                                                "items": {
+                                                    "type": "object"
+                                                }
+                                            }
+                                        },
+                                        "type": "object"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "CSV file generated successfully",
+                        "headers": {
+                            "Content-Disposition": {
+                                "description": "attachment; filename=reconciled-data.csv",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request data"
+                    },
+                    "500": {
+                        "description": "Server error while generating CSV file"
+                    }
+                }
+            }
+        },
         "/api/v1/wait-list": {
             "post": {
                 "tags": [

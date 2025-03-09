@@ -423,7 +423,6 @@ class ReconciliationTest extends TestCase
             ->assertJsonValidationErrors(['file2']);
     }
 
-
     public function test_authenticated_requests_are_not_throttled()
     {
         Cache::forget('throttle_unauthenticated_127.0.0.1');
@@ -451,6 +450,91 @@ class ReconciliationTest extends TestCase
         ]);
 
         $this->assertNotEquals(5, Cache::get($cacheKey));
+    }
+
+    public function test_export_generation_validation(): void
+    {
+        $response = $this->post('/api/v1/reconcile/export', [
+            'matches' => [],
+            'unmatched' => []
+        ]);
+        $response->assertStatus(422);
+    }
+
+    public function test_export_generation(): void
+    {
+        $response = $this->post('/api/v1/reconcile/export', [
+            'data' => [
+                'matches' => [
+                    [
+                        'file1_transaction' => [
+                            "Date" => "12/4/2023",
+                            "Description" => "Test",
+                            "Amount" => "650"
+                        ],
+                        'status' => "Matched",
+                        'file2_transaction' => [
+                            "Date" => "12/4/2023",
+                            "Description" => "Test",
+                            "Amount" => "650"
+                        ]
+                    ],
+                    [
+                        'file1_transaction' => [
+                            "Date" => "12/4/2023",
+                            "Description" => "Test",
+                            "Amount" => "650"
+                        ],
+                        'status' => "Matched",
+                        'file2_transaction' => [
+                            "Date" => "12/4/2023",
+                            "Description" => "Test",
+                            "Amount" => "650"
+                        ]
+                    ],
+                    [
+                        'file1_transaction' => [
+                            "Date" => "12/4/2023",
+                            "Description" => "Test",
+                            "Amount" => "650"
+                        ],
+                        'status' => "Matched",
+                        'file2_transaction' => [
+                            "Date" => "12/4/2023",
+                            "Description" => "Test",
+                            "Amount" => "650"
+                        ]
+                    ]
+                ],
+                'unmatched' => [
+                    'unmatched_file1' => [
+                        [
+                            "Date" => "12/4/2023",
+                            "Description" => "Test",
+                            "Amount" => "680"
+                        ],
+                        [
+                            "Date" => "12/4/2023",
+                            "Description" => "Test",
+                            "Amount" => "900"
+                        ]
+                    ],
+                    'unmatched_file2' => [
+                        [
+                            "Date" => "12/4/2023",
+                            "Description" => "Test",
+                            "Amount" => "450"
+                        ]
+                    ]
+                ]
+            ]
+        ]);
+        $file = "reconciled-data-" . now()->format('Y-m-d_H-i-s') . ".csv";
+        $response->assertStatus(200);
+        $response->assertHeader('Content-Type', 'text/plain; charset=UTF-8');
+        $response->assertHeader('Content-Disposition', "attachment; filename=$file");
+
+        $response->assertDownload($file);
     }
 
     protected function tearDown(): void

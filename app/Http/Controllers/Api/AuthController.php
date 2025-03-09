@@ -6,6 +6,7 @@ use App\Http\Requests\Auth\AuthLogin;
 use App\Http\Requests\Auth\AuthRegister;
 use App\Services\Auth\AuthService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class AuthController extends Controller
 {
@@ -99,7 +100,7 @@ class AuthController extends Controller
     {
         return $this->authService->logout()->toJson();
     }
-  
+
     /**
      * @OA\Post(
      *     path="/api/v1/auth/register",
