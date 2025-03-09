@@ -444,6 +444,6 @@ class ReconciliationService
 
         fclose($exportFile);
 
-        return Response::download($exportFileName);
+        return Response::download($exportFileName)->deleteFileAfterSend(true);
     }
 }
