@@ -3,13 +3,12 @@ name: Testing
 on:
   pull_request:
     branches: [main, dev] # Runs for same-repo PRs
-    # types: [opened, synchronize]
-  pull_request_target:
-    branches: [main, dev] # Runs for PRs from forks
+    types: [opened, synchronize]
 
 jobs:
   test:
-    runs-on: reconcile
+    # runs-on: reconcile
+    runs-on: ubuntu-latest
     timeout-minutes: 10
 
     services:

@@ -23,10 +23,11 @@ class ContactController extends Controller
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
-     *             required={"name", "email", "message"},
+     *             required={"name", "email", "message", "phone_number"},
      *             @OA\Property(property="name", type="string", example="John Doe", description="Full name of the user"),
      *             @OA\Property(property="email", type="string", format="email", example="john@example.com", description="Email address of the user"),
-     *             @OA\Property(property="message", type="string", example="Hello, this is a test message.", description="Message content")
+     *             @OA\Property(property="message", type="string", example="Hello, this is a test message.", description="Message content"),
+     *             @OA\Property(property="phone_number", type="string", example="1234567890", description="Phone number of the user")
      *         )
      *     ),
      *     @OA\Response(
@@ -39,7 +40,8 @@ class ContactController extends Controller
      *             @OA\Property(property="data", type="object",
      *                 @OA\Property(property="name", type="string", example="John Doe"),
      *                 @OA\Property(property="email", type="string", example="john@example.com"),
-     *                 @OA\Property(property="message", type="string", example="Hello, this is a test message.")
+     *                 @OA\Property(property="message", type="string", example="Hello, this is a test message."),
+     *                 @OA\Property(property="phone_number", type="string", example="1234567890")
      *             )
      *         )
      *     ),
@@ -50,10 +52,11 @@ class ContactController extends Controller
      *             @OA\Property(property="status", type="string", example="error"),
      *             @OA\Property(property="status_code", type="integer", example=400),
      *             @OA\Property(property="message", type="string", example="Validation failed."),
-     *             @OA\Property(property="error", type="object",
+     *             @OA\Property(property="errors", type="object",
      *                 @OA\Property(property="name", type="string", example="The name field is required."),
      *                 @OA\Property(property="email", type="string", example="The email field is required."),
-     *                 @OA\Property(property="message", type="string", example="The message field is required.")
+     *                 @OA\Property(property="message", type="string", example="The message field is required."),
+     *                 @OA\Property(property="phone_number", type="string", example="The phone number field is required.")
      *             )
      *         )
      *     ),
@@ -71,7 +74,7 @@ class ContactController extends Controller
      */
     public function contact(Request $request)
     {
-        $data = $request->only(['name', 'email', 'message']);
+        $data = $request->only(['name', 'email', 'message', 'phone_number']);
 
         // Validate input
         [$isValid, $validationMessage] = $this->contactService->validateInput($data);
@@ -80,7 +83,7 @@ class ContactController extends Controller
                 'status' => 'error',
                 'status_code' => 400,
                 'message' => 'Validation failed.',
-                'error' => $validationMessage // Include validation errors
+                'errors' => $validationMessage // Include validation errors
             ], 400);
         }
 

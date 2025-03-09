@@ -500,7 +500,8 @@
                                 "required": [
                                     "name",
                                     "email",
-                                    "message"
+                                    "message",
+                                    "phone_number"
                                 ],
                                 "properties": {
                                     "name": {
@@ -518,6 +519,11 @@
                                         "description": "Message content",
                                         "type": "string",
                                         "example": "Hello, this is a test message."
+                                    },
+                                    "phone_number": {
+                                        "description": "Phone number of the user",
+                                        "type": "string",
+                                        "example": "1234567890"
                                     }
                                 },
                                 "type": "object"
@@ -557,6 +563,10 @@
                                                 "message": {
                                                     "type": "string",
                                                     "example": "Hello, this is a test message."
+                                                },
+                                                "phone_number": {
+                                                    "type": "string",
+                                                    "example": "1234567890"
                                                 }
                                             },
                                             "type": "object"
@@ -585,7 +595,7 @@
                                             "type": "string",
                                             "example": "Validation failed."
                                         },
-                                        "error": {
+                                        "errors": {
                                             "properties": {
                                                 "name": {
                                                     "type": "string",
@@ -598,6 +608,10 @@
                                                 "message": {
                                                     "type": "string",
                                                     "example": "The message field is required."
+                                                },
+                                                "phone_number": {
+                                                    "type": "string",
+                                                    "example": "The phone number field is required."
                                                 }
                                             },
                                             "type": "object"
@@ -629,6 +643,84 @@
                                         "data": {
                                             "type": "null",
                                             "example": null
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/auth/google": {
+            "get": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Redirect to Google for authentication",
+                "description": "Redirects the user to Google's OAuth login page to authenticate.",
+                "operationId": "fda6d6d153a3c5e5987f6f9a141476fc",
+                "responses": {
+                    "302": {
+                        "description": "Redirect to Google's OAuth login page"
+                    }
+                }
+            }
+        },
+        "/api/v1/auth/google/callback": {
+            "get": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Handle Google OAuth callback",
+                "description": "Handles the callback from Google OAuth after the user logs in. Creates or retrieves the user and returns a JWT token.",
+                "operationId": "e057056d65988902a56d9310ab55a788",
+                "responses": {
+                    "200": {
+                        "description": "Successful authentication",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "user": {
+                                            "description": "Authenticated user details",
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "name": {
+                                                    "type": "string",
+                                                    "example": "John Doe"
+                                                },
+                                                "email": {
+                                                    "type": "string",
+                                                    "example": "john.doe@gmail.com"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "token": {
+                                            "description": "JWT token for authenticated requests",
+                                            "type": "string",
+                                            "example": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Authentication failed",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Unauthorized"
                                         }
                                     },
                                     "type": "object"
@@ -673,7 +765,7 @@
                     "Reconciliation"
                 ],
                 "summary": "Reconcile two CSV or Excel files",
-                "description": "Uploads two files, compares them based on detected name and amount columns, and returns matched/different records. You can choose to reconcile using AI",
+                "description": "Upload and compare two files using various reconciliation methods",
                 "operationId": "4901856bb5a62aa674d08ea00562ea29",
                 "requestBody": {
                     "required": true,
@@ -696,7 +788,7 @@
                                         "format": "binary"
                                     },
                                     "reconcile_option": {
-                                        "description": "Reconciliation method. Defaults to AI if not provided.",
+                                        "description": "Reconciliation method to use",
                                         "type": "string",
                                         "enum": [
                                             "reconcile_with_Gemini",
@@ -713,7 +805,7 @@
                 },
                 "responses": {
                     "200": {
-                        "description": "Reconciliation successful",
+                        "description": "Successful reconciliation",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -722,22 +814,27 @@
                                             "type": "string",
                                             "example": "Reconciliation successful"
                                         },
+                                        "status": {
+                                            "type": "string",
+                                            "example": "success"
+                                        },
+                                        "status_code": {
+                                            "type": "integer",
+                                            "example": 200
+                                        },
                                         "data": {
                                             "properties": {
                                                 "matches": {
-                                                    "description": "Number of matched rows",
                                                     "type": "integer",
                                                     "example": 5
                                                 },
                                                 "only_in_file1": {
-                                                    "description": "Rows only in first file",
                                                     "type": "array",
                                                     "items": {
                                                         "type": "object"
                                                     }
                                                 },
                                                 "only_in_file2": {
-                                                    "description": "Rows only in second file",
                                                     "type": "array",
                                                     "items": {
                                                         "type": "object"
@@ -753,10 +850,34 @@
                         }
                     },
                     "400": {
-                        "description": "Validation or processing error"
+                        "description": "Bad request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "error": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
                     },
                     "422": {
-                        "description": "Invalid file format"
+                        "description": "Validation error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "error": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -969,6 +1090,10 @@
     },
     "tags": [
         {
+            "name": "Reconciliation",
+            "description": "API Endpoints for file reconciliation"
+        },
+        {
             "name": "Authentication",
             "description": "Authentication"
         },
@@ -983,10 +1108,6 @@
         {
             "name": "Home",
             "description": "Home"
-        },
-        {
-            "name": "Reconciliation",
-            "description": "Reconciliation"
         },
         {
             "name": "WaitList",
