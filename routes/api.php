@@ -25,6 +25,8 @@ Route::prefix('v1')->group(function () {
         Route::get('/google/callback', [GoogleAuthController::class, 'handleGoogleCallback']);
     });
 
+    Route::middleware('auth:api')->get('/user', [GoogleAuthController::class, 'fetchUser'])->name('user');
+
     Route::prefix('newsletter')->name('newsletter.')->group(function () {
         Route::post('/subscribe', [NewsLetterController::class, 'subscribe'])->name('subscribe');
         Route::post('/unsubscribe', [NewsLetterController::class, 'unsubscribe'])->name('unsubscribe');
