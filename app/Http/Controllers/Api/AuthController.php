@@ -179,7 +179,7 @@ class AuthController extends Controller
      *             @OA\Property(property="code", type="integer", example=400),
      *             @OA\Property(property="message", type="string", example="Invalid email address")
      *         )
-     *     )
+     *     ),
      *     @OA\Response(
      *         response=422,
      *         description="Validation error",
@@ -231,7 +231,7 @@ class AuthController extends Controller
      *             @OA\Property(property="code", type="integer", example=400),
      *             @OA\Property(property="message", type="string", example="Invalid or expired token")
      *         )
-     *     )
+     *     ),
      *     @OA\Response(
      *         response=422,
      *         description="Validation error",
