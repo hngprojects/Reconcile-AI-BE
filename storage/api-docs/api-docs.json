@@ -697,6 +697,10 @@
                                                 "email": {
                                                     "type": "string",
                                                     "example": "john.doe@gmail.com"
+                                                },
+                                                "avatar": {
+                                                    "type": "string",
+                                                    "example": "https://example.com/avatar.jpg"
                                                 }
                                             },
                                             "type": "object"
@@ -729,6 +733,111 @@
                         }
                     }
                 }
+            }
+        },
+        "/api/v1/user": {
+            "get": {
+                "tags": [
+                    "User"
+                ],
+                "summary": "Retrieve authenticated user details",
+                "description": "Fetches the details of the authenticated user using a valid JWT token.",
+                "operationId": "7544732f795e057ed35434722d83ce3a",
+                "responses": {
+                    "200": {
+                        "description": "User successfully fetched",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "example": "success"
+                                        },
+                                        "status_code": {
+                                            "type": "integer",
+                                            "example": 200
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "User successfully fetched"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "user": {
+                                                    "properties": {
+                                                        "id": {
+                                                            "type": "integer",
+                                                            "example": 1
+                                                        },
+                                                        "name": {
+                                                            "type": "string",
+                                                            "example": "John Doe"
+                                                        },
+                                                        "email": {
+                                                            "type": "string",
+                                                            "example": "john.doe@gmail.com"
+                                                        },
+                                                        "avatar": {
+                                                            "type": "string",
+                                                            "example": "https://example.com/avatar.jpg"
+                                                        },
+                                                        "created_at": {
+                                                            "type": "string",
+                                                            "format": "date-time",
+                                                            "example": "2024-03-10T12:00:00.000000Z"
+                                                        },
+                                                        "updated_at": {
+                                                            "type": "string",
+                                                            "format": "date-time",
+                                                            "example": "2024-03-10T12:30:00.000000Z"
+                                                        },
+                                                        "email_verified": {
+                                                            "type": "boolean",
+                                                            "example": true
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "example": "error"
+                                        },
+                                        "status_code": {
+                                            "type": "integer",
+                                            "example": 401
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Unauthenticated"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
             }
         },
         "/api/v1": {
@@ -1104,6 +1213,10 @@
         {
             "name": "Contact",
             "description": "Contact"
+        },
+        {
+            "name": "User",
+            "description": "User"
         },
         {
             "name": "Home",
