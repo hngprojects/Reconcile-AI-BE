@@ -95,12 +95,12 @@ class ReconciliationController extends Controller
     public function reconcile(Request $request): JsonResponse
     {
         $request->validate([
-            'file1' => 'required|file|mimes:csv,xlsx,xls|max:2048',
-            'file2' => 'required|file|mimes:csv,xlsx,xls|max:2048',
+            'file1' => 'required|file|mimes:csv|max:2048',
+            'file2' => 'required|file|mimes:csv|max:2048',
             'reconcile_option' => 'nullable|in:reconcile_with_recox_ai,reconcile_with_openAI,reconcile_with_deepSeek,reconcile_with_Gemini',
         ], [
-            'file1.mimes' => 'File 1 must be a CSV or Excel file.',
-            'file2.mimes' => 'File 2 must be a CSV or Excel file.',
+            'file1.mimes' => 'File 1 must be a CSV.',
+            'file2.mimes' => 'File 2 must be a CSV.',
             'file1.max' => 'File 1 must not be larger than 2MB.',
             'file2.max' => 'File 2 must not be larger than 2MB.',
         ]);
