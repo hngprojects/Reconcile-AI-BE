@@ -10,4 +10,5 @@ interface AuthService extends BaseService{
     public function logout();
     public function register($request);
     public function forgotPassword($request);
+    public function resetPassword($request);
 }

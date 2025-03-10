@@ -125,4 +125,35 @@ class AuthServiceImplement extends ServiceApi implements AuthService
                 ->setError($e->getMessage());
         }
     }
+
+    /**
+     * Handles the password reset process for the application.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse | \App\Services\Auth\AuthServiceImplement
+     */
+    public function resetPassword($request)
+    {
+        try {
+            $validated = $request->validated();
+            $status = Password::reset(
+                $request->only('email', 'password', 'password_confirmation', 'token'),
+                function (User $user, string $password) {
+                    $user->forceFill(['password' => Hash::make($password)])->save();
+                    auth()->logout();
+                }
+            );
+
+            if ($status === Password::PASSWORD_RESET) {
+                return $this->setCode(200)->setMessage("Password has been reset. Return to Login page to continue.");
+            }
+
+            return $this->setCode(400)->setMessage("Invalid token or email.");
+
+        } catch (\Exception $e) {
+            return $this->setCode(400)
+                ->setMessage("Password reset Failed")
+                ->setError($e->getMessage());
+        }
+    }
 }
