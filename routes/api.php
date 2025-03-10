@@ -19,6 +19,10 @@ Route::prefix('v1')->group(function () {
         Route::post('/login', [AuthController::class, 'login'])->name('login');
         Route::post('/register', [AuthController::class, 'register'])->name('register');
         Route::post('/logout', [AuthController::class, 'logout'])->withoutMiddleware('guest')->middleware('jwt.auth')->name('logout');
+        Route::post('/forgot-password', [AuthController::class, 'forgotPassword'])->name('forgot-password');
+        Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('reset-password');
+        // Route::post('/verify-email', [AuthController::class, 'verifyEmail'])->name('verify-email');
+        // Route::post('/resend-verification-email', [AuthController::class, 'resendVerificationEmail'])->name('resend-verification-email');
 
         // google auth
         Route::get('/google', [GoogleAuthController::class, 'redirectToGoogle']);

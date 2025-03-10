@@ -41,4 +41,9 @@ return [
         'redirect' => env('GOOGLE_REDIRECT_URI'),
     ],
 
+    'frontend' => [
+        'url' => env('FRONTEND_URL'),
+        'password_reset_url'=> env('FRONTEND_PASSWORD_RESET_URL'),
+    ],
+
 ];
