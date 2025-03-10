@@ -42,6 +42,7 @@ class GoogleAuthController extends Controller
      *                 @OA\Property(property="id", type="integer", example=1),
      *                 @OA\Property(property="name", type="string", example="John Doe"),
      *                 @OA\Property(property="email", type="string", example="john.doe@gmail.com")
+     *                 @OA\Property(property="avatar", type="string", example="john.doe@gmail.com")
      *             ),
      *             @OA\Property(property="token", type="string", example="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...", description="JWT token for authenticated requests")
      *         )
@@ -67,6 +68,7 @@ class GoogleAuthController extends Controller
             $user = User::create([
                 'name' => $googleUser->name,
                 'email' => $googleUser->email,
+                'avatar' => $googleUser->avatar,
                 'password' => bcrypt(Str::random(16)), // Random password
             ]);
         }
@@ -74,6 +76,14 @@ class GoogleAuthController extends Controller
         // Generate JWT token
         $token = JWTAuth::fromUser($user);
 
-        return redirect()->to(env('FRONTEND_URL', 'https://dev.reconxi.com').'/file-upload?token='.$token);   
+        return response()->json([
+            'status_code' => 200,
+            'status' => 'success',
+            'message' => 'User successfully authenticated',
+            'data' => [
+                'user' => $user,
+                'access_token' => $token
+            ]
+        ]);
     }
 }
