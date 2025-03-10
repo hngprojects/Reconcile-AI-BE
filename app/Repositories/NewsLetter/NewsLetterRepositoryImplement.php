@@ -10,7 +10,7 @@ class NewsLetterRepositoryImplement extends Eloquent implements NewsLetterReposi
     /**
     * Model class to be used in this repository for the common methods inside Eloquent
     * Don't remove or change $this->model variable name
-    * @property Model|mixed $model;
+    * @property NewsLetter|mixed $model;
     */
     protected NewsLetter $model;
 

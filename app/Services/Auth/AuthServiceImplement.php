@@ -2,10 +2,14 @@
 
 namespace App\Services\Auth;
 
+use App\Models\User;
+use Illuminate\Http\JsonResponse;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use App\Http\Resources\UserResource;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use LaravelEasyRepository\ServiceApi;
+use Illuminate\Support\Facades\Password;
 use App\Repositories\Auth\AuthRepository;
 
 class AuthServiceImplement extends ServiceApi implements AuthService
@@ -25,7 +29,7 @@ class AuthServiceImplement extends ServiceApi implements AuthService
      * Handles the login process for the application.
      *
      * @param \Illuminate\Http\Request $request
-     * @return \Illuminate\Http\JsonResponse
+     * @return \Illuminate\Http\JsonResponse | \App\Services\Auth\AuthServiceImplement
      */
     public function login($request)
     {
@@ -51,12 +55,12 @@ class AuthServiceImplement extends ServiceApi implements AuthService
                 ->setError($e->getMessage());
         }
     }
-  
+
     /**
      * Handles the logout process for the application.
      *
      * @param \Illuminate\Http\Request $request
-     * @return \Illuminate\Http\JsonResponse
+     * @return \Illuminate\Http\JsonResponse | \App\Services\Auth\AuthServiceImplement
      */
     public function logout()
     {
@@ -71,12 +75,12 @@ class AuthServiceImplement extends ServiceApi implements AuthService
                 ->setError($e->getMessage());
         }
     }
-  
-  /**
+
+    /**
      * Handles the registration process for the application.
      *
      * @param \Illuminate\Http\Request $request
-     * @return \Illuminate\Http\JsonResponse
+     * @return \Illuminate\Http\JsonResponse | \App\Services\Auth\AuthServiceImplement
      */
     public function register($request)
     {
@@ -95,6 +99,29 @@ class AuthServiceImplement extends ServiceApi implements AuthService
         } catch (\Exception $e) {
             return $this->setCode(400)
                 ->setMessage("User account registration failed")
+                ->setError($e->getMessage());
+        }
+    }
+
+    /**
+     * Handles the forgot password process for the application.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse | \App\Services\Auth\AuthServiceImplement
+     */
+    public function forgotPassword($request)
+    {
+        try {
+            $validated = $request->validated();
+            $status = Password::sendResetLink($validated);
+            if ($status === Password::RESET_LINK_SENT) {
+                return $this->setCode(200)->setMessage("Password reset link sent.");
+            }
+
+            return $this->setCode(400)->setMessage("Unable to send reset link.");
+        } catch (\Exception $e) {
+            return $this->setCode(400)
+                ->setMessage("Forgot Password Failed")
                 ->setError($e->getMessage());
         }
     }
