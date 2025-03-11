@@ -1,44 +1,46 @@
 name: Deployment
-
 on:
   push:
     branches:
+      - main
       - dev
+      - staging
 
 jobs:
-  tag_release:
-    runs-on: hng12interns
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0  # Fetch all history for proper versioning
-      
-      - name: Bump version and push tag
-        id: versioning
-        uses: anothrNick/github-tag-action@1.71.0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          DEFAULT_BUMP: auto
-          WITH_V: true
-
   deployment:
-    needs: [tag_release]
-    runs-on: hng12interns
+    runs-on: reconcile
+    timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
-      
-      - name: Deploy to EC2
-        uses: appleboy/ssh-action@v0.1.10
+      # - uses: actions/checkout@v4
+      - name: Deploy to the server
+        uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.SSH_SERVER }}
           username: ${{ secrets.SSH_USERNAME }}
           password: ${{ secrets.SSH_PASSWORD }}
-          port: 22
+          # port: 22
           script: |
-            echo "Starting Laravel deployment..."
-            
-            # Start the deployment service (using explicit sudo with NOPASSWD permission)
-            sudo systemctl daemon-reload
-            sudo systemctl restart laravel-deploy.service
-            
-            echo "Deployment process completed!"
+            if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+              echo "Starting Laravel deployment for production..."
+              cd /var/www/html/Reconcile-AI-BE-main
+              git pull origin main
+              composer install --no-interaction --prefer-dist --no-dev
+              php artisan jwt:secret
+              php artisan optimize:clear
+              php artisan migrate --force
+              sudo systemctl restart nginx
+            elif [[ "${{ github.ref }}" == "refs/heads/staging" ]]; then
+              echo "Starting Laravel deployment for development..."
+              cd /var/www/html/Reconcile-AI-BE-staging
+              git pull origin staging
+              composer install --no-interaction --prefer-dist
+              php artisan optimize:clear
+              php artisan migrate --force
+              # Restart the staging service
+              sudo systemctl restart nginx
+            else
+              echo "Starting Laravel deployment..."
+              # Start the deployment service (using explicit sudo with NOPASSWD permission)
+              sudo systemctl daemon-reload
+              sudo systemctl restart laravel-deploy.service
+            fi
