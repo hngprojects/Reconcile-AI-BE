@@ -6,6 +6,8 @@ use App\Services\ReconciliationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\JsonResponse;
+use App\Models\ReconciledRecord;
+use Illuminate\Support\Facades\Auth;
 
 /**
  * @OA\Tag(
@@ -128,6 +130,13 @@ class ReconciliationController extends Controller
 
             Storage::delete([$file1Path, $file2Path]);
 
+            if (Auth::check()) {
+                ReconciledRecord::create([
+                    'user_id' => Auth::id(),
+                    'data' => $result,
+                ]);
+            }
+
             return response()->json([
                 "message" => "Reconciliation successful",
                 "status" => "success",
@@ -227,6 +236,44 @@ class ReconciliationController extends Controller
                 ]
             ], 500);
         }
+    }
+
+    /**
+     * @OA\Get(
+     *     path="/api/v1/reconciled-records",
+     *     summary="Get reconciled records",
+     *     description="Fetch reconciled records for the logged-in user",
+     *     tags={"Reconciliation"},
+     *     security={{ "bearerAuth":{} }},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Reconciled records fetched successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Reconciled records fetched successfully"),
+     *             @OA\Property(property="status", type="string", example="success"),
+     *             @OA\Property(property="status_code", type="integer", example=200),
+     *             @OA\Property(property="data", type="array", @OA\Items(type="object"))
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthorized",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="error", type="string", example="Unauthorized")
+     *         )
+     *     )
+     * )
+     */
+    public function getReconciledRecords(Request $request)
+    {
+        $records = ReconciledRecord::where('user_id', auth()->id())->get();
+
+        return response()->json([
+            'message' => 'Reconciled records fetched successfully',
+            'status' => 'success',
+            'status_code' => 200,
+            'data' => $records,
+        ], 200);
     }
 
     private function isValidFileFormat(string $filePath): bool

@@ -37,6 +37,7 @@ Route::prefix('v1')->group(function () {
     });
 
     Route::post('/reconcile', [ReconciliationController::class, 'reconcile'])->name('reconcile'); //->middleware(ThrottleUnauthenticated::class);
+    Route::get('/reconciled-records', [ReconciliationController::class, 'getReconciledRecords'])->name('reconciled-records');
     Route::post('/reconcile/export', [ReconciliationController::class, 'export'])->name('export');
     Route::post('/wait-list', [WaitListController::class, 'store'])->name('wait-list');
     Route::post('/contact', [ContactController::class, 'contact'])->name('contact');

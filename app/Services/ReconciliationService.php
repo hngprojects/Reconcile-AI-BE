@@ -231,6 +231,8 @@ class ReconciliationService
         - Ignore any special **symbols or formatting differences** in the name fields, for example (Peter's should match with Peter or Mitchell@ should match with Mitchell,.
         - Some names may match based on nicknames for example, Sammy Song and Samuel Song, Goodness Samuel and Goody Samuel, Goddy Akpabio and Godswill Akpabio can match.
         - **Case sensitivity** should be ignored in the name fields.
+        - Synonyms of the headers description
+        - Ignore unrelated columns unless the value is of the columns are valuable to the decision making of the reconciliation.
 
         Here is an example of how the reconciliation should work:
 
