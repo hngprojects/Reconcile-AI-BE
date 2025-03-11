@@ -6,6 +6,8 @@ use App\Services\ReconciliationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\JsonResponse;
+use App\Models\ReconciledRecord;
+use Illuminate\Support\Facades\Auth;
 
 /**
  * @OA\Tag(
@@ -95,12 +97,12 @@ class ReconciliationController extends Controller
     public function reconcile(Request $request): JsonResponse
     {
         $request->validate([
-            'file1' => 'required|file|mimes:csv,xlsx,xls|max:2048',
-            'file2' => 'required|file|mimes:csv,xlsx,xls|max:2048',
+            'file1' => 'required|file|mimes:csv|max:2048',
+            'file2' => 'required|file|mimes:csv|max:2048',
             'reconcile_option' => 'nullable|in:reconcile_with_recox_ai,reconcile_with_openAI,reconcile_with_deepSeek,reconcile_with_Gemini',
         ], [
-            'file1.mimes' => 'File 1 must be a CSV or Excel file.',
-            'file2.mimes' => 'File 2 must be a CSV or Excel file.',
+            'file1.mimes' => 'File 1 must be a CSV.',
+            'file2.mimes' => 'File 2 must be a CSV.',
             'file1.max' => 'File 1 must not be larger than 2MB.',
             'file2.max' => 'File 2 must not be larger than 2MB.',
         ]);
@@ -127,6 +129,13 @@ class ReconciliationController extends Controller
             };
 
             Storage::delete([$file1Path, $file2Path]);
+
+            if (Auth::check()) {
+                ReconciledRecord::create([
+                    'user_id' => Auth::id(),
+                    'data' => $result,
+                ]);
+            }
 
             return response()->json([
                 "message" => "Reconciliation successful",
@@ -227,6 +236,44 @@ class ReconciliationController extends Controller
                 ]
             ], 500);
         }
+    }
+
+    /**
+     * @OA\Get(
+     *     path="/api/v1/reconciled-records",
+     *     summary="Get reconciled records",
+     *     description="Fetch reconciled records for the logged-in user",
+     *     tags={"Reconciliation"},
+     *     security={{ "bearerAuth":{} }},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Reconciled records fetched successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Reconciled records fetched successfully"),
+     *             @OA\Property(property="status", type="string", example="success"),
+     *             @OA\Property(property="status_code", type="integer", example=200),
+     *             @OA\Property(property="data", type="array", @OA\Items(type="object"))
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthorized",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="error", type="string", example="Unauthorized")
+     *         )
+     *     )
+     * )
+     */
+    public function getReconciledRecords(Request $request)
+    {
+        $records = ReconciledRecord::where('user_id', auth()->id())->get();
+
+        return response()->json([
+            'message' => 'Reconciled records fetched successfully',
+            'status' => 'success',
+            'status_code' => 200,
+            'data' => $records,
+        ], 200);
     }
 
     private function isValidFileFormat(string $filePath): bool
