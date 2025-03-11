@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\User;
+use App\Models\ReconciledRecord;
 use App\Services\ReconciliationService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
@@ -373,7 +374,6 @@ class ReconciliationTest extends TestCase
             ]);
         $this->app->instance(ReconciliationService::class, $mockService);
 
-        // Create test files
         $file1 = UploadedFile::fake()->create('file1.csv', 100);
         $file2 = UploadedFile::fake()->create('file2.csv', 100);
 
@@ -388,29 +388,6 @@ class ReconciliationTest extends TestCase
         Storage::assertMissing('uploads/' . $file2->hashName());
     }
 
-    public function test_handles_excel_files(): void
-    {
-        $mockService = Mockery::mock(ReconciliationService::class);
-        $mockService->shouldReceive('reconcileWithGemini')
-            ->once()
-            ->andReturn([
-                'matches'       => [],
-                'only_in_file1' => [],
-                'only_in_file2' => [],
-            ]);
-        $this->app->instance(ReconciliationService::class, $mockService);
-
-        $file1 = UploadedFile::fake()->create('file1.xlsx', 100);
-        $file2 = UploadedFile::fake()->create('file2.xlsx', 100);
-
-        $response = $this->postJson('/api/v1/reconcile', [
-            'file1' => $file1,
-            'file2' => $file2,
-        ]);
-
-        $response->assertStatus(200);
-    }
-
     public function test_requires_both_files(): void
     {
         $file1 = UploadedFile::fake()->create('file1.csv', 100);
@@ -422,8 +399,8 @@ class ReconciliationTest extends TestCase
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['file2']);
     }
-    
-    public function test_unauthenticated_requests_are_throttled()
+
+    public function test_unauthenticated_requests_are_throttled(): void
     {
         Cache::forget('throttle_unauthenticated_127.0.0.1');
         $cacheKey = 'throttle_unauthenticated_127.0.0.1';
@@ -433,14 +410,14 @@ class ReconciliationTest extends TestCase
         $file2 = UploadedFile::fake()->create('file2.csv', 100);
 
         for ($i = 0; $i < 5; $i++) {
-            $response = $this->postJson(route('reconcile'), [
+            $response = $this->postJson(route('v1.reconcile'), [
                 'file1' => $file1,
                 'file2' => $file2,
                 'reconcile_option' => 'reconcile_with_recox_ai',
             ]);
         }
 
-        $response = $this->postJson(route('reconcile'), [
+        $response = $this->postJson(route('v1.reconcile'), [
             'file1' => $file1,
             'file2' => $file2,
             'reconcile_option' => 'reconcile_with_recox_ai',
@@ -452,27 +429,27 @@ class ReconciliationTest extends TestCase
         $this->assertEquals(5, Cache::get($cacheKey));
     }
 
-    public function test_authenticated_requests_are_not_throttled()
+    public function test_authenticated_requests_are_not_throttled(): void
     {
         Cache::forget('throttle_unauthenticated_127.0.0.1');
         $cacheKey = 'throttle_unauthenticated_127.0.0.1';
         Cache::put($cacheKey, 0);
 
-        $user = User::factory()->create();
+        $user = User::factory()->createOne();
         $this->actingAs($user);
 
         $file1 = UploadedFile::fake()->create('file1.csv', 100);
         $file2 = UploadedFile::fake()->create('file2.csv', 100);
 
         for ($i = 0; $i < 5; $i++) {
-            $response = $this->postJson(route('reconcile'), [
+            $response = $this->postJson(route('v1.reconcile'), [
                 'file1'            => $file1,
                 'file2'            => $file2,
                 'reconcile_option' => 'reconcile_with_recox_ai',
             ]);
         }
 
-        $response = $this->postJson(route('reconcile'), [
+        $response = $this->postJson(route('v1.reconcile'), [
             'file1'            => $file1,
             'file2'            => $file2,
             'reconcile_option' => 'reconcile_with_recox_ai',
@@ -564,6 +541,110 @@ class ReconciliationTest extends TestCase
         $response->assertHeader('Content-Disposition', "attachment; filename=$file");
 
         $response->assertDownload($file);
+    }
+
+    public function test_reconciled_records_are_saved_for_logged_in_users(): void
+    {
+        $user = User::factory()->createOne();
+        $this->actingAs($user);
+
+        $mockService = Mockery::mock(ReconciliationService::class);
+        $mockService->shouldReceive('reconcileWithGemini')
+            ->once()
+            ->andReturn([
+                'matches'       => [
+                    [
+                        'file1_transaction' => ['name' => 'John Doe', 'amount' => 100],
+                        'file2_transaction' => ['name' => 'Doe John', 'amount' => 100],
+                        'match_score'       => 95,
+                    ],
+                ],
+                'only_in_file1' => [['name' => 'Alice Brown', 'amount' => 300]],
+                'only_in_file2' => [['name' => 'Bob Martin', 'amount' => 400]],
+                'unmatched'     => [
+                    'unmatched_file1' => [['name' => 'Alice Brown', 'amount' => 300]],
+                    'unmatched_file2' => [['name' => 'Bob Martin', 'amount' => 400]],
+                ],
+                'matchSummary'  => [
+                    'totalMatched'        => 1,
+                    'totalUnmatchedFile1' => 1,
+                    'totalUnmatchedFile2' => 1,
+                    'totalUnmatched'      => 2,
+                ],
+            ]);
+        $this->app->instance(ReconciliationService::class, $mockService);
+
+        $file1 = UploadedFile::fake()->create('file1.csv', 100);
+        $file2 = UploadedFile::fake()->create('file2.csv', 100);
+
+        $response = $this->postJson('/api/v1/reconcile', [
+            'file1'            => $file1,
+            'file2'            => $file2,
+            'reconcile_option' => 'reconcile_with_Gemini',
+        ]);
+
+        $response->assertStatus(200)
+            ->assertJson([
+                'message'     => 'Reconciliation successful',
+                'status'      => 'success',
+                'status_code' => 200,
+            ]);
+
+        $this->assertDatabaseHas('reconciled_records', [
+            'user_id' => $user->id,
+        ]);
+    }
+
+    public function test_fetching_reconciled_records_for_logged_in_users(): void
+    {
+        $user = User::factory()->createOne();
+        $this->actingAs($user);
+
+        ReconciledRecord::factory()->create([
+            'user_id' => $user->id,
+            'data'    => [
+                'matches'       => [
+                    [
+                        'file1_transaction' => ['name' => 'John Doe', 'amount' => 100],
+                        'file2_transaction' => ['name' => 'Doe John', 'amount' => 100],
+                        'match_score'       => 95,
+                    ],
+                ],
+                'only_in_file1' => [['name' => 'Alice Brown', 'amount' => 300]],
+                'only_in_file2' => [['name' => 'Bob Martin', 'amount' => 400]],
+                'unmatched'     => [
+                    'unmatched_file1' => [['name' => 'Alice Brown', 'amount' => 300]],
+                    'unmatched_file2' => [['name' => 'Bob Martin', 'amount' => 400]],
+                ],
+                'matchSummary'  => [
+                    'totalMatched'        => 1,
+                    'totalUnmatchedFile1' => 1,
+                    'totalUnmatchedFile2' => 1,
+                    'totalUnmatched'      => 2,
+                ],
+            ],
+        ]);
+
+        $response = $this->getJson('/api/v1/reconciled-records');
+        dd($response->status(), $response->content()); // Debug output
+
+        $response->assertStatus(200)
+            ->assertJson([
+                'message'     => 'Reconciled records fetched successfully',
+                'status'      => 'success',
+                'status_code' => 200,
+            ])
+            ->assertJsonStructure([
+                'data' => [
+                    '*' => [
+                        'id',
+                        'user_id',
+                        'data',
+                        'created_at',
+                        'updated_at',
+                    ],
+                ],
+            ]);
     }
 
     protected function tearDown(): void

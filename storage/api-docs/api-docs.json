@@ -1361,6 +1361,69 @@
                 }
             }
         },
+        "/api/v1/reconciled-records": {
+            "get": {
+                "tags": [
+                    "Reconciliation"
+                ],
+                "summary": "Get reconciled records",
+                "description": "Fetch reconciled records for the logged-in user",
+                "operationId": "193c5be89d4ce70a337ad67a4d4c8d83",
+                "responses": {
+                    "200": {
+                        "description": "Reconciled records fetched successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Reconciled records fetched successfully"
+                                        },
+                                        "status": {
+                                            "type": "string",
+                                            "example": "success"
+                                        },
+                                        "status_code": {
+                                            "type": "integer",
+                                            "example": 200
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Unauthorized"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/api/v1/wait-list": {
             "post": {
                 "tags": [
