@@ -183,7 +183,7 @@
 </head>
 <body>
     <div class="header">
-        <img src="{{ asset('assets/logo.svg') }}" alt="ReconXi Logo" class="logo">
+        <img src="{{ public_path('assets/logo.svg') }}" alt="ReconXi Logo" class="logo">
     </div>
     
     <div class="main-content">
@@ -223,16 +223,16 @@
     <div class="footer">
     <div class="social-icons">
             <a href="https://www.instagram.com/reconxi02/?igsh=YTh5aWx6Y2c2dW0w#">
-                <img src="{{ asset('assets/instagram-icon.svg') }}" alt="Instagram" class="social-icon">
+                <img src="{{ public_path('assets/instagram-icon.svg') }}" alt="Instagram" class="social-icon">
             </a>
             <a href="https://www.facebook.com/profile.php?id=61573471907361&mibextid=rS40aB7S9Ucbxw6v">
-                <img src="{{ asset('assets/facebook-icon.svg') }}" alt="Facebook" class="social-icon">
+                <img src="{{ public_path('assets/facebook-icon.svg') }}" alt="Facebook" class="social-icon">
             </a>
             <a href="https://www.linkedin.com/in/recon-xi-b06835354">
-                <img src="{{ asset('assets/linkedin-icon.svg') }}" alt="Linkedin" class="social-icon">
+                <img src="{{ public_path('assets/linkedin-icon.svg') }}" alt="Linkedin" class="social-icon">
             </a>
             <a href="https://x.com/reconxi02?s=21&t=6GEcIpxFOrczvmtrZsCzSw">
-                <img src="{{ asset('assets/twitter-icon.svg') }}" alt="Twitter" class="social-icon">
+                <img src="{{ public_path('assets/twitter-icon.svg') }}" alt="Twitter" class="social-icon">
             </a>
         </div>
         
