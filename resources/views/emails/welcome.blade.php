@@ -183,7 +183,7 @@
 </head>
 <body>
     <div class="header">
-        <img src="{{ public_path('assets/logo.svg') }}" alt="ReconXi Logo" class="logo">
+        <img src="{{ Storage::url('assets/logo.svg') }}" alt="ReconXi Logo" class="logo">
     </div>
     
     <div class="main-content">
@@ -204,9 +204,6 @@
             <div class="button-container">
                 <a href="{{ $getStartedUrl }}" class="verify-button">Get Started</a>
             </div>
-            
-            <p class="link-text">Or copy this link:</p>
-            <a href="{{ $getStartedUrl }}" class="verification-link">{{ $getStartedUrl }}</a>
 
             <p class="link-text">
                 Need help? Our support team is just an email away at 
@@ -223,16 +220,16 @@
     <div class="footer">
     <div class="social-icons">
             <a href="https://www.instagram.com/reconxi02/?igsh=YTh5aWx6Y2c2dW0w#">
-                <img src="{{ public_path('assets/instagram-icon.svg') }}" alt="Instagram" class="social-icon">
+                <img src="{{ Storage::url('assets/instagram-icon.svg') }}" alt="Instagram" class="social-icon">
             </a>
             <a href="https://www.facebook.com/profile.php?id=61573471907361&mibextid=rS40aB7S9Ucbxw6v">
-                <img src="{{ public_path('assets/facebook-icon.svg') }}" alt="Facebook" class="social-icon">
+                <img src="{{ Storage::url('assets/facebook-icon.svg') }}" alt="Facebook" class="social-icon">
             </a>
             <a href="https://www.linkedin.com/in/recon-xi-b06835354">
-                <img src="{{ public_path('assets/linkedin-icon.svg') }}" alt="Linkedin" class="social-icon">
+                <img src="{{ Storage::url('assets/linkedin-icon.svg') }}" alt="Linkedin" class="social-icon">
             </a>
             <a href="https://x.com/reconxi02?s=21&t=6GEcIpxFOrczvmtrZsCzSw">
-                <img src="{{ public_path('assets/twitter-icon.svg') }}" alt="Twitter" class="social-icon">
+                <img src="{{ Storage::url('assets/twitter-icon.svg') }}" alt="Twitter" class="social-icon">
             </a>
         </div>
         

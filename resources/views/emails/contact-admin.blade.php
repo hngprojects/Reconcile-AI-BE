@@ -124,13 +124,13 @@
     <div class="container">
         <!-- Header -->
         <div class="header">
-            <img src="{{ public_path('assets/logo.svg') }}" alt="ReconXi Logo" class="logo">
+            <img src="{{ Storage::url('assets/logo.svg') }}" alt="ReconXi Logo" class="logo">
         </div>
         
         <!-- Main Content -->
         <div class="content">
             <div class="illustration">
-                <img src="{{ public_path('assets/message-received.svg') }}" alt="Email Notification">
+                <img src="{{ Storage::url('assets/message-received.svg') }}" alt="Email Notification">
             </div>
             
             <h2>Hello Admin</h2>
@@ -167,20 +167,20 @@
         <div class="footer">
             <div class="social-icons">
                 <a href="https://www.instagram.com/reconxi02/">
-                    <img src="{{ public_path('assets/instagram-icon.svg') }}" alt="Instagram">
+                    <img src="{{ Storage::url('assets/instagram-icon.svg') }}" alt="Instagram">
                 </a>
                 <a href="https://www.facebook.com/profile.php?id=61573471907361">
-                    <img src="{{ public_path('assets/facebook-icon.svg') }}" alt="Facebook">
+                    <img src="{{ Storage::url('assets/facebook-icon.svg') }}" alt="Facebook">
                 </a>
                 <a href="https://www.linkedin.com/in/recon-xi-b06835354">
-                    <img src="{{ public_path('assets/linkedin-icon.svg') }}" alt="LinkedIn">
+                    <img src="{{ Storage::url('assets/linkedin-icon.svg') }}" alt="LinkedIn">
                 </a>
                 <a href="https://x.com/reconxi02">
-                    <img src="{{ public_path('assets/twitter-icon.svg') }}" alt="Twitter">
+                    <img src="{{ Storage::url('assets/twitter-icon.svg') }}" alt="Twitter">
                 </a>
             </div>
             
-            <p>Thank you for choosing "ReconXi". Need help? <a href="{{ public_path('contact') }}" class="footer-links">Contact us</a></p>
+            <p>Thank you for choosing "ReconXi". Need help? <a href="{{ Storage::url('contact') }}" class="footer-links">Contact us</a></p>
             
             <div class="divider"></div>
         </div>
