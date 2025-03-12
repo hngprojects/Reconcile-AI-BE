@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Services\ContactService;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\ContactUserMail;
+use App\Mail\ContactAdminMail;
 
 class ContactController extends Controller
 {
@@ -97,6 +100,11 @@ class ContactController extends Controller
                 'data' => null
             ], 500);
         }
+        
+        $data['subject'] = 'Contact';
+
+        Mail::to($data['email'])->queue(new ContactUserMail($data));
+        Mail::to(config('mail.admin_address'))->queue(new ContactAdminMail($data));
 
         return response()->json([
             'status' => 'success',
