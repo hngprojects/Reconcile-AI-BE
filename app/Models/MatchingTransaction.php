@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use App\Models\User;
 use App\Models\Ledger;
 use App\Models\Statement;
+use Illuminate\Support\Str;
 
 class MatchingTransaction extends Pivot
 {
@@ -17,6 +18,19 @@ class MatchingTransaction extends Pivot
         'user_id',
         'status'
     ];
+    protected $keyType = 'string';
+
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($model) {
+            if (empty($model->{$model->getKeyName()})) {
+                $model->{$model->getKeyName()} = (string) Str::uuid();
+            }
+        });
+    }
 
     public function user(): BelongsTo
     {
