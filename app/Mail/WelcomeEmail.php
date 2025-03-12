@@ -27,7 +27,7 @@ class WelcomeEmail extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Welcome to Our Platform, ' . $this->user->name
+            subject: 'Welcome to ReconXi, ' . $this->user->name
         );
     }
 
