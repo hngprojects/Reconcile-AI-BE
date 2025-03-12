@@ -180,7 +180,7 @@
                 </a>
             </div>
             
-            <p>Thank you for choosing "ReconXi". Need help? <a href="{{ Storage::url('contact') }}" class="footer-links">Contact us</a></p>
+            <p>Thank you for choosing "ReconXi". Need help? <a href="{{ url('contact') }}" class="footer-links">Contact us</a></p>
             
             <div class="divider"></div>
         </div>
