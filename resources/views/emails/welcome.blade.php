@@ -209,7 +209,8 @@
             <a href="{{ $getStartedUrl }}" class="verification-link">{{ $getStartedUrl }}</a>
 
             <p class="link-text">
-                Need help? Our support team is just an email away at <a href="mail:support@reconxi.com">Support Team</a>.
+                Need help? Our support team is just an email away at 
+                <a href="mailto:support@reconxi.com">Support Team</a>.
             </p>
 
             <div class="signature">
