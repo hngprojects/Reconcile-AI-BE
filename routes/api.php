@@ -36,7 +36,7 @@ Route::prefix('v1')->group(function () {
         Route::post('/unsubscribe', [NewsLetterController::class, 'unsubscribe'])->name('unsubscribe');
     });
 
-    Route::post('/reconcile', [ReconciliationController::class, 'reconcile'])->name('reconcile')->middleware(ThrottleUnauthenticated::class);
+    Route::post('/reconcile', [ReconciliationController::class, 'reconcile'])->name('reconcile');/*->middleware(ThrottleUnauthenticated::class)*/;
     Route::get('/reconciliations/{reconciliation}', [ReconciliationController::class, 'getReconciledRecords'])->whereUuid('reconciliation')->name('reconciled-records');
     Route::post('/reconcile/export', [ReconciliationController::class, 'export'])->name('export');
     Route::post('/wait-list', [WaitListController::class, 'store'])->name('wait-list');
