@@ -8,6 +8,8 @@ use Laravel\Socialite\Facades\Socialite;
 use App\Models\User;
 use Illuminate\Support\Str;
 use Tymon\JWTAuth\Facades\JWTAuth;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\WelcomeEmail;
 
 class GoogleAuthController extends Controller
 {
@@ -63,6 +65,8 @@ class GoogleAuthController extends Controller
         // Check if user exists
         $user = User::where('email', $googleUser->email)->first();
 
+        $isNewUser = false; // Flag to track if user is new
+
         if (!$user) {
             // Create new user
             $user = User::create([
@@ -71,12 +75,19 @@ class GoogleAuthController extends Controller
                 'avatar' => $googleUser->avatar,
                 'password' => bcrypt(Str::random(16)), // Random password
             ]);
+
+            $isNewUser = true; // User is newly created
+        }
+
+        // Send welcome email asynchronously only for new users
+        if ($isNewUser) {
+            Mail::to($user->email)->queue(new WelcomeEmail($user));
         }
 
         // Generate JWT token
         $token = JWTAuth::fromUser($user);
 
-        return redirect()->to(env('FRONTEND_URL', 'https://reconxi.com').'/file-upload?token='.$token);
+        // return redirect()->to(env('FRONTEND_URL', 'https://reconxi.com') . '/file-upload?token=' . $token);
     }
 
     /**
