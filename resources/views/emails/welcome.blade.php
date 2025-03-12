@@ -204,9 +204,6 @@
             <div class="button-container">
                 <a href="{{ $getStartedUrl }}" class="verify-button">Get Started</a>
             </div>
-            
-            <p class="link-text">Or copy this link:</p>
-            <a href="{{ $getStartedUrl }}" class="verification-link">{{ $getStartedUrl }}</a>
 
             <p class="link-text">
                 Need help? Our support team is just an email away at 
