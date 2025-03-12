@@ -124,13 +124,13 @@
     <div class="container">
         <!-- Header -->
         <div class="header">
-            <img src="{{ config('app.url') }}/assets/logo.svg') }}" alt="ReconXi Logo" class="logo">
+            <img src="{{ config('app.url') }}/assets/logo.svg" alt="ReconXi Logo" class="logo">
         </div>
         
         <!-- Main Content -->
         <div class="content">
             <div class="illustration">
-                <img src="{{ config('app.url') }}/assets/personal-data.svg') }}" alt="ID Badge">
+                <img src="{{ config('app.url') }}/assets/personal-data.svg" alt="ID Badge">
             </div>
             
             <h2>Hi {{ $data['name'] }}</h2>
@@ -146,6 +146,8 @@
                 <div class="message-details">
                     <strong>Message:</strong>
                 </div>
+
+                URL: {{ config('app.url') }}
                 
                 <div class="message-content">
                     {{ $data['message'] }}
