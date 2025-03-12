@@ -1,4 +1,3 @@
-
 <?php
 
 
@@ -7,7 +6,6 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Laravel\Socialite\Facades\Socialite;
 use App\Models\User;
-use Illuminate\Support\Str;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\WelcomeEmail;
@@ -62,8 +60,11 @@ class GoogleAuthController extends Controller
     public function handleGoogleCallback(Request $request)
     {
         $googleUser = Socialite::driver('google')->stateless()->user();
-        $ip = $request->ip();
+        $ip = $request->ip(); // Get user's IP address
 
+        $isNewUser = false; // Flag to track if user is new
+
+        // Check if a guest user exists based on IP-based email
         $guestUser = User::where('email', "guest_{$ip}@example.com")->first();
 
         if ($guestUser) {
@@ -71,21 +72,37 @@ class GoogleAuthController extends Controller
             $guestUser->update([
                 'name' => $googleUser->name,
                 'email' => $googleUser->email,
+                'avatar' => $googleUser->avatar,
                 'password' => null, // Google users don't need a password
             ]);
 
             $user = $guestUser;
         } else {
             // Find an existing registered user or create a new one
-            $user = User::firstOrCreate(
-                ['email' => $googleUser->email],
-                ['name' => $googleUser->name, 'password' => null]
-            );
+            $user = User::where('email', $googleUser->email)->first();
+
+            if (!$user) {
+                // Create new user
+                $user = User::create([
+                    'name' => $googleUser->name,
+                    'email' => $googleUser->email,
+                    'avatar' => $googleUser->avatar,
+                    'password' => null, // Random password
+                ]);
+
+                $isNewUser = true; // User is newly created
+            }
         }
+
+        // Send welcome email asynchronously only for new users
+        if ($isNewUser) {
+            Mail::to($user->email)->queue(new WelcomeEmail($user));
+        }
+
         // Generate JWT token
         $token = JWTAuth::fromUser($user);
 
-        return redirect()->to(env('FRONTEND_URL', 'https://reconxi.com') . '/file-upload?token=' . $token);
+        // return redirect()->to(env('FRONTEND_URL', 'https://reconxi.com') . '/file-upload?token=' . $token);
     }
 
     /**
