@@ -124,13 +124,13 @@
     <div class="container">
         <!-- Header -->
         <div class="header">
-            <img src="{{ url('assets/logo.svg') }}" alt="ReconXi Logo" class="logo">
+            <img src="{{ asset('assets/logo.svg') }}" alt="ReconXi Logo" class="logo">
         </div>
         
         <!-- Main Content -->
         <div class="content">
             <div class="illustration">
-                <img src="{{ url('assets/message-received.svg') }}" alt="Email Notification">
+                <img src="{{ asset('assets/message-received.svg') }}" alt="Email Notification">
             </div>
             
             <h2>Hello Admin</h2>
@@ -167,20 +167,20 @@
         <div class="footer">
             <div class="social-icons">
                 <a href="https://www.instagram.com/reconxi02/">
-                    <img src="{{ url('assets/instagram-icon.svg') }}" alt="Instagram">
+                    <img src="{{ asset('assets/instagram-icon.svg') }}" alt="Instagram">
                 </a>
                 <a href="https://www.facebook.com/profile.php?id=61573471907361">
-                    <img src="{{ url('assets/facebook-icon.svg') }}" alt="Facebook">
+                    <img src="{{ asset('assets/facebook-icon.svg') }}" alt="Facebook">
                 </a>
                 <a href="https://www.linkedin.com/in/recon-xi-b06835354">
-                    <img src="{{ url('assets/linkedin-icon.svg') }}" alt="LinkedIn">
+                    <img src="{{ asset('assets/linkedin-icon.svg') }}" alt="LinkedIn">
                 </a>
                 <a href="https://x.com/reconxi02">
-                    <img src="{{ url('assets/twitter-icon.svg') }}" alt="Twitter">
+                    <img src="{{ asset('assets/twitter-icon.svg') }}" alt="Twitter">
                 </a>
             </div>
             
-            <p>Thank you for choosing "ReconXi". Need help? <a href="{{ url('contact') }}" class="footer-links">Contact us</a></p>
+            <p>Thank you for choosing "ReconXi". Need help? <a href="{{ asset('contact') }}" class="footer-links">Contact us</a></p>
             
             <div class="divider"></div>
         </div>
