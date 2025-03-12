@@ -47,6 +47,7 @@ class AuthPasswordResetTest extends TestCase
     /**
      * reset user password
      * @return void
+     */
     public function test_user_can_reset_password()
     {
         $user = User::factory()->create(['email' => 'user@example.com']);
@@ -66,5 +67,4 @@ class AuthPasswordResetTest extends TestCase
         $user->refresh();
         $this->assertTrue(Hash::check('newpassword123', $user->password));
     }
-     */
 }
