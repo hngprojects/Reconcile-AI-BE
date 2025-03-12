@@ -87,7 +87,7 @@ class GoogleAuthController extends Controller
         // Generate JWT token
         $token = JWTAuth::fromUser($user);
 
-        // return redirect()->to(env('FRONTEND_URL', 'https://reconxi.com') . '/file-upload?token=' . $token);
+        return redirect()->to(env('FRONTEND_URL', 'https://reconxi.com') . '/file-upload?token=' . $token);
     }
 
     /**
