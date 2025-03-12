@@ -89,7 +89,7 @@ class GoogleAuthController extends Controller
             Mail::to($user->email)->queue(new WelcomeEmail($user, $getStartedUrl));
         }
 
-        // return redirect()->to($getStartedUrl);
+        return redirect()->to($getStartedUrl);
     }
 
     /**
