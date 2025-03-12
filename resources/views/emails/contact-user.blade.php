@@ -124,7 +124,7 @@
     <div class="container">
         <!-- Header -->
         <div class="header">
-            <img src="{{ config('app.url') }}/assets/logo.png" alt="ReconXi Logo" class="logo">
+            <img src="{{ asset('assets/logo.png') }}" alt="ReconXi Logo" class="logo">
         </div>
         
         <!-- Main Content -->
@@ -132,6 +132,8 @@
             <div class="illustration">
                 <img src="{{ config('app.url') }}/assets/personal-data.png" alt="Email Notification">
             </div>
+
+            Link: {{ asset('assets/logo.png') }}
             
             <h2>Hi {{ $data['name'] }}</h2>
             
