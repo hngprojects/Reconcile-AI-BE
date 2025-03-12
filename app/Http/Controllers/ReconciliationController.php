@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\JsonResponse;
 use App\Models\ReconciledRecord;
 use Illuminate\Support\Facades\Auth;
+use App\Models\Reconciliation;
 
 /**
  * @OA\Tag(
@@ -128,20 +129,22 @@ class ReconciliationController extends Controller
                 default => $this->reconciliationService->reconcileWithGemini($file1FullPath, $file2FullPath),
             };
 
-            Storage::delete([$file1Path, $file2Path]);
-
-            if (Auth::check()) {
-                ReconciledRecord::create([
-                    'user_id' => Auth::id(),
-                    'data' => $result,
-                ]);
-            }
+            $reconciliation = $this->reconciliationService->store([
+                'user' => Auth::id(),
+                'statement' => $file1FullPath,
+                'ledger' => $file2FullPath,
+                'ai' => $reconcileOption,
+                'response' => $result
+            ]);
 
             return response()->json([
                 "message" => "Reconciliation successful",
                 "status" => "success",
                 "status_code" => 200,
-                'data' => $result
+                'data' => [
+                    'reconciliation_id' => $reconciliation->id,
+                    ...$result
+                ]
             ], 200);
         } catch (\Exception $e) {
             if (isset($file1Path, $file2Path)) {
@@ -264,9 +267,9 @@ class ReconciliationController extends Controller
      *     )
      * )
      */
-    public function getReconciledRecords(Request $request)
+    public function getReconciledRecords(Request $request, Reconciliation $reconciliation)
     {
-        $records = ReconciledRecord::where('user_id', auth()->id())->get();
+        $records = ReconciledRecord::where('reconciliation_id', $reconciliation->id)->get();
 
         return response()->json([
             'message' => 'Reconciled records fetched successfully',
