@@ -124,13 +124,13 @@
     <div class="container">
         <!-- Header -->
         <div class="header">
-            <img src="{{ Storage::url('assets/logo.svg') }}" alt="ReconXi Logo" class="logo">
+            <img src="{{ config('app.url') }}/assets/logo.svg" alt="ReconXi Logo" class="logo">
         </div>
         
         <!-- Main Content -->
         <div class="content">
             <div class="illustration">
-                <img src="{{ Storage::url('assets/message-received.svg') }}" alt="Email Notification">
+                <img src="{{ config('app.url') }}/assets/message-received.svg" alt="Email Notification">
             </div>
             
             <h2>Hello Admin</h2>
@@ -167,16 +167,16 @@
         <div class="footer">
             <div class="social-icons">
                 <a href="https://www.instagram.com/reconxi02/">
-                    <img src="{{ Storage::url('assets/instagram-icon.svg') }}" alt="Instagram">
+                    <img src="{{ config('app.url') }}/assets/instagram-icon.svg" alt="Instagram">
                 </a>
                 <a href="https://www.facebook.com/profile.php?id=61573471907361">
-                    <img src="{{ Storage::url('assets/facebook-icon.svg') }}" alt="Facebook">
+                    <img src="{{ config('app.url') }}/assets/facebook-icon.svg" alt="Facebook">
                 </a>
                 <a href="https://www.linkedin.com/in/recon-xi-b06835354">
-                    <img src="{{ Storage::url('assets/linkedin-icon.svg') }}" alt="LinkedIn">
+                    <img src="{{ config('app.url') }}/assets/linkedin-icon.svg" alt="LinkedIn">
                 </a>
                 <a href="https://x.com/reconxi02">
-                    <img src="{{ Storage::url('assets/twitter-icon.svg') }}" alt="Twitter">
+                    <img src="{{ config('app.url') }}/assets/twitter-icon.svg" alt="Twitter">
                 </a>
             </div>
             
