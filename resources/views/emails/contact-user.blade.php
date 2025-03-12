@@ -130,7 +130,7 @@
         <!-- Main Content -->
         <div class="content">
             <div class="illustration">
-                <img src="{{ config('app.url') }}/assets/personal-data.png" alt="ID Badge">
+                <img src="{{ config('app.url') }}/assets/personal-data.png" alt="Email Notification">
             </div>
             
             <h2>Hi {{ $data['name'] }}</h2>
@@ -180,7 +180,7 @@
             <p>Thank you for choosing "ReconXi". Need help? <a href="{{ url('contact') }}" class="footer-links">Contact us</a></p>
             
             <div class="divider"></div>
-            
+
             <p>You are receiving this email because you signed up at Reconxi.com. Want to change how you receive these emails?</p>
             
             <p>You can <a href="{{ url('unsubscribe', ['email' => $data['email']]) }}" class="footer-links">unsubscribe</a> from this list.</p>
