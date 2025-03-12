@@ -73,7 +73,7 @@ class GoogleAuthController extends Controller
                 'name' => $googleUser->name,
                 'email' => $googleUser->email,
                 'avatar' => $googleUser->avatar,
-                'password' => null, // Google users don't need a password
+                'password' => "", // Google users don't need a password
             ]);
 
             $user = $guestUser;
@@ -87,7 +87,7 @@ class GoogleAuthController extends Controller
                     'name' => $googleUser->name,
                     'email' => $googleUser->email,
                     'avatar' => $googleUser->avatar,
-                    'password' => null, // Random password
+                    'password' => "", // Random password
                 ]);
 
                 $isNewUser = true; // User is newly created
@@ -102,7 +102,7 @@ class GoogleAuthController extends Controller
         // Generate JWT token
         $token = JWTAuth::fromUser($user);
 
-        // return redirect()->to(env('FRONTEND_URL', 'https://reconxi.com') . '/file-upload?token=' . $token);
+        return redirect()->to(env('FRONTEND_URL', 'https://reconxi.com') . '/file-upload?token=' . $token);
     }
 
     /**
