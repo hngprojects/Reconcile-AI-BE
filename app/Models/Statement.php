@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Relation\BelongsTo;
 use App\Models\MatchedTransaction;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use App\Models\Reconciliation;
+use Illuminate\Support\Str;
 
 class Statement extends Model
 {
@@ -19,6 +20,19 @@ class Statement extends Model
         'amount',
         'reconciliation_id'
     ];
+    protected $keyType = 'string';
+
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($model) {
+            if (empty($model->{$model->getKeyName()})) {
+                $model->{$model->getKeyName()} = (string) Str::uuid();
+            }
+        });
+    }
 
     public function matched(): BelongsTo
     {

@@ -12,7 +12,7 @@ class ReconciledRecordFactory extends Factory
     public function definition()
     {
         return [
-            'user_id' => \App\Models\User::factory(), // Creates a related User if not provided
+            'reconciliation_id' => \App\Models\Reconciliation::factory(), // Creates a related User if not provided
             'data' => [
                 'matches' => [
                     [

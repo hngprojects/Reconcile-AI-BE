@@ -5,6 +5,7 @@ use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Symfony\Component\HttpFoundation\Response;
+use App\Models\User;
 
 class ThrottleUnauthenticated
 {
@@ -28,6 +29,14 @@ class ThrottleUnauthenticated
 
             // Increment request count with expiration time
             Cache::put($cacheKey, $requestCount + 1);
+
+            $guestUser = User::firstOrCreate(
+                ['email' => "guest_{$ip}@example.com"], // Unique identifier
+                ['name' => "Guest {$ip}", 'password' => bcrypt('guest')] // Assign dummy data
+            );
+
+            auth()->setUser($guestUser);
+            $request->setUserResolver(fn() => $guestUser);
         } else {
             Cache::forget($cacheKey);
 
