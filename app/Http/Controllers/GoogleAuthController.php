@@ -1,3 +1,4 @@
+
 <?php
 
 
@@ -58,32 +59,29 @@ class GoogleAuthController extends Controller
      *     )
      * )
      */
-    public function handleGoogleCallback()
+    public function handleGoogleCallback(Request $request)
     {
         $googleUser = Socialite::driver('google')->stateless()->user();
+        $ip = $request->ip();
 
-        // Check if user exists
-        $user = User::where('email', $googleUser->email)->first();
+        $guestUser = User::where('email', "guest_{$ip}@example.com")->first();
 
-        $isNewUser = false; // Flag to track if user is new
-
-        if (!$user) {
-            // Create new user
-            $user = User::create([
+        if ($guestUser) {
+            // Upgrade guest user with Google details
+            $guestUser->update([
                 'name' => $googleUser->name,
                 'email' => $googleUser->email,
-                'avatar' => $googleUser->avatar,
-                'password' => bcrypt(Str::random(16)), // Random password
+                'password' => null, // Google users don't need a password
             ]);
 
-            $isNewUser = true; // User is newly created
+            $user = $guestUser;
+        } else {
+            // Find an existing registered user or create a new one
+            $user = User::firstOrCreate(
+                ['email' => $googleUser->email],
+                ['name' => $googleUser->name, 'password' => null]
+            );
         }
-
-        // Send welcome email asynchronously only for new users
-        if ($isNewUser) {
-            Mail::to($user->email)->queue(new WelcomeEmail($user));
-        }
-
         // Generate JWT token
         $token = JWTAuth::fromUser($user);
 

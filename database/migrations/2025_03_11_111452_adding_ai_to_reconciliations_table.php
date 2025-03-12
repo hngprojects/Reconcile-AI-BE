@@ -11,14 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('reconciliations', function (Blueprint $table) {
-            $table->uuid('id')->primary();
-            $table->foreignId('user_id');
-            $table->string('ledger_file');
-            $table->string('statement_file');
-            $table->timestamps();
+        Schema::table('reconciliations', function (Blueprint $table) {
+            $table->string('option');
         });
-
     }
 
     /**
@@ -26,6 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('reconciliations');
+        Schema::table('reconciliations', function (Blueprint $table) {
+            $table->dropColumn('option');
+        });
     }
 };

@@ -2,21 +2,20 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Relations\Pivot;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use App\Models\User;
-use App\Models\Ledger;
-use App\Models\Statement;
+use App\Models\Reconciliation;
 use Illuminate\Support\Str;
 
-class MatchingTransaction extends Pivot
+class UserFile extends Model
 {
-    protected $table = "matched_statements";
     protected $fillable = [
-        'statement_id',
-        'ledger_id',
+        'file_name',
+        'type',
         'user_id',
-        'status'
     ];
     protected $keyType = 'string';
 
@@ -37,13 +36,8 @@ class MatchingTransaction extends Pivot
         return $this->belongsTo(User::class);
     }
 
-    public function ledgers(): BelongsTo
+    public function reconciliations(): BelongsToMany
     {
-        return $this->hasMany(Ledger::class);
-    }
-
-    public function statements(): BelongsTo
-    {
-        return $this->hasMany(Statement::class);
+        return $this->belongsToMany(Reconciliation::class, 'reconciliation_files', 'file_id', 'reconciliation_id');
     }
 }

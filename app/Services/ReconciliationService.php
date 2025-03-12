@@ -7,9 +7,24 @@ use Illuminate\Support\Str;
 use OpenAI;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Response;
+use App\Repositories\Reconciliation\ReconciliationRepository;
+use App\Repositories\UserFile\UserFileRepository;
+use App\Models\Reconciliation;
 
 class ReconciliationService
 {
+    protected ReconciliationRepository $mainRepository;
+    protected UserFileRepository $fileRepository;
+
+    public function __construct(
+        ReconciliationRepository $mainRepository,
+        UserFileRepository $fileRepository
+    )
+    {
+        $this->mainRepository = $mainRepository;
+        $this->fileRepository = $fileRepository;
+    }
+
     public function reconcileWithRecox(string $file1Path, string $file2Path)
     {
         $data1 = $this->loadFile($file1Path);
@@ -223,7 +238,7 @@ class ReconciliationService
         $formattedData2 = json_encode($data2);
 
         return "You are a transaction reconciliation assistant. Match transactions from File1 and File2 based on names, amounts, and dates.
-        
+
         ## Reconciliation Rules
         - Names may have **minor spelling differences** (e.g., 'Mark Essien' and 'Mark Essin' should be treated as the same person).
         - Amounts can match exactly or be within a reasonable range that may cover for charges, taxes, VAT (e.g., 40,000 and 40,600 should be considered a match).
@@ -238,10 +253,10 @@ class ReconciliationService
 
         Example File1 Transactions: " . json_encode($exampleFile1) . "
         Example File2 Transactions: " . json_encode($exampleFile2) . "
-        
+
         Expected Output Format:
         " . json_encode($exampleOutput) . "
-        
+
         Now, reconcile the following real transactions:
 
         File1 Transactions: {$formattedData1}
@@ -412,4 +427,41 @@ class ReconciliationService
 
         return Response::download($exportFileName)->deleteFileAfterSend(true);
     }
+
+     public function store(array $data): Reconciliation
+     {
+        $statement = $this->fileRepository->store([
+            'user_id' => $data['user'],
+            'file_name' => $data['statement'],
+            'type' => 'Bank Statement'
+        ]);
+
+        $ledger = $this->fileRepository->store([
+            'user_id' => $data['user'],
+            'file_name' => $data['ledger'],
+            'type' => 'Ledger'
+        ]);
+
+        $reconciliation = $this->mainRepository->store([
+            'user_id' => $data['user'],
+            'option' => $data['ai']
+        ]);
+
+        $files = $reconciliation->files()->attach([[
+            'id' => Str::uuid(),
+            'file_id' => $statement->id
+        ], [
+            'id' => Str::uuid(),
+            'file_id' => $ledger->id
+        ]
+        ]);
+
+        $record = $this->mainRepository->storeResponse([
+            'reconciliation_id' => $reconciliation->id,
+            'data' => $data['response']
+        ]);
+
+        return $reconciliation;
+     }
+
 }
