@@ -13,6 +13,7 @@ use App\Http\Middleware\ThrottleUnauthenticated;
 Route::prefix('v1')->group(function () {
     Route::get('/', function () {
         return 'Welcome to ReconcileAI API v1.';
+        // return view('welcome');
     });
 
     Route::prefix('auth')->middleware('guest')->name('auth.')->group(function () {

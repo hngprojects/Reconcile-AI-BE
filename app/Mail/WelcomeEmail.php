@@ -16,7 +16,7 @@ class WelcomeEmail extends Mailable implements ShouldQueue
     /**
      * Create a new message instance.
      */
-    public function __construct(public $user)
+    public function __construct(public $user, public $getStartedUrl)
     {
         //
     }
@@ -38,7 +38,7 @@ class WelcomeEmail extends Mailable implements ShouldQueue
     {
         return new Content(
             view: 'emails.welcome',
-            with: ['user' => $this->user]
+            with: ['user' => $this->user, 'getStartedUrl' => $this->getStartedUrl]
         );
     }
 
