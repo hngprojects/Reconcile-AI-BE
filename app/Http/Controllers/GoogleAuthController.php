@@ -64,34 +64,19 @@ class GoogleAuthController extends Controller
 
         $isNewUser = false; // Flag to track if user is new
 
-        // Check if a guest user exists based on IP-based email
-        $guestUser = User::where('email', "guest_{$ip}@example.com")->first();
+        // Find an existing registered user or create a new one
+        $user = User::where('email', $googleUser->email)->first();
 
-        if ($guestUser) {
-            // Upgrade guest user with Google details
-            $guestUser->update([
+        if (!$user) {
+            // Create new user
+            $user = User::create([
                 'name' => $googleUser->name,
                 'email' => $googleUser->email,
                 'avatar' => $googleUser->avatar,
-                'password' => "", // Google users don't need a password
+                'password' => "", // Random password
             ]);
 
-            $user = $guestUser;
-        } else {
-            // Find an existing registered user or create a new one
-            $user = User::where('email', $googleUser->email)->first();
-
-            if (!$user) {
-                // Create new user
-                $user = User::create([
-                    'name' => $googleUser->name,
-                    'email' => $googleUser->email,
-                    'avatar' => $googleUser->avatar,
-                    'password' => "", // Random password
-                ]);
-
-                $isNewUser = true; // User is newly created
-            }
+            $isNewUser = true; // User is newly created
         }
 
         // Send welcome email asynchronously only for new users
