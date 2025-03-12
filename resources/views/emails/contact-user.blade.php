@@ -124,13 +124,13 @@
     <div class="container">
         <!-- Header -->
         <div class="header">
-            <img src="{{ public_path('assets/logo.png') }}" alt="ReconXi Logo" class="logo">
+            <img src="{{ config('app.url') }}/assets/logo.png" alt="ReconXi Logo" class="logo">
         </div>
         
         <!-- Main Content -->
         <div class="content">
             <div class="illustration">
-                <img src="{{ public_path('assets/personal-data.png') }}" alt="ID Badge">
+                <img src="{{ config('app.url') }}/assets/personal-data.png" alt="ID Badge">
             </div>
             
             <h2>Hi {{ $data['name'] }}</h2>
@@ -164,16 +164,16 @@
         <div class="footer">
             <div class="social-icons">
                 <a href="https://www.instagram.com/reconxi02/">
-                    <img src="{{ public_path('assets/instagram-icon.png') }}" alt="Instagram">
+                    <img src="{{ config('app.url') }}/assets/instagram-icon.png" alt="Instagram">
                 </a>
                 <a href="https://www.facebook.com/profile.php?id=61573471907361">
-                    <img src="{{ public_path('assets/facebook-icon.png') }}" alt="Facebook">
+                    <img src="{{ config('app.url') }}/assets/facebook-icon.png" alt="Facebook">
                 </a>
                 <a href="https://www.linkedin.com/in/recon-xi-b06835354">
-                    <img src="{{ public_path('assets/linkedin-icon.png') }}" alt="LinkedIn">
+                    <img src="{{ config('app.url') }}/assets/linkedin-icon.png" alt="LinkedIn">
                 </a>
                 <a href="https://x.com/reconxi02">
-                    <img src="{{ public_path('assets/twitter-icon.png') }}" alt="Twitter">
+                    <img src="{{ config('app.url') }}/assets/twitter-icon.png" alt="Twitter">
                 </a>
             </div>
             
