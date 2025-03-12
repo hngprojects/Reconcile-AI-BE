@@ -12,21 +12,21 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('user_files', function (Blueprint $table) {
-            $table->uuid('id');
+            $table->uuid('id')->primary();
             $table->string('file_name');
-            $table->foreignUuid('user_id');
+            $table->foreignId('user_id');
             $table->string('type');
             $table->timestamps();
         });
 
         Schema::create('reconciliation_files', function (Blueprint $table) {
-            $table->uuid('id');
+            $table->uuid('id')->primary();
             $table->foreignUuid('reconciliation_id');
             $table->foreignUuid('file_id');
             $table->timestamps();
         });
 
-        Schema::table('reconciliations', function (Bluepring $table) {
+        Schema::table('reconciliations', function (Blueprint $table) {
             $table->dropColumn('ledger_file');
             $table->dropColumn('statement_file');
         });

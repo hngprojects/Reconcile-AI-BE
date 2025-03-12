@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('ledgers', function (Blueprint $table) {
-            $table->uuid('id');
+            $table->uuid('id')->primary();
             $table->string('date');
             $table->string('description');
             $table->integer('amount');
@@ -21,8 +21,8 @@ return new class extends Migration
         });
 
         Schema::create('matched_statements', function (Blueprint $table) {
-            $table->uuid('id');
-            $table->foreignUuid('user_id');
+            $table->uuid('id')->primary();
+            $table->foreignId('user_id');
             $table->foreignUuid('ledger_id');
             $table->foreignUuid('statement_id');
             $table->enum('status', ['Matched', 'Unmatched']);
