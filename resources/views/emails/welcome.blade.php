@@ -183,7 +183,7 @@
 </head>
 <body>
     <div class="header">
-        <img src="{{ config('app.url') }}/assets/logo..svg" alt="ReconXi Logo" class="logo">
+        <img src="{{ config('app.url') }}/assets/logo.png" alt="ReconXi Logo" class="logo">
     </div>
     
     <div class="main-content">
@@ -220,16 +220,16 @@
     <div class="footer">
     <div class="social-icons">
             <a href="https://www.instagram.com/reconxi02/?igsh=YTh5aWx6Y2c2dW0w#">
-                <img src="{{ config('app.url') }}/assets/instagram-icon..svg" alt="Instagram" class="social-icon">
+                <img src="{{ config('app.url') }}/assets/instagram-icon.png" alt="Instagram" class="social-icon">
             </a>
             <a href="https://www.facebook.com/profile.php?id=61573471907361&mibextid=rS40aB7S9Ucbxw6v">
-                <img src="{{ config('app.url') }}/assets/facebook-icon..svg" alt="Facebook" class="social-icon">
+                <img src="{{ config('app.url') }}/assets/facebook-icon.png" alt="Facebook" class="social-icon">
             </a>
             <a href="https://www.linkedin.com/in/recon-xi-b06835354">
-                <img src="{{ config('app.url') }}/assets/linkedin-icon..svg" alt="Linkedin" class="social-icon">
+                <img src="{{ config('app.url') }}/assets/linkedin-icon.png" alt="Linkedin" class="social-icon">
             </a>
             <a href="https://x.com/reconxi02?s=21&t=6GEcIpxFOrczvmtrZsCzSw">
-                <img src="{{ config('app.url') }}/assets/twitter-icon..svg" alt="Twitter" class="social-icon">
+                <img src="{{ config('app.url') }}/assets/twitter-icon.png" alt="Twitter" class="social-icon">
             </a>
         </div>
         

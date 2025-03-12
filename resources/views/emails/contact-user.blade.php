@@ -124,13 +124,13 @@
     <div class="container">
         <!-- Header -->
         <div class="header">
-            <img src="{{ config('app.url') }}/assets/logo.svg" alt="ReconXi Logo" class="logo">
+            <img src="{{ config('app.url') }}/assets/logo.png" alt="ReconXi Logo" class="logo">
         </div>
         
         <!-- Main Content -->
         <div class="content">
             <div class="illustration">
-                <img src="{{ config('app.url') }}/assets/personal-data.svg" alt="ID Badge">
+                <img src="{{ config('app.url') }}/assets/personal-data.png" alt="ID Badge">
             </div>
             
             <h2>Hi {{ $data['name'] }}</h2>
@@ -146,8 +146,6 @@
                 <div class="message-details">
                     <strong>Message:</strong>
                 </div>
-
-                URL: {{ config('app.url') }}
                 
                 <div class="message-content">
                     {{ $data['message'] }}
@@ -166,26 +164,26 @@
         <div class="footer">
             <div class="social-icons">
                 <a href="https://www.instagram.com/reconxi02/">
-                    <img src="{{ config('app.url') }}/assets/instagram-icon.svg" alt="Instagram">
+                    <img src="{{ config('app.url') }}/assets/instagram-icon.png" alt="Instagram">
                 </a>
                 <a href="https://www.facebook.com/profile.php?id=61573471907361">
-                    <img src="{{ config('app.url') }}/assets/facebook-icon.svg" alt="Facebook">
+                    <img src="{{ config('app.url') }}/assets/facebook-icon.png" alt="Facebook">
                 </a>
                 <a href="https://www.linkedin.com/in/recon-xi-b06835354">
-                    <img src="{{ config('app.url') }}/assets/linkedin-icon.svg" alt="LinkedIn">
+                    <img src="{{ config('app.url') }}/assets/linkedin-icon.png" alt="LinkedIn">
                 </a>
                 <a href="https://x.com/reconxi02">
-                    <img src="{{ config('app.url') }}/assets/twitter-icon.svg" alt="Twitter">
+                    <img src="{{ config('app.url') }}/assets/twitter-icon.png" alt="Twitter">
                 </a>
             </div>
             
-            <p>Thank you for choosing "ReconXi". Need help? <a href="{{ Storage::url('contact') }}" class="footer-links">Contact us</a></p>
+            <p>Thank you for choosing "ReconXi". Need help? <a href="{{ url('contact') }}" class="footer-links">Contact us</a></p>
             
             <div class="divider"></div>
             
             <p>You are receiving this email because you signed up at Reconxi.com. Want to change how you receive these emails?</p>
             
-            <p>You can <a href="{{ Storage::url('unsubscribe', ['email' => $data['email']]) }}" class="footer-links">unsubscribe</a> from this list.</p>
+            <p>You can <a href="{{ url('unsubscribe', ['email' => $data['email']]) }}" class="footer-links">unsubscribe</a> from this list.</p>
         </div>
     </div>
 </body>
