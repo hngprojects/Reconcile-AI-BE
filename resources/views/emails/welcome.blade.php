@@ -218,18 +218,18 @@
     </div>
     
     <div class="footer">
-    <div class="social-icons">
-            <a href="https://www.instagram.com/reconxi02/?igsh=YTh5aWx6Y2c2dW0w#">
-                <img src="{{ config('app.url') }}/assets/instagram-icon.png" alt="Instagram" class="social-icon">
+        <div class="social-icons">
+            <a href="https://www.instagram.com/reconxi02/">
+                <img src="{{ config('app.url') }}/assets/instagram-icon.png" alt="Instagram">
             </a>
-            <a href="https://www.facebook.com/profile.php?id=61573471907361&mibextid=rS40aB7S9Ucbxw6v">
-                <img src="{{ config('app.url') }}/assets/facebook-icon.png" alt="Facebook" class="social-icon">
+            <a href="https://www.facebook.com/profile.php?id=61573471907361">
+                <img src="{{ config('app.url') }}/assets/facebook-icon.png" alt="Facebook">
             </a>
             <a href="https://www.linkedin.com/in/recon-xi-b06835354">
-                <img src="{{ config('app.url') }}/assets/linkedin-icon.png" alt="Linkedin" class="social-icon">
+                <img src="{{ config('app.url') }}/assets/linkedin-icon.png" alt="LinkedIn">
             </a>
-            <a href="https://x.com/reconxi02?s=21&t=6GEcIpxFOrczvmtrZsCzSw">
-                <img src="{{ config('app.url') }}/assets/twitter-icon.png" alt="Twitter" class="social-icon">
+            <a href="https://x.com/reconxi02">
+                <img src="{{ config('app.url') }}/assets/twitter-icon.png" alt="Twitter">
             </a>
         </div>
         
