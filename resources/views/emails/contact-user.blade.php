@@ -124,13 +124,13 @@
     <div class="container">
         <!-- Header -->
         <div class="header">
-            <img src="{{ asset('assets/logo.svg') }}" alt="ReconXi Logo" class="logo">
+            <img src="{{ public_path('assets/logo.svg') }}" alt="ReconXi Logo" class="logo">
         </div>
         
         <!-- Main Content -->
         <div class="content">
             <div class="illustration">
-                <img src="{{ asset('assets/personal-data.svg') }}" alt="ID Badge">
+                <img src="{{ public_path('assets/personal-data.svg') }}" alt="ID Badge">
             </div>
             
             <h2>Hi {{ $data['name'] }}</h2>
@@ -164,26 +164,26 @@
         <div class="footer">
             <div class="social-icons">
                 <a href="https://www.instagram.com/reconxi02/">
-                    <img src="{{ asset('assets/instagram-icon.png') }}" alt="Instagram">
+                    <img src="{{ public_path('assets/instagram-icon.png') }}" alt="Instagram">
                 </a>
                 <a href="https://www.facebook.com/profile.php?id=61573471907361">
-                    <img src="{{ asset('assets/facebook-icon.png') }}" alt="Facebook">
+                    <img src="{{ public_path('assets/facebook-icon.png') }}" alt="Facebook">
                 </a>
                 <a href="https://www.linkedin.com/in/recon-xi-b06835354">
-                    <img src="{{ asset('assets/linkedin-icon.png') }}" alt="LinkedIn">
+                    <img src="{{ public_path('assets/linkedin-icon.png') }}" alt="LinkedIn">
                 </a>
                 <a href="https://x.com/reconxi02">
-                    <img src="{{ asset('assets/twitter-icon.png') }}" alt="Twitter">
+                    <img src="{{ public_path('assets/twitter-icon.png') }}" alt="Twitter">
                 </a>
             </div>
             
-            <p>Thank you for choosing "ReconXi". Need help? <a href="{{ asset('contact') }}" class="footer-links">Contact us</a></p>
+            <p>Thank you for choosing "ReconXi". Need help? <a href="{{ public_path('contact') }}" class="footer-links">Contact us</a></p>
             
             <div class="divider"></div>
             
             <p>You are receiving this email because you signed up at Reconxi.com. Want to change how you receive these emails?</p>
             
-            <p>You can <a href="{{ asset('unsubscribe', ['email' => $data['email']]) }}" class="footer-links">unsubscribe</a> from this list.</p>
+            <p>You can <a href="{{ public_path('unsubscribe', ['email' => $data['email']]) }}" class="footer-links">unsubscribe</a> from this list.</p>
         </div>
     </div>
 </body>
