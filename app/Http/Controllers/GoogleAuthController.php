@@ -79,15 +79,17 @@ class GoogleAuthController extends Controller
             $isNewUser = true; // User is newly created
         }
 
-        // Send welcome email asynchronously only for new users
-        if ($isNewUser) {
-            Mail::to($user->email)->queue(new WelcomeEmail($user));
-        }
-
         // Generate JWT token
         $token = JWTAuth::fromUser($user);
 
-        return redirect()->to(env('FRONTEND_URL', 'https://reconxi.com') . '/file-upload?token=' . $token);
+        $getStartedUrl = env('FRONTEND_URL', 'https://reconxi.com') . '/file-upload?token=' . $token;
+
+        // Send welcome email asynchronously only for new users
+        if ($isNewUser) {
+            Mail::to($user->email)->queue(new WelcomeEmail($user, $getStartedUrl));
+        }
+
+        // return redirect()->to($getStartedUrl);
     }
 
     /**
