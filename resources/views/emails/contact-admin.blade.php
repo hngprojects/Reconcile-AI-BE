@@ -159,14 +159,14 @@
             
             <p class="mt-20">
                 Best regards,<br>
-                The Reconxi Team
+                The ReconXi Team
             </p>
         </div>
         
         <!-- Footer -->
         <div class="footer">
             <div class="social-icons">
-                <a href="https://www.instagram.com/reconxi02/">
+                <a href="https://www.instagram.com/reconxi02">
                     <img src="https://api-dev.reconxi.com/assets/instagram-icon.png" alt="Instagram">
                 </a>
                 <a href="https://www.facebook.com/profile.php?id=61573471907361">

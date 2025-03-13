@@ -142,7 +142,7 @@
             
             <a href="{{ $getStartedUrl }}" class="button">Start Reconciling Now</a>
             
-            <p>Best regards,<br>The Reconxi Team</p>
+            <p>Best regards,<br>The ReconXi Team</p>
         </div>
         
         <div class="footer">
@@ -158,7 +158,7 @@
             <!-- <div id="flash-message" class="flash-message"></div> -->
             <div class="divider"></div>
             
-            <p>You are receiving this email because you signed up at Reconxi.com. Want to change how you receive these emails?</p>
+            <p>You are receiving this email because you signed up at <a href="https://reconxi.com/">ReconXi.com</a>. Want to change how you receive these emails?</p>
             <p>You can <a href="#" id="unsubscribe-btn" data-email="{{ $user->email }}">unsubscribe</a> from this list.</p>
         </div>
     </div>
