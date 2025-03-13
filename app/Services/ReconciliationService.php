@@ -40,64 +40,134 @@ class ReconciliationService
 
     public function reconcileWithRecox(string $file1Path, string $file2Path)
     {
-        $data1 = $this->loadFile($file1Path);
-        $data2 = $this->loadFile($file2Path);
-
-        $columns1 = $this->detectColumns($data1);
-        $columns2 = $this->detectColumns($data2);
+        $bankData = $this->loadAndNormalizeFile($file1Path, 'bank_statement');
+        $ledgerData = $this->loadAndNormalizeFile($file2Path, 'company_ledger');
 
         $matches = [];
-        $onlyInFile1 = [];
-        $onlyInFile2 = [];
+        $onlyInBank = $bankData;
+        $onlyInLedger = $ledgerData;
 
-        foreach ($data1 as $row1) {
-            $bestMatch = null;
-            $highestScore = 0;
-            $cleanedName1 = $this->extractNameFromDescription($row1[$columns1['name']]);
-            $normalizedName1 = $this->normalizeName($cleanedName1);
-
-            foreach ($data2 as $index => $row2) {
-                $normalizedName2 = $this->normalizeName($row2[$columns2['name']]);
-                $nameScore = $this->calculateNameSimilarity($normalizedName1, $normalizedName2);
-
-                if ($nameScore > 70) {
-                    if ($nameScore > $highestScore) {
-                        $highestScore = $nameScore;
-                        $bestMatch = $index;
-                    }
+        foreach ($bankData as $bKey => $bankEntry) {
+            foreach ($ledgerData as $lKey => $ledgerEntry) {
+                if ($this->isExactMatch($bankEntry, $ledgerEntry)) {
+                    $matches[] = [
+                        'file1_transaction' => $bankEntry,
+                        'file2_transaction' => $ledgerEntry,
+                        'match_score' => 100,
+                    ];
+                    unset($onlyInBank[$bKey]);
+                    unset($onlyInLedger[$lKey]);
+                    break;
                 }
-            }
-
-            if ($bestMatch !== null) {
-                $matches[] = [
-                    'file1_transaction' => $row1,
-                    'file2_transaction' => $data2[$bestMatch],
-                    'match_score' => $highestScore
-                ];
-                unset($data2[$bestMatch]);
-            } else {
-                $onlyInFile1[] = $row1;
             }
         }
 
-        $onlyInFile2 = array_values($data2);
+        $onlyInBank = array_values($onlyInBank);
+        $onlyInLedger = array_values($onlyInLedger);
+        foreach ($onlyInBank as $bKey => $bankEntry) {
+            foreach ($onlyInLedger as $lKey => $ledgerEntry) {
+                $score = $this->calculateFuzzyMatchScore($bankEntry, $ledgerEntry);
+                if ($score > 70) {
+                    $matches[] = [
+                        'file1_transaction' => $bankEntry,
+                        'file2_transaction' => $ledgerEntry,
+                        'match_score' => $score,
+                    ];
+                    unset($onlyInBank[$bKey]);
+                    unset($onlyInLedger[$lKey]);
+                    break;
+                }
+            }
+        }
+
+        $onlyInBank = array_values($onlyInBank);
+        $onlyInLedger = array_values($onlyInLedger);
 
         return [
             'matches' => $matches,
             'matches_count' => count($matches),
-            'only_in_file1' => $onlyInFile1,
-            'only_in_file2' => $onlyInFile2,
+            'only_in_file1' => $onlyInBank,
+            'only_in_file2' => $onlyInLedger,
+            'unmatched' => [
+                'unmatched_file1' => $onlyInBank,
+                'unmatched_file2' => $onlyInLedger,
+            ],
+            'matchSummary' => [
+                'totalMatched' => count($matches),
+                'totalUnmatchedFile1' => count($onlyInBank),
+                'totalUnmatchedFile2' => count($onlyInLedger),
+                'totalUnmatched' => count($onlyInBank) + count($onlyInLedger),
+            ],
         ];
     }
 
-    protected function detectColumns(array $data)
+    protected function loadAndNormalizeFile(string $filePath, string $fileType): array
     {
-        $headers = array_keys($data[0]);
+        $rawData = $this->loadCsv($filePath);
+        $normalized = [];
+
+        $headerMapping = [
+            'date' => ['date', 'transaction date', 'payment date', 'completed date', 'Date'],
+            'description' => ['description', 'details', 'remark', 'name', 'transaction description'],
+            'amount' => ['amount', 'transaction amount', 'total', 'cashflow', 'inflow', 'credit', 'debit', 'Credit (Inflow)', 'Debit (Outflow)']
+        ];
+
+        $headers = array_keys($rawData[0]);
+        $mappedHeaders = $this->detectColumns($headers, $headerMapping);
+
+        foreach ($rawData as $row) {
+            $amount = 0;
+
+            if (isset($row[$mappedHeaders['amount']])) {
+                $amount = floatval($row[$mappedHeaders['amount']]);
+            }
+
+            $normalized[] = [
+                'date' => isset($row[$mappedHeaders['date']]) ? $row[$mappedHeaders['date']] : null,
+                'description' => isset($row[$mappedHeaders['description']]) ? trim($row[$mappedHeaders['description']]) : null,
+                'amount' => $amount,
+            ];
+        }
+
+        return $normalized;
+    }
+
+    protected function isExactMatch(array $bankEntry, array $ledgerEntry): bool
+    {
+        return $bankEntry['amount'] === $ledgerEntry['amount'] &&
+            strtolower($bankEntry['description']) === strtolower($ledgerEntry['description']);
+    }
+
+    protected function calculateFuzzyMatchScore(array $bankEntry, array $ledgerEntry): float
+    {
+        $amountDiff = abs($bankEntry['amount'] - $ledgerEntry['amount']);
+        $amountScore = $amountDiff <= 0.5 ? (1 - $amountDiff / 0.5) * 50 : 0;
+
+        similar_text(strtolower($bankEntry['description']), strtolower($ledgerEntry['description']), $descPercent);
+        $descScore = $descPercent >= 75 ? $descPercent / 2 : 0;
+
+        return $amountScore + $descScore;
+    }
+
+    protected function detectColumns(array $headers, array $headerMapping): array
+    {
+        $mappedHeaders = [];
+
+        foreach ($headerMapping as $standardField => $possibleHeaders) {
+            foreach ($possibleHeaders as $expected) {
+                foreach ($headers as $header) {
+                    if (stripos($header, $expected) !== false) {
+                        $mappedHeaders[$standardField] = $header;
+                        break 2; 
+                    }
+                }
+            }
+        }
 
         return [
-            'name' => $this->findBestColumn($headers, ['name', 'full name', 'student name', 'description']),
-            'amount' => $this->findBestColumn($headers, ['amount', 'transaction amount', 'total']),
-            'date' => $this->findBestColumn($headers, ['date', 'transaction date', 'payment date'])
+            'date' => $mappedHeaders['date'] ?? null,
+            'description' => $mappedHeaders['description'] ?? null,
+            'amount' => $mappedHeaders['amount'] ?? null,
         ];
     }
 
