@@ -86,7 +86,7 @@
                 
                 <p><a href="mailto:support@reconxi.com" class="button">Contact us</a></p>
                 
-                <p>If you change your mind, you're always welcome to <a href="#" class="button resubscribe-btn" data-email="{{ $email }}">resubscribe here</a>.</p>
+                <p>If you change your mind, you're always welcome to <a href="{{ url('api/v1/newsletter/unsubscribe/' . $email) }}" class="button resubscribe-btn">resubscribe here</a>.</p>
                 
                 <p>Thank you for your past engagement with ReconXI.</p>
                 
@@ -107,57 +107,8 @@
             <div class="divider"></div>
             
             <p>You received this email because you unsubscribed from <a href="https://reconxi.com/">ReconXi.com</a>. Want to update your subscription preferences?</p>
-            <p>You can <a href="#" class="button resubscribe-btn" data-email="{{ $email }}">resubscribe</a> to continue receiving our updates.</p>
+            <p>You can <a href="{{ url('api/v1/newsletter/resubscribe/' . $email) }}" class="button resubscribe-btn">resubscribe</a> to continue receiving our updates.</p>
         </div>
     </div>
-
-    <!-- Notification Message -->
-    <div class="notification" id="notification">Resubscription successful! 🎉</div>
-
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            document.querySelectorAll(".resubscribe-btn").forEach(button => {
-                button.addEventListener("click", function (event) {
-                    event.preventDefault(); // Prevent default link behavior
-                    event.stopPropagation(); // Stop event from bubbling up
-
-                    let email = this.getAttribute("data-email");
-                    const url = "https://api-dev.reconxi.com/api/v1/newsletter/subscribe";
-
-                    // Perform AJAX request (Mock example)
-                    fetch(url, {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json"
-                        },
-                        body: JSON.stringify({ email: email })
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        // showNotification("Resubscription successful! 🎉");
-                        if (data.success) {
-                            showNotification(data.message);
-                        } else {
-                            showNotification("An error occurred: " + data.message, "red");
-                        }
-                    })
-                    .catch(error => {
-                        showNotification("Something went wrong. Please try again!", "red");
-                    });
-                });
-            });
-
-            function showNotification(message, bgColor = "#2c664f") {
-                let notification = document.getElementById("notification");
-                notification.textContent = message;
-                notification.style.backgroundColor = bgColor;
-                notification.style.display = "block";
-
-                setTimeout(() => {
-                    notification.style.display = "none";
-                }, 7000); // Hide after 7 seconds
-            }
-        });
-    </script>
 </body>
 </html>

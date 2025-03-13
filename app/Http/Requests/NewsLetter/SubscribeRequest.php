@@ -21,8 +21,9 @@ class SubscribeRequest extends FormRequest
      */
     public function rules(): array
     {
+        // |unique:news_letters,email
         return [
-            'email' => 'required|email|unique:news_letters,email',
+            'email' => 'required|email',
         ];
     }
 }

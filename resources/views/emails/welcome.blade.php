@@ -65,40 +65,6 @@
             margin-right: 10px;
             color: #2c664f !important;
         }
-        .flash-message {
-            display: none; 
-            position: fixed;
-            top: 10px;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: #2c664f; /* Success Color */
-            color: #fff !important;
-            padding: 15px 20px;
-            border-radius: 5px;
-            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-            z-index: 1000;
-            opacity: 0;
-            transition: opacity 0.5s ease-in-out;
-        }
-
-        .flash-message.show {
-            display: block;
-            opacity: 1;
-        }
-
-        /* Notification Styles */
-        .notification {
-            display: none;
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: #2c664f !important;
-            color: white;
-            padding: 15px 20px;
-            border-radius: 5px;
-            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-        }
     </style>
 </head>
 <body>
@@ -155,84 +121,11 @@
             
             <p>Thank you for choosing "ReconXi". Need help? <a href="mailto:support@reconxi.com">Contact us</a></p>
             
-            <!-- <div id="flash-message" class="flash-message"></div> -->
             <div class="divider"></div>
             
             <p>You are receiving this email because you signed up at <a href="https://reconxi.com/">ReconXi.com</a>. Want to change how you receive these emails?</p>
-            <p>You can <a href="#" id="unsubscribe-btn" data-email="{{ $user->email }}">unsubscribe</a> from this list.</p>
+            <p>You can <a href="{{ url('api/v1/newsletter/unsubscribe/' . $user->email) }}">unsubscribe</a> from this list.</p>
         </div>
     </div>
-
-    <!-- Notification Message -->
-    <div class="notification" id="notification">Resubscription successful! 🎉</div>
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            const unsubscribeBtn = document.getElementById("unsubscribe-btn");
-
-            if (unsubscribeBtn) {
-                unsubscribeBtn.addEventListener("click", function (event) {
-                    event.preventDefault(); // Prevent page navigation
-
-                    const email = this.getAttribute("data-email");
-                    const url = "https://api-dev.reconxi.com/api/v1/newsletter/unsubscribe";
-
-                    fetch(url, {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json"
-                        },
-                        body: JSON.stringify({ email: email })
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        /* if (data.success) {
-                            showFlashMessage(data.message, "success");
-                        } else {
-                            showFlashMessage("An error occurred: " + data.message, "error");
-                        } */
-                        if (data.success) {
-                            showNotification(data.message);
-                        } else {
-                            showNotification("An error occurred: " + data.message, "red");
-                        }
-                    })
-                    .catch(error => {
-                        // showFlashMessage("An error occurred. Please try again.", "error");
-                        showNotification("Something went wrong. Please try again!", "red");
-                        console.error(error);
-                    });
-                });
-            }
-
-            function showFlashMessage(message, type = "success") {
-                const flashMessage = document.getElementById("flash-message");
-
-                if (type === "error") {
-                    flashMessage.style.backgroundColor = "#d9534f"; // Red for error
-                } else {
-                    flashMessage.style.backgroundColor = "#2c664f"; // Green for success
-                }
-
-                flashMessage.innerText = message;
-                flashMessage.classList.add("show");
-
-                setTimeout(() => {
-                    flashMessage.classList.remove("show");
-                    setTimeout(() => flashMessage.style.display = "none", 500); // Wait for transition
-                }, 5000); // Hide after 5 seconds
-            }
-
-            function showNotification(message, bgColor = "#2c664f") {
-                let notification = document.getElementById("notification");
-                notification.textContent = message;
-                notification.style.backgroundColor = bgColor;
-                notification.style.display = "block";
-
-                setTimeout(() => {
-                    notification.style.display = "none";
-                }, 7000); // Hide after 7 seconds
-            }
-        });
-    </script>
 </body>
 </html>

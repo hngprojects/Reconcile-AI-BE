@@ -118,20 +118,6 @@
                 padding: 15px;
             }
         }
-
-        /* Notification Styles */
-        .notification {
-            display: none;
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: #2c664f !important;
-            color: white;
-            padding: 15px 20px;
-            border-radius: 5px;
-            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-        }
     </style>
 </head>
 <body>
@@ -196,57 +182,8 @@
             <div class="divider"></div>
 
             <p>You are receiving this email because you signed up at Reconxi.com. Want to change how you receive these emails?</p>
-            
-            <p>You can <a href="#" id="unsubscribe-btn" class="footer-links" data-email="{{ $data['email'] }}">unsubscribe</a> from this list.</p>
+            <p>You can <a href="{{ url('api/v1/newsletter/unsubscribe/' . $data['email']) }}" class="footer-links">unsubscribe</a> from this list.</p>
         </div>
     </div>
-
-    <!-- Notification Message -->
-    <div class="notification" id="notification">Resubscription successful! 🎉</div>
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            const unsubscribeBtn = document.getElementById("unsubscribe-btn");
-
-            if (unsubscribeBtn) {
-                unsubscribeBtn.addEventListener("click", function (event) {
-                    event.preventDefault(); // Prevent page navigation
-
-                    const email = this.getAttribute("data-email");
-                    const url = "https://api-dev.reconxi.com/api/v1/newsletter/unsubscribe";
-
-                    fetch(url, {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json"
-                        },
-                        body: JSON.stringify({ email: email })
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            showNotification(data.message);
-                        } else {
-                            showNotification("An error occurred: " + data.message, "red");
-                        }
-                    })
-                    .catch(error => {
-                        showNotification("Something went wrong. Please try again!", "red");
-                        console.error(error);
-                    });
-                });
-            }
-
-            function showNotification(message, bgColor = "#2c664f") {
-                let notification = document.getElementById("notification");
-                notification.textContent = message;
-                notification.style.backgroundColor = bgColor;
-                notification.style.display = "block";
-
-                setTimeout(() => {
-                    notification.style.display = "none";
-                }, 7000); // Hide after 7 seconds
-            }
-        });
-    </script>
 </body>
 </html>
