@@ -38,7 +38,7 @@ class SubscriptionConfirmation extends Mailable implements ShouldQueue
     {
         return new Content(
             view: 'emails.subscription-confirmation',
-            with: ['email' => $this->email, 'base_url' => config('app.url')]
+            with: ['email' => $this->email]
         );
     }
 
