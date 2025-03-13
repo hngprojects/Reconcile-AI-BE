@@ -135,17 +135,16 @@
     </style>
 </head>
 <body>
-    @php $base_url = config('app.url'); @endphp
     <div class="container">
         <!-- Header -->
         <div class="header">
-            <img src="{{ $base_url }}/assets/logo.png" alt="ReconXi Logo" class="logo">
+            <img src="https://api-dev.reconxi.com/assets/logo.png" alt="ReconXi Logo" class="logo">
         </div>
         
         <!-- Main Content -->
         <div class="content">
             <div class="illustration">
-                <img src="{{ $base_url }}/assets/personal-data.png" alt="Email Notification">
+                <img src="https://api-dev.reconxi.com/assets/personal-data.png" alt="Email Notification">
             </div>
             
             <h2>Hi {{ $data['name'] }}</h2>
@@ -179,16 +178,16 @@
         <div class="footer">
             <div class="social-icons">
                 <a href="https://www.instagram.com/reconxi02/">
-                    <img src="{{ $base_url }}/assets/instagram-icon.png" alt="Instagram">
+                    <img src="https://api-dev.reconxi.com/assets/instagram-icon.png" alt="Instagram">
                 </a>
                 <a href="https://www.facebook.com/profile.php?id=61573471907361">
-                    <img src="{{ $base_url }}/assets/facebook-icon.png" alt="Facebook">
+                    <img src="https://api-dev.reconxi.com/assets/facebook-icon.png" alt="Facebook">
                 </a>
                 <a href="https://www.linkedin.com/in/recon-xi-b06835354">
-                    <img src="{{ $base_url }}/assets/linkedin-icon.png" alt="LinkedIn">
+                    <img src="https://api-dev.reconxi.com/assets/linkedin-icon.png" alt="LinkedIn">
                 </a>
                 <a href="https://x.com/reconxi02">
-                    <img src="{{ $base_url }}/assets/twitter-icon.png" alt="Twitter">
+                    <img src="https://api-dev.reconxi.com/assets/twitter-icon.png" alt="Twitter">
                 </a>
             </div>
             
@@ -213,7 +212,7 @@
                     event.preventDefault(); // Prevent page navigation
 
                     const email = this.getAttribute("data-email");
-                    const url = "{{ $base_url }}/api/v1/newsletter/unsubscribe";
+                    const url = "https://api-dev.reconxi.com/api/v1/newsletter/unsubscribe";
 
                     fetch(url, {
                         method: "POST",
