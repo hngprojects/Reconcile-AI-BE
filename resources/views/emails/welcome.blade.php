@@ -102,6 +102,7 @@
     </style>
 </head>
 <body>
+    @php $base_url = config('app.url'); @endphp
     <div class="container">
         <div class="header">
             <img src="{{ $base_url }}/assets/logo.png" alt="ReconXi Logo" height="40">
