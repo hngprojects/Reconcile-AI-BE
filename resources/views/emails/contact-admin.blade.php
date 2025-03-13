@@ -10,8 +10,8 @@
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
-            background-color: #FFFFFF;
-            color: #333333;
+            background-color: #FFFFFF !important;
+            color: #333333 !important;
             line-height: 1.6;
         }
         
@@ -23,7 +23,7 @@
         
         /* Header section */
         .header {
-            background-color: #EAEFED;
+            background-color: #EAEFED !important;
             padding: 20px 0;
             text-align: center;
             width: 100%;
@@ -37,7 +37,7 @@
         /* Content section */
         .content {
             padding: 30px;
-            background-color: #FFFFFF;
+            background-color: #FFFFFF !important;
         }
         
         .illustration {
@@ -52,11 +52,11 @@
         
         /* Message box */
         .message-box {
-            border: 1px solid #E0E0E0;
+            border: 1px solid #E0E0E0 !important;
             border-radius: 5px;
             padding: 20px;
             margin: 20px 0;
-            background-color: #FAFAFA;
+            background-color: #FAFAFA !important;
         }
         
         .message-details {
@@ -69,12 +69,12 @@
         
         /* Footer section */
         .footer {
-            background-color: #EAEFED;
+            background-color: #EAEFED !important;
             padding: 20px 0;
             text-align: center;
             width: 100%;
             font-size: 14px;
-            color: #666666;
+            color: #666666 !important;
         }
         
         .social-icons {
@@ -98,7 +98,7 @@
         }
         
         .footer-links a {
-            color: #2E604A;
+            color: #2E604A !important;
             text-decoration: none;
             font-weight: bold;
         }
