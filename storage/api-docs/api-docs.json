@@ -1373,7 +1373,7 @@
                     {
                         "name": "reconciliation",
                         "in": "path",
-                        "description": "Type of reconciliation to perform",
+                        "description": "Reconciliation ID",
                         "required": true,
                         "schema": {
                             "type": "string"

@@ -9,7 +9,7 @@ use App\Models\User;
 
 class ThrottleUnauthenticated
 {
-    protected $limit = 5;
+    protected $limit = 250;
     /**
      * Handle an incoming request.
      *
