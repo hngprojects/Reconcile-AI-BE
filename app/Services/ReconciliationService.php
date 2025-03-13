@@ -158,7 +158,7 @@ class ReconciliationService
                 foreach ($headers as $header) {
                     if (stripos($header, $expected) !== false) {
                         $mappedHeaders[$standardField] = $header;
-                        break 2; 
+                        break 2;
                     }
                 }
             }
@@ -572,27 +572,40 @@ class ReconciliationService
 
         if($data['action'] == 'match'){
 
-            if (($key = array_search($ledger, $resArray['only_in_file2'])) !== false) {
-                unset($resArray['only_in_file2'][$key]);
-            }else if (($key = array_search($ledger, $resArray['unmatched']['unmatched_file2'])) !== false) {
-                unset($resArray['unmatched']['unmatched_file2'][$key]);
-            }else if (($key = array_search($statement, $resArray['only_in_file1'])) !== false) {
-                $resArray['matchSummary']['totalUnmatched'] -= 1;
-                unset($response['only_in_file1'][$key]);
-            }else if (($key = array_search($statement, $resArray['unmatched']['unmatched_file1'])) !== false) {
-                $resArray['matchSummary']['totalUnmatched'] -= 1;
-                unset($resArray['unmatched']['unmatched_file1'][$key]);
-            }
+            $resArray['only_in_file2'] = array_values(array_udiff(
+                $resArray['only_in_file2'],
+                [$filteredLedger],
+                fn($a, $b) => strcmp(json_encode($a), json_encode($b))
+            ));
+
+            $resArray['unmatched']['unmatched_file2'] = array_values(array_udiff(
+                $resArray['unmatched']['unmatched_file2'],
+                [$filteredLedger],
+                fn($a, $b) => strcmp(json_encode($a), json_encode($b))
+            ));
+
+            $resArray['only_in_file1'] = array_values(array_udiff(
+                $resArray['only_in_file1'],
+                [$filteredStatement],
+                fn($a, $b) => strcmp(json_encode($a), json_encode($b))
+            ));
+
+            $resArray['unmatched']['unmatched_file1'] = array_values(array_udiff(
+                $resArray['unmatched']['unmatched_file1'],
+                [$filteredStatement],
+                fn($a, $b) => strcmp(json_encode($a), json_encode($b))
+            ));
 
             array_push($resArray['matches'], $res);
             $resArray['matchSummary']['totalMatched'] += 2;
         }else if($data['action'] === 'unmatch'){
             $match = $this->matchedRepository->remove($ledger, $statement);
 
-            if (($key = array_search($res, $resArray['matches'])) !== false) {
-                $resArray['matchSummary']['totalMatched'] -= 2;
-                unset($resArray['matches'][$key]);
-            }
+            $resArray['matches'] = array_values(array_udiff(
+                $resArray['matches'],
+                [$res],
+                fn($a, $b) => strcmp(json_encode($a), json_encode($b))
+            ));
 
             array_push($resArray['only_in_file1'], $filteredStatement);
             array_push($resArray['unmatched']['unmatched_file1'], $filteredStatement);
