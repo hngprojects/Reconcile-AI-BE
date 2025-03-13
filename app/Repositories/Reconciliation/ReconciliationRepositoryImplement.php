@@ -41,4 +41,20 @@ class ReconciliationRepositoryImplement extends Eloquent implements Reconciliati
     {
         return $this->recordModel->create($data);
     }
+
+    public function findResponse(Reconciliation $reconciliation)
+    {
+        return $this->recordModel->where('reconciliation_id', '=', $reconciliation->id)->first();
+    }
+
+    public function updateResponse(Reconciliation $reconciliation, array $data)
+    {
+        $record = $this->recordModel->where('reconciliation_id', '=', $reconciliation->id)->first();
+
+        $record->data = $data;
+
+        $record->save();
+
+        return $record;
+    }
 }

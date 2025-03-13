@@ -9,6 +9,7 @@ use Illuminate\Http\JsonResponse;
 use App\Models\ReconciledRecord;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Reconciliation;
+use App\Http\Requests\ManualReconciliationRequest;
 
 /**
  * @OA\Tag(
@@ -243,10 +244,17 @@ class ReconciliationController extends Controller
 
     /**
      * @OA\Get(
-     *     path="/api/v1/reconciled-records",
+     *     path="/api/v1/reconciliations/{reconciliation}",
      *     summary="Get reconciled records",
      *     description="Fetch reconciled records for the logged-in user",
      *     tags={"Reconciliation"},
+     *     @OA\Parameter(
+     *         name="reconciliation",
+     *         in="path",
+     *         required=true,
+     *         description="Reconciliation ID",
+     *         @OA\Schema(type="string")
+     *     ),
      *     security={{ "bearerAuth":{} }},
      *     @OA\Response(
      *         response=200,
@@ -277,6 +285,86 @@ class ReconciliationController extends Controller
             'status_code' => 200,
             'data' => $records,
         ], 200);
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/api/v1/reconcile/{reconciliation}",
+     *     summary="Reconcile a ledger and a statement",
+     *     description="Perform reconciliation between a ledger and a statement based on specified action",
+     *     tags={"Reconciliation"},
+     *     @OA\Parameter(
+     *         name="reconciliation",
+     *         in="path",
+     *         required=true,
+     *         description="Type of reconciliation to perform",
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\MediaType(
+     *             mediaType="application/json",
+     *             @OA\Schema(
+     *                 required={"ledger", "statement", "action"},
+     *                 @OA\Property(
+     *                     property="ledger",
+     *                     type="object",
+     *                     @OA\Property(property="date", type="string", description="Date of the ledger entry"),
+     *                     @OA\Property(property="description", type="string", description="Description of the ledger entry"),
+     *                     @OA\Property(property="amount", type="integer", description="Amount in the ledger entry")
+     *                 ),
+     *                 @OA\Property(
+     *                     property="statement",
+     *                     type="object",
+     *                     @OA\Property(property="date", type="string", description="Date of the statement entry"),
+     *                     @OA\Property(property="description", type="string", description="Description of the statement entry"),
+     *                     @OA\Property(property="amount", type="integer", description="Amount in the statement entry")
+     *                 ),
+     *                 @OA\Property(
+     *                     property="action",
+     *                     type="string",
+     *                     enum={"match", "unmatch"},
+     *                     description="Reconciliation action to perform"
+     *                 )
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful reconciliation",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Reconciliation successful"),
+     *             @OA\Property(property="status", type="string", example="success"),
+     *             @OA\Property(property="status_code", type="integer", example=200),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="object",
+     *                 @OA\Property(property="matches", type="integer", example=5),
+     *                 @OA\Property(property="only_in_ledger", type="array", @OA\Items(type="object")),
+     *                 @OA\Property(property="only_in_statement", type="array", @OA\Items(type="object"))
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Bad request",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="error", type="string")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Validation error",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="error", type="string")
+     *         )
+     *     )
+     * )
+     */
+    public function matchUnmatch(ManualReconciliationRequest $request, Reconciliation $reconciliation){
+        $validated = $request->validated();
+
+        return $this->reconciliationService->matchUnmatch($validated, $reconciliation);
     }
 
     private function isValidFileFormat(string $filePath): bool
