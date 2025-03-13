@@ -38,7 +38,7 @@ class ContactUserMail extends Mailable implements ShouldQueue
     {
         return new Content(
             view: 'emails.contact-user',
-            with: ['data' => $this->data]
+            with: ['data' => $this->data, 'base_url' => config('app.url')]
         );
     }
 

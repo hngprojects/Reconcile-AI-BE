@@ -5,6 +5,9 @@ namespace App\Services\NewsLetter;
 use LaravelEasyRepository\ServiceApi;
 use App\Repositories\NewsLetter\NewsLetterRepository;
 use Exception;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\UnsubscribeConfirmation;
+use App\Mail\SubscriptionConfirmation;
 
 class NewsLetterServiceImplement extends ServiceApi implements NewsLetterService
 {
@@ -25,6 +28,8 @@ class NewsLetterServiceImplement extends ServiceApi implements NewsLetterService
             $validated = $request->validated();
             $subscribe = $this->mainRepository->subscribe($validated['email']);
 
+            Mail::to($validated['email'])->queue(new SubscriptionConfirmation($validated['email']));
+
             return $this->setCode(200)
                 ->setMessage("Subscription Successful")
                 ->setData([
@@ -42,6 +47,8 @@ class NewsLetterServiceImplement extends ServiceApi implements NewsLetterService
         try {
             $validated = $request->validated();
             $unsubscribe = $this->mainRepository->unsubscribe($validated['email']);
+
+            Mail::to($validated['email'])->queue(new UnsubscribeConfirmation($validated['email']));
 
             return $this->setCode(200)
                 ->setMessage("Unsubscribed Successfully")

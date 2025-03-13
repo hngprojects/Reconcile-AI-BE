@@ -100,8 +100,6 @@ class ContactController extends Controller
                 'data' => null
             ], 500);
         }
-        
-        $data['subject'] = 'Contact';
 
         Mail::to($data['email'])->queue(new ContactUserMail($data));
         Mail::to(config('mail.admin_address'))->queue(new ContactAdminMail($data));

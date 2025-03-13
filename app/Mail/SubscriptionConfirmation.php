@@ -8,17 +8,17 @@ use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
+use App\Models\User;
 
-class ContactAdminMail extends Mailable implements ShouldQueue
+class SubscriptionConfirmation extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
 
     /**
      * Create a new message instance.
      */
-    public function __construct(public $data)
+    public function __construct(public $email)
     {
-        //
     }
 
     /**
@@ -27,7 +27,7 @@ class ContactAdminMail extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'New Contact Request',
+            subject: 'Thank you for Subscribing to ReconXI',
         );
     }
 
@@ -37,8 +37,8 @@ class ContactAdminMail extends Mailable implements ShouldQueue
     public function content(): Content
     {
         return new Content(
-            view: 'emails.contact-admin',
-            with: ['data' => $this->data, 'base_url' => config('app.url')]
+            view: 'emails.subscription-confirmation',
+            with: ['email' => $this->email, 'base_url' => config('app.url')]
         );
     }
 

@@ -124,13 +124,13 @@
     <div class="container">
         <!-- Header -->
         <div class="header">
-            <img src="{{ asset('/assets/logo.png') }}" alt="ReconXi Logo" class="logo">
+            <img src="{{ $base_url }}/assets/logo.png" alt="ReconXi Logo" class="logo">
         </div>
         
         <!-- Main Content -->
         <div class="content">
             <div class="illustration">
-                <img src="{{ asset('assets/message-received.png') }}" alt="Email Notification">
+                <img src="{{ $base_url }}/assets/message-received.png" alt="Email Notification">
             </div>
             
             <h2>Hello Admin</h2>
@@ -167,20 +167,20 @@
         <div class="footer">
             <div class="social-icons">
                 <a href="https://www.instagram.com/reconxi02/">
-                    <img src="{{ asset('assets/instagram-icon.png') }}" alt="Instagram">
+                    <img src="{{ $base_url }}/assets/instagram-icon.png" alt="Instagram">
                 </a>
                 <a href="https://www.facebook.com/profile.php?id=61573471907361">
-                    <img src="{{ asset('assets/facebook-icon.png') }}" alt="Facebook">
+                    <img src="{{ $base_url }}/assets/facebook-icon.png" alt="Facebook">
                 </a>
                 <a href="https://www.linkedin.com/in/recon-xi-b06835354">
-                    <img src="{{ asset('assets/linkedin-icon.png') }}" alt="LinkedIn">
+                    <img src="{{ $base_url }}/assets/linkedin-icon.png" alt="LinkedIn">
                 </a>
                 <a href="https://x.com/reconxi02">
-                    <img src="{{ asset('assets/twitter-icon.png') }}" alt="Twitter">
+                    <img src="{{ $base_url }}/assets/twitter-icon.png" alt="Twitter">
                 </a>
             </div>
             
-            <p>Thank you for choosing "ReconXi". Need help? <a href="{{ url('contact') }}" class="footer-links">Contact us</a></p>
+            <p>Thank you for choosing "ReconXi". Need help? <a href="mailto:support@reconxi.com" class="footer-links">Contact us</a></p>
             
             <div class="divider"></div>
         </div>

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Welcome to ReconXi</title>
+    <title>Thank You for Subscribing to ReconXi</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -29,15 +29,6 @@
         .text-content {
             text-align: left;
             padding: 10px 0;
-        }
-        .button {
-            display: inline-block;
-            background-color: #2c664f;
-            color: #ffffff;
-            padding: 15px 30px;
-            text-decoration: none;
-            border-radius: 5px;
-            margin: 20px 0;
         }
         .footer {
             background-color: #f5f5f5;
@@ -65,27 +56,6 @@
             margin-right: 10px;
             color: #2c664f;
         }
-        .flash-message {
-            display: none; 
-            position: fixed;
-            top: 10px;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: #2c664f; /* Success Color */
-            color: #fff;
-            padding: 15px 20px;
-            border-radius: 5px;
-            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-            z-index: 1000;
-            opacity: 0;
-            transition: opacity 0.5s ease-in-out;
-        }
-
-        .flash-message.show {
-            display: block;
-            opacity: 1;
-        }
-
         /* Notification Styles */
         .notification {
             display: none;
@@ -108,58 +78,58 @@
         </div>
         
         <div class="content">
-            <img src="{{ $base_url }}/assets/welcome-illustration.png" alt="Welcome" width="200">
-            <h2>Welcome to ReconXi</h2>
-            <p>Thanks for signing up</p>
+            <img src="{{ $base_url }}/assets/thank-you-illustration.png" alt="Thank You" width="200">
+            <h2>Thank you for Subscribing</h2>
             
             <div class="text-content">
-                <h3>Hi {{ $user->name }}</h3>
-                <p>We know how challenging it can be to manage transactions, and ensure financial accuracy.</p>
+                <p>Dear Subcriber,</p>
                 
-                <h4>Here's what you can expect:</h4>
+                <p>Thank you for subscribing to ReconXI, your AI-driven solution for seamless bank reconciliation. We're excited to have you on board and look forward to helping you streamline your financial processes.</p>
+                
+                <h4>As a subscriber, you'll receive:</h4>
                 
                 <div class="feature">
                     <div class="feature-icon">★</div>
                     <div>
-                        <strong>Ai Powered Reconciliation:</strong> Save hours through Ai powered repetitive reconciliation processes.
+                        <strong>Exclusive Updates:</strong> Stay informed about the latest features and enhancements in AI-powered bank reconciliation.
                     </div>
                 </div>
                 
                 <div class="feature">
                     <div class="feature-icon">★</div>
                     <div>
-                        <strong>Easy to use Reconciled Reports:</strong> Minimize human mistakes with intelligent matching and verification.
+                        <strong>Industry Insights:</strong> Gain access to expert articles and best practices in financial automation.
                     </div>
                 </div>
                 
                 <div class="feature">
                     <div class="feature-icon">★</div>
                     <div>
-                        <strong>Need Assistance?</strong> Our support team is here for you! If you have any questions, simply reply to this mail or contact us at <a href="mailto:support@reconxi.com">Support Team</a>.
+                        <strong>Special Offers:</strong> Be the first to know about promotions and events.
                     </div>
                 </div>
+                
+                <p>We value your privacy and will ensure that our content is relevant and valuable to you. If you have any questions or feedback, please don't hesitate to reach out.</p>
+                <p>Welcome aboard!</p>
+                
+                <p>Best regards,<br>The Reconxi Team</p>
             </div>
-            
-            <a href="{{ $getStartedUrl }}" class="button">Start Reconciling Now</a>
-            
-            <p>Best regards,<br>The Reconxi Team</p>
         </div>
         
         <div class="footer">
             <div class="social-links">
-                <a href="https://www.instagram.com/reconxi02"><img src="{{ $base_url }}/assets/instagram-icon.png" alt="Instagram" width="24"></a>
-                <a href="https://www.facebook.com/profile.php?id=61573471907361"><img src="{{ $base_url }}/assets/facebook-icon.png" alt="Facebook" width="24"></a>
-                <a href="https://www.linkedin.com/in/recon-xi-b06835354"><img src="{{ $base_url }}/assets/linkedin-icon.png" alt="LinkedIn" width="24"></a>
-                <a href="https://x.com/reconxi02"><img src="{{ $base_url }}/assets/twitter-icon.png" alt="Twitter" width="24"></a>
+                <a href="https://instagram.com/reconxi"><img src="{{ $base_url }}/assets/instagram-icon.png" alt="Instagram" width="24"></a>
+                <a href="https://facebook.com/reconxi"><img src="{{ $base_url }}/assets/facebook-icon.png" alt="Facebook" width="24"></a>
+                <a href="https://linkedin.com/company/reconxi"><img src="{{ $base_url }}/assets/linkedin-icon.png" alt="LinkedIn" width="24"></a>
+                <a href="https://twitter.com/reconxi"><img src="{{ $base_url }}/assets/twitter-icon.png" alt="Twitter" width="24"></a>
             </div>
             
             <p>Thank you for choosing "ReconXi". Need help? <a href="mailto:support@reconxi.com">Contact us</a></p>
             
-            <!-- <div id="flash-message" class="flash-message"></div> -->
             <div class="divider"></div>
             
             <p>You are receiving this email because you signed up at Reconxi.com. Want to change how you receive these emails?</p>
-            <p>You can <a href="#" id="unsubscribe-btn" data-email="{{ $user->email }}">unsubscribe</a> from this list.</p>
+            <p>You can <a href="#" id="unsubscribe-btn" data-email="{{ $email }}">unsubscribe</a> from this list.</p>
         </div>
     </div>
 
@@ -185,11 +155,6 @@
                     })
                     .then(response => response.json())
                     .then(data => {
-                        /* if (data.success) {
-                            showFlashMessage(data.message, "success");
-                        } else {
-                            showFlashMessage("An error occurred: " + data.message, "error");
-                        } */
                         if (data.success) {
                             showNotification(data.message);
                         } else {
@@ -197,29 +162,10 @@
                         }
                     })
                     .catch(error => {
-                        // showFlashMessage("An error occurred. Please try again.", "error");
                         showNotification("Something went wrong. Please try again!", "red");
                         console.error(error);
                     });
                 });
-            }
-
-            function showFlashMessage(message, type = "success") {
-                const flashMessage = document.getElementById("flash-message");
-
-                if (type === "error") {
-                    flashMessage.style.backgroundColor = "#d9534f"; // Red for error
-                } else {
-                    flashMessage.style.backgroundColor = "#2c664f"; // Green for success
-                }
-
-                flashMessage.innerText = message;
-                flashMessage.classList.add("show");
-
-                setTimeout(() => {
-                    flashMessage.classList.remove("show");
-                    setTimeout(() => flashMessage.style.display = "none", 500); // Wait for transition
-                }, 5000); // Hide after 5 seconds
             }
 
             function showNotification(message, bgColor = "#2c664f") {

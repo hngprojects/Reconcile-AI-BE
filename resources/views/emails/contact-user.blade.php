@@ -118,19 +118,33 @@
                 padding: 15px;
             }
         }
+
+        /* Notification Styles */
+        .notification {
+            display: none;
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #2c664f;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 5px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <!-- Header -->
         <div class="header">
-            <img src="{{ asset('assets/logo.png') }}" alt="ReconXi Logo" class="logo">
+            <img src="{{ $base_url }}/assets/logo.png" alt="ReconXi Logo" class="logo">
         </div>
         
         <!-- Main Content -->
         <div class="content">
             <div class="illustration">
-                <img src="{{ asset('assets/personal-data.png') }}" alt="Email Notification">
+                <img src="{{ $base_url }}/assets/personal-data.png" alt="Email Notification">
             </div>
             
             <h2>Hi {{ $data['name'] }}</h2>
@@ -164,27 +178,75 @@
         <div class="footer">
             <div class="social-icons">
                 <a href="https://www.instagram.com/reconxi02/">
-                    <img src="{{ asset('assets/instagram-icon.png') }}" alt="Instagram">
+                    <img src="{{ $base_url }}/assets/instagram-icon.png" alt="Instagram">
                 </a>
                 <a href="https://www.facebook.com/profile.php?id=61573471907361">
-                    <img src="{{ asset('assets/facebook-icon.png') }}" alt="Facebook">
+                    <img src="{{ $base_url }}/assets/facebook-icon.png" alt="Facebook">
                 </a>
                 <a href="https://www.linkedin.com/in/recon-xi-b06835354">
-                    <img src="{{ asset('assets/linkedin-icon.png') }}" alt="LinkedIn">
+                    <img src="{{ $base_url }}/assets/linkedin-icon.png" alt="LinkedIn">
                 </a>
                 <a href="https://x.com/reconxi02">
-                    <img src="{{ asset('assets/twitter-icon.png') }}" alt="Twitter">
+                    <img src="{{ $base_url }}/assets/twitter-icon.png" alt="Twitter">
                 </a>
             </div>
             
-            <p>Thank you for choosing "ReconXi". Need help? <a href="{{ url('contact') }}" class="footer-links">Contact us</a></p>
+            <p>Thank you for choosing "ReconXi". Need help? <a href="mailto:support@reconxi.com" class="footer-links">Contact us</a></p>
             
             <div class="divider"></div>
 
             <p>You are receiving this email because you signed up at Reconxi.com. Want to change how you receive these emails?</p>
             
-            <p>You can <a href="{{ url('unsubscribe', ['email' => $data['email']]) }}" class="footer-links">unsubscribe</a> from this list.</p>
+            <p>You can <a href="#" id="unsubscribe-btn" class="footer-links" data-email="{{ $data['email'] }}">unsubscribe</a> from this list.</p>
         </div>
     </div>
+
+    <!-- Notification Message -->
+    <div class="notification" id="notification">Resubscription successful! 🎉</div>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const unsubscribeBtn = document.getElementById("unsubscribe-btn");
+
+            if (unsubscribeBtn) {
+                unsubscribeBtn.addEventListener("click", function (event) {
+                    event.preventDefault(); // Prevent page navigation
+
+                    const email = this.getAttribute("data-email");
+                    const url = "{{ $base_url }}/api/v1/newsletter/unsubscribe";
+
+                    fetch(url, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({ email: email })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            showNotification(data.message);
+                        } else {
+                            showNotification("An error occurred: " + data.message, "red");
+                        }
+                    })
+                    .catch(error => {
+                        showNotification("Something went wrong. Please try again!", "red");
+                        console.error(error);
+                    });
+                });
+            }
+
+            function showNotification(message, bgColor = "#2c664f") {
+                let notification = document.getElementById("notification");
+                notification.textContent = message;
+                notification.style.backgroundColor = bgColor;
+                notification.style.display = "block";
+
+                setTimeout(() => {
+                    notification.style.display = "none";
+                }, 7000); // Hide after 7 seconds
+            }
+        });
+    </script>
 </body>
 </html>
