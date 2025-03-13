@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ContactController;
+use App\Http\Controllers\OutboundMarketingController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
@@ -36,6 +37,10 @@ Route::prefix('v1')->group(function () {
         Route::post('/subscribe', [NewsLetterController::class, 'subscribe'])->name('subscribe');
         Route::post('/unsubscribe', [NewsLetterController::class, 'unsubscribe'])->name('unsubscribe');
     });
+
+    // outbound marketing api 
+    Route::post('/outbound-marketing', [OutboundMarketingController::class, 'store']);
+
 
     Route::post('/reconcile', [ReconciliationController::class, 'reconcile'])->name('reconcile')->middleware(ThrottleUnauthenticated::class);
     Route::get('/reconciliations/{reconciliation}', [ReconciliationController::class, 'getReconciledRecords'])->whereUuid('reconciliation')->name('reconciled-records');
