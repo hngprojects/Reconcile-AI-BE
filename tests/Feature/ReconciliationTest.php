@@ -673,14 +673,14 @@ class ReconciliationTest extends TestCase
         // Prepare test request data
         $payload = [
             'ledger' => [
-                'date' => '2024-12-05',
-                'description' => 'Test Ledger',
-                'amount' => 50000
+                'Date' => '2024-12-05',
+                'Description' => 'Test Ledger',
+                'Amount' => 50000
             ],
             'statement' => [
-                'date' => '2024-12-05',
-                'description' => 'Test Statement',
-                'amount' => 50000
+                'Date' => '2024-12-05',
+                'Description' => 'Test Statement',
+                'Amount' => 50000
             ],
             'action' => 'match'
         ];
@@ -707,14 +707,14 @@ class ReconciliationTest extends TestCase
 
         $data = [
             'ledger' => [
-                'date' => '2024-12-02',
-                'description' => 'Beau',
-                'amount' => 100000
+                'Date' => '2024-12-02',
+                'Description' => 'Beau',
+                'Amount' => 100000
             ],
             'statement' => [
-                'date' => '2024-12-05',
-                'description' => 'Bola',
-                'amount' => 80000
+                'Date' => '2024-12-05',
+                'Description' => 'Bola',
+                'Amount' => 80000
             ],
             'action' => 'unmatch'
         ];
@@ -749,14 +749,14 @@ class ReconciliationTest extends TestCase
 
         $data = [
             'ledger' => [
-                'date' => '2024-12-02',
-                'description' => 'Beau',
-                'amount' => 100000
+                'Date' => '2024-12-02',
+                'Description' => 'Beau',
+                'Amount' => 100000
             ],
             'statement' => [
-                'date' => '2024-12-05',
-                'description' => 'Bola',
-                'amount' => 80000
+                'Date' => '2024-12-05',
+                'Description' => 'Bola',
+                'Amount' => 80000
             ],
             'action' => 'invalid_action'
         ];
