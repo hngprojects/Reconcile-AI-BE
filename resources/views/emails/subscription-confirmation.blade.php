@@ -112,7 +112,7 @@
                 <p>We value your privacy and will ensure that our content is relevant and valuable to you. If you have any questions or feedback, please don't hesitate to reach out.</p>
                 <p>Welcome aboard!</p>
                 
-                <p>Best regards,<br>The Reconxi Team</p>
+                <p>Best regards,<br>The ReconXi Team</p>
             </div>
         </div>
         
@@ -128,7 +128,7 @@
             
             <div class="divider"></div>
             
-            <p>You are receiving this email because you signed up at Reconxi.com. Want to change how you receive these emails?</p>
+            <p>You are receiving this email because you signed up at <a href="https://reconxi.com/">ReconXi.com</a>. Want to change how you receive these emails?</p>
             <p>You can <a href="#" id="unsubscribe-btn" data-email="{{ $email }}">unsubscribe</a> from this list.</p>
         </div>
     </div>

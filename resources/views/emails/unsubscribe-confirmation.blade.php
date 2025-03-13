@@ -90,7 +90,7 @@
                 
                 <p>Thank you for your past engagement with ReconXI.</p>
                 
-                <p>Best regards,<br>The Reconxi Team</p>
+                <p>Best regards,<br>The ReconXi Team</p>
             </div>
         </div>
         
@@ -106,7 +106,7 @@
             
             <div class="divider"></div>
             
-            <p>You received this email because you unsubscribed from Reconxi.com. Want to update your subscription preferences?</p>
+            <p>You received this email because you unsubscribed from <a href="https://reconxi.com/">ReconXi.com</a>. Want to update your subscription preferences?</p>
             <p>You can <a href="#" class="button resubscribe-btn" data-email="{{ $email }}">resubscribe</a> to continue receiving our updates.</p>
         </div>
     </div>
