@@ -5,6 +5,8 @@ namespace Tests\Feature;
 use App\Models\User;
 use App\Models\ReconciledRecord;
 use App\Models\Reconciliation;
+use App\Models\Statement;
+use App\Models\Ledger;
 use App\Services\ReconciliationService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
@@ -14,6 +16,10 @@ use Illuminate\Support\Facades\Storage;
 use Mockery;
 use Tests\TestCase;
 use Illuminate\Support\Str;
+use App\Repositories\Statement\StatementRepository;
+use App\Repositories\Ledger\LedgerRepository;
+use App\Repositories\MatchingTransaction\MatchingTransactionRepository;
+use App\Http\Resources\TransactionResource;
 
 class ReconciliationTest extends TestCase
 {
@@ -654,6 +660,118 @@ class ReconciliationTest extends TestCase
                     ],
                 ],
             ]);
+    }
+
+    public function test_reconcile_match_transaction()
+    {
+        // Create test reconciliation
+        $reconciliation = Reconciliation::factory()->createOne();
+        $record = ReconciledRecord::factory()->createOne([
+            'reconciliation_id' => $reconciliation->id
+        ]);
+
+        // Prepare test request data
+        $payload = [
+            'ledger' => [
+                'date' => '2024-12-05',
+                'description' => 'Test Ledger',
+                'amount' => 50000
+            ],
+            'statement' => [
+                'date' => '2024-12-05',
+                'description' => 'Test Statement',
+                'amount' => 50000
+            ],
+            'action' => 'match'
+        ];
+
+        // Send request
+        $response = $this->postJson("/api/v1/reconcile/{$reconciliation->id}", $payload);
+
+        // Assert response
+        $response->assertStatus(200)
+            ->assertJson([
+                'status' => 'success',
+                'status_code' => 200,
+                'message' => 'Successfully updated the reconciliation!',
+            ]);
+    }
+
+
+    public function test_unmatch_transactions_successfully()
+    {
+        $reconciliation = Reconciliation::factory()->create();
+        $record = ReconciledRecord::factory()->createOne([
+            'reconciliation_id' => $reconciliation->id
+        ]);
+
+        $data = [
+            'ledger' => [
+                'date' => '2024-12-02',
+                'description' => 'Beau',
+                'amount' => 100000
+            ],
+            'statement' => [
+                'date' => '2024-12-05',
+                'description' => 'Bola',
+                'amount' => 80000
+            ],
+            'action' => 'unmatch'
+        ];
+
+        $response = $this->postJson("/api/v1/reconcile/{$reconciliation->id}", $data);
+
+        $response->assertStatus(200);
+        $response->assertJsonStructure([
+            'status',
+            'status_code',
+            'message',
+            'data' => [
+                'reconciliation_id',
+                'matches',
+                'matchSummary' => [
+                    'totalMatched',
+                    'totalUnmatched'
+                ],
+                'only_in_file1',
+                'only_in_file2',
+                'unmatched' => [
+                    'unmatched_file1',
+                    'unmatched_file2'
+                ]
+            ]
+        ]);
+    }
+
+    public function test_invalid_action_returns_error()
+    {
+        $reconciliation = Reconciliation::factory()->create();
+
+        $data = [
+            'ledger' => [
+                'date' => '2024-12-02',
+                'description' => 'Beau',
+                'amount' => 100000
+            ],
+            'statement' => [
+                'date' => '2024-12-05',
+                'description' => 'Bola',
+                'amount' => 80000
+            ],
+            'action' => 'invalid_action'
+        ];
+
+        $response = $this->postJson("/api/v1/reconcile/{$reconciliation->id}", $data);
+
+        $response->assertStatus(422);
+        $response->assertJson([
+            "message" => "The selected action is invalid.",
+            "errors" => [
+                "action"=> [
+                    "The selected action is invalid."
+                ]
+            ]
+        ]);
     }
 
     protected function tearDown(): void
