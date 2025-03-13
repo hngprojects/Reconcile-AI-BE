@@ -121,6 +121,7 @@
     </style>
 </head>
 <body>
+    @php $base_url = config('app.url'); @endphp
     <div class="container">
         <!-- Header -->
         <div class="header">

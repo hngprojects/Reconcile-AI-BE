@@ -38,7 +38,7 @@ class ContactAdminMail extends Mailable implements ShouldQueue
     {
         return new Content(
             view: 'emails.contact-admin',
-            with: ['data' => $this->data, 'base_url' => config('app.url')]
+            with: ['data' => $this->data]
         );
     }
 
