@@ -14,6 +14,9 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware) {
         //
         $middleware->api();
+        /* $middleware->validateCsrfTokens(
+            except: ['api/v1/newsletter/*']
+        ); */
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //
