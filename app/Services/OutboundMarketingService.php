@@ -2,7 +2,9 @@
 
 namespace App\Services;
 
+use App\Mail\OutboundMarketingMail;
 use App\Models\OutboundMarketing;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use InvalidArgumentException;
 
@@ -28,6 +30,8 @@ class OutboundMarketingService
     {
         try {
             $marketing = OutboundMarketing::create($data);
+            Mail::to($data['email'])->send(new OutboundMarketingMail($marketing));
+
             return [true, $marketing];
         } catch (\Exception $e) {
             return [false, 'Failed to create marketing campaign'];
