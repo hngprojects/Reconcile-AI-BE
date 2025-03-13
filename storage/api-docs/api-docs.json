@@ -1114,6 +1114,151 @@
                 }
             }
         },
+        "/api/v1/outbound-marketing": {
+            "post": {
+                "tags": [
+                    "Marketing"
+                ],
+                "summary": "Create a new outbound marketing campaign",
+                "description": "Creates a new marketing campaign with the provided details",
+                "operationId": "4e57ce32ee0c095249eec09af5d60fbd",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "full_name",
+                                    "business_name",
+                                    "email",
+                                    "phone_number"
+                                ],
+                                "properties": {
+                                    "full_name": {
+                                        "description": "Full name of the contact",
+                                        "type": "string",
+                                        "example": "John Smith"
+                                    },
+                                    "business_name": {
+                                        "description": "Name of the business",
+                                        "type": "string",
+                                        "example": "Acme Corp"
+                                    },
+                                    "email": {
+                                        "description": "Contact email address",
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "john@acmecorp.com"
+                                    },
+                                    "phone_number": {
+                                        "description": "Contact phone number",
+                                        "type": "string",
+                                        "example": "1234567890"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Marketing campaign created successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Marketing campaign created successfully"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "string",
+                                                    "format": "uuid",
+                                                    "example": "550e8400-e29b-41d4-a716-446655440000"
+                                                },
+                                                "full_name": {
+                                                    "type": "string",
+                                                    "example": "John Smith"
+                                                },
+                                                "business_name": {
+                                                    "type": "string",
+                                                    "example": "Acme Corp"
+                                                },
+                                                "email": {
+                                                    "type": "string",
+                                                    "example": "john@acmecorp.com"
+                                                },
+                                                "phone_number": {
+                                                    "type": "string",
+                                                    "example": "1234567890"
+                                                },
+                                                "created_at": {
+                                                    "type": "string",
+                                                    "format": "date-time"
+                                                },
+                                                "updated_at": {
+                                                    "type": "string",
+                                                    "format": "date-time"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Validation error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "The given data was invalid"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Internal server error"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/reconcile": {
             "post": {
                 "tags": [
@@ -1698,6 +1843,10 @@
         {
             "name": "Home",
             "description": "Home"
+        },
+        {
+            "name": "Marketing",
+            "description": "Marketing"
         },
         {
             "name": "WaitList",
