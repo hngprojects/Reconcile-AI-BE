@@ -9,16 +9,16 @@
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
-            background-color: #f5f5f5;
-            color: #333;
+            background-color: #f5f5f5 !important;
+            color: #333 !important;
         }
         .container {
             max-width: 600px;
             margin: 0 auto;
-            background-color: #ffffff;
+            background-color: #ffffff !important;
         }
         .header {
-            background-color: #f5f5f5;
+            background-color: #f5f5f5 !important;
             padding: 20px;
             text-align: center;
         }
@@ -31,7 +31,7 @@
             padding: 10px 0;
         }
         .footer {
-            background-color: #f5f5f5;
+            background-color: #f5f5f5 !important;
             padding: 20px;
             text-align: center;
         }
@@ -54,7 +54,7 @@
         }
         .feature-icon {
             margin-right: 10px;
-            color: #2c664f;
+            color: #2c664f !important;
         }
         /* Notification Styles */
         .notification {
@@ -63,7 +63,7 @@
             bottom: 20px;
             left: 50%;
             transform: translateX(-50%);
-            background-color: #2c664f;
+            background-color: #2c664f !important;
             color: white;
             padding: 15px 20px;
             border-radius: 5px;
