@@ -40,6 +40,7 @@ Route::prefix('v1')->group(function () {
     Route::post('/reconcile', [ReconciliationController::class, 'reconcile'])->name('reconcile')->middleware(ThrottleUnauthenticated::class);
     Route::get('/reconciliations/{reconciliation}', [ReconciliationController::class, 'getReconciledRecords'])->whereUuid('reconciliation')->name('reconciled-records');
     Route::post('/reconcile/export', [ReconciliationController::class, 'export'])->name('export');
+    Route::post('/reconcile/{reconciliation}', [ReconciliationController::class, 'matchUnmatch'])->whereUuid('reconciliation')->name('manual-reconciliation');
     Route::post('/wait-list', [WaitListController::class, 'store'])->name('wait-list');
     Route::post('/contact', [ContactController::class, 'contact'])->name('contact');
 });
