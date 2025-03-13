@@ -140,7 +140,6 @@ class AuthServiceImplement extends ServiceApi implements AuthService
                 $request->only('email', 'password', 'password_confirmation', 'token'),
                 function (User $user, string $password) {
                     $user->forceFill(['password' => Hash::make($password)])->save();
-                    auth()->logout();
                 }
             );
 
