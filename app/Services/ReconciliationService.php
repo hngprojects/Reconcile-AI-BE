@@ -9,20 +9,33 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Response;
 use App\Repositories\Reconciliation\ReconciliationRepository;
 use App\Repositories\UserFile\UserFileRepository;
+use App\Repositories\Ledger\LedgerRepository;
+use App\Repositories\Statement\StatementRepository;
+use App\Repositories\MatchingTransaction\MatchingTransactionRepository;
 use App\Models\Reconciliation;
+use App\Http\Resources\TransactionResource;
 
 class ReconciliationService
 {
     protected ReconciliationRepository $mainRepository;
     protected UserFileRepository $fileRepository;
+    protected LedgerRepository $ledgerRepository;
+    protected StatementRepository $statementRepository;
+    protected MatchingTransactionRepository $matchedRepository;
 
     public function __construct(
         ReconciliationRepository $mainRepository,
-        UserFileRepository $fileRepository
+        UserFileRepository $fileRepository,
+        LedgerRepository $ledgerRepository,
+        StatementRepository $statementRepository,
+        MatchingTransactionRepository $matchedRepository
     )
     {
         $this->mainRepository = $mainRepository;
         $this->fileRepository = $fileRepository;
+        $this->ledgerRepository = $ledgerRepository;
+        $this->statementRepository = $statementRepository;
+        $this->matchedRepository = $matchedRepository;
     }
 
     public function reconcileWithRecox(string $file1Path, string $file2Path)
@@ -464,4 +477,71 @@ class ReconciliationService
         return $reconciliation;
      }
 
+    public function matchUnmatch(array $data, Reconciliation $reconciliation){
+        $ledger = $this->ledgerRepository->store([
+            'reconciliation_id' => $reconciliation->id,
+            ...$data['ledger']
+        ]);
+
+        $statement = $this->statementRepository->store([
+            'reconciliation_id' => $reconciliation->id,
+            ...$data['statement']
+        ]);
+
+        $filteredStatement = (new TransactionResource($statement))->toArray(request());
+        $filteredLedger = (new TransactionResource($ledger))->toArray(request());
+
+        $response = $this->mainRepository->findResponse($reconciliation);
+        $resArray = $response->data;
+        $newMatch = $this->matchedRepository->store($ledger, $statement);
+        $res = [
+            'file1_transaction' => $filteredStatement,
+            'file2_transaction' => $filteredLedger,
+            'match_score' => 100
+        ];
+
+        if($data['action'] == 'match'){
+
+            if (($key = array_search($ledger, $resArray['only_in_file2'])) !== false) {
+                unset($resArray['only_in_file2'][$key]);
+            }else if (($key = array_search($ledger, $resArray['unmatched']['unmatched_file2'])) !== false) {
+                unset($resArray['unmatched']['unmatched_file2'][$key]);
+            }else if (($key = array_search($statement, $resArray['only_in_file1'])) !== false) {
+                $resArray['matchSummary']['totalUnmatched'] -= 1;
+                unset($response['only_in_file1'][$key]);
+            }else if (($key = array_search($statement, $resArray['unmatched']['unmatched_file1'])) !== false) {
+                $resArray['matchSummary']['totalUnmatched'] -= 1;
+                unset($resArray['unmatched']['unmatched_file1'][$key]);
+            }
+
+            array_push($resArray['matches'], $res);
+            $resArray['matchSummary']['totalMatched'] += 2;
+        }else if($data['action'] === 'unmatch'){
+            $match = $this->matchedRepository->remove($ledger, $statement);
+
+            if (($key = array_search($res, $resArray['matches'])) !== false) {
+                $resArray['matchSummary']['totalMatched'] -= 2;
+                unset($resArray['matches'][$key]);
+            }
+
+            array_push($resArray['only_in_file1'], $filteredStatement);
+            array_push($resArray['unmatched']['unmatched_file1'], $filteredStatement);
+            array_push($resArray['only_in_file2'], $filteredLedger);
+            array_push($resArray['unmatched']['unmatched_file2'], $filteredLedger);
+            $resArray['matchSummary']['totalUnmatched'] += 2;
+        }
+
+        $response->data = $resArray;
+        $updated = $this->mainRepository->updateResponse($reconciliation, $response->data);
+
+        return [
+            'status' => 'success',
+            'status_code' => 200,
+            'message' => 'Successfully updated the reconciliation!',
+            'data' => [
+                'reconciliation_id' => $reconciliation->id,
+                ...$updated->data
+            ]
+        ];
+    }
 }

@@ -1361,14 +1361,25 @@
                 }
             }
         },
-        "/api/v1/reconciled-records": {
+        "/api/v1/reconciliations/{reconciliation}": {
             "get": {
                 "tags": [
                     "Reconciliation"
                 ],
                 "summary": "Get reconciled records",
                 "description": "Fetch reconciled records for the logged-in user",
-                "operationId": "193c5be89d4ce70a337ad67a4d4c8d83",
+                "operationId": "d158c4f3fdf513386913ea0159587c61",
+                "parameters": [
+                    {
+                        "name": "reconciliation",
+                        "in": "path",
+                        "description": "Type of reconciliation to perform",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "Reconciled records fetched successfully",
@@ -1422,6 +1433,163 @@
                         "bearerAuth": []
                     }
                 ]
+            }
+        },
+        "/api/v1/reconcile/{reconciliation}": {
+            "post": {
+                "tags": [
+                    "Reconciliation"
+                ],
+                "summary": "Reconcile a ledger and a statement",
+                "description": "Perform reconciliation between a ledger and a statement based on specified action",
+                "operationId": "5bfaed53a445793777bb6bf0d60dab95",
+                "parameters": [
+                    {
+                        "name": "reconciliation",
+                        "in": "path",
+                        "description": "Type of reconciliation to perform",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "ledger",
+                                    "statement",
+                                    "action"
+                                ],
+                                "properties": {
+                                    "ledger": {
+                                        "properties": {
+                                            "date": {
+                                                "description": "Date of the ledger entry",
+                                                "type": "string"
+                                            },
+                                            "description": {
+                                                "description": "Description of the ledger entry",
+                                                "type": "string"
+                                            },
+                                            "amount": {
+                                                "description": "Amount in the ledger entry",
+                                                "type": "integer"
+                                            }
+                                        },
+                                        "type": "object"
+                                    },
+                                    "statement": {
+                                        "properties": {
+                                            "date": {
+                                                "description": "Date of the statement entry",
+                                                "type": "string"
+                                            },
+                                            "description": {
+                                                "description": "Description of the statement entry",
+                                                "type": "string"
+                                            },
+                                            "amount": {
+                                                "description": "Amount in the statement entry",
+                                                "type": "integer"
+                                            }
+                                        },
+                                        "type": "object"
+                                    },
+                                    "action": {
+                                        "description": "Reconciliation action to perform",
+                                        "type": "string",
+                                        "enum": [
+                                            "match",
+                                            "unmatch"
+                                        ]
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful reconciliation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Reconciliation successful"
+                                        },
+                                        "status": {
+                                            "type": "string",
+                                            "example": "success"
+                                        },
+                                        "status_code": {
+                                            "type": "integer",
+                                            "example": 200
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "matches": {
+                                                    "type": "integer",
+                                                    "example": 5
+                                                },
+                                                "only_in_ledger": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object"
+                                                    }
+                                                },
+                                                "only_in_statement": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object"
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "error": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "error": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
             }
         },
         "/api/v1/wait-list": {
