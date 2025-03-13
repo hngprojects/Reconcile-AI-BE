@@ -61,4 +61,64 @@ class NewsLetterServiceImplement extends ServiceApi implements NewsLetterService
                 ->setError($e->getMessage());
         }
     }
+
+    public function onClick($email)
+    {
+        try {
+            // Validate that the email is not empty and is a valid email format
+            if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                return redirect()->route('newsletter.result', ['status' => 'invalid']);
+            }
+
+            // Check if email exists in the subscription list
+            $subscriber = $this->mainRepository->checkforsubscriber($email);
+
+            if (!$subscriber) {
+                return redirect()->route('newsletter.result', ['status' => 'invalid']);
+            }
+
+            // Process unsubscription
+            $unsubscribeResult = $this->mainRepository->unsubscribe($email);
+
+            // Send confirmation email
+            Mail::to($email)->queue(new UnsubscribeConfirmation($email));
+
+            // Determine redirect status
+            $status = $unsubscribeResult ? 'success' : 'error';
+
+            return redirect()->route('newsletter.result', ['status' => $status]);
+        } catch (Exception $e) {
+            return redirect()->route('newsletter.result', ['status' => 'error']);
+        }
+    }
+
+    public function onClickResubscribe($email)
+    {
+        try {
+            // Validate email format
+            if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                return redirect()->route('newsletter.result', ['status' => 'invalid']);
+            }
+
+            // Check if email exists in the database
+            $subscriber = $this->mainRepository->checkforsubscriber($email);
+
+            if (!$subscriber) {
+                return redirect()->route('newsletter.result', ['status' => 'invalid']);
+            }
+
+            // Process resubscription
+            $resubscribeResult = $this->mainRepository->resubscribe($email);
+
+            // Send confirmation email
+            Mail::to($email)->queue(new SubscriptionConfirmation($email));
+
+            // Determine redirect status
+            $status = $resubscribeResult ? 'success' : 'error';
+
+            return redirect()->route('newsletter.result', ['status' => $status]);
+        } catch (Exception $e) {
+            return redirect()->route('newsletter.result', ['status' => 'error']);
+        }
+    }
 }

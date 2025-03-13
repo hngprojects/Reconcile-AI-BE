@@ -34,6 +34,10 @@ Route::prefix('v1')->group(function () {
     Route::middleware('auth:api')->get('/user', [GoogleAuthController::class, 'fetchUser'])->name('user');
 
     Route::prefix('newsletter')->name('newsletter.')->group(function () {
+        Route::get('/unsubscribe/{email}', [NewsLetterController::class, 'oneClickUnsubscribe'])->name('one-click-unsubscribe');
+        Route::get('/resubscribe/{email}', [NewsLetterController::class, 'oneClickResubscribe'])->name('resubscribe');
+        Route::get('/result', [NewsLetterController::class, 'showResult'])->name('result');
+
         Route::post('/subscribe', [NewsLetterController::class, 'subscribe'])->name('subscribe');
         Route::post('/unsubscribe', [NewsLetterController::class, 'unsubscribe'])->name('unsubscribe');
     });
