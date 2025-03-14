@@ -19,14 +19,13 @@ class OutboundMarketingMail extends Mailable
     {
         $this->data = $data;
     }
-
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Welcome to Our Marketing Campaign',
-
+            subject: "{$this->data->full_name}, YOU'RE JUST A CLICK AWAY FROM SAVING MONEY AND TIME.",
         );
     }
+
 
     public function content(): Content
     {
