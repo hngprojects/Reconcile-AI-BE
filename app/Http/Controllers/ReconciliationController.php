@@ -212,11 +212,11 @@ class ReconciliationController extends Controller
                 'data' => 'required|array',
                 'data.matches' => 'required|array',
                 'data.unmatched' => 'required|array',
-                'data.unmatched.unmatched_file1' => 'required|array',
-                'data.unmatched.unmatched_file2' => 'required|array',
-                'data.matches.*.file1_transaction' => 'required|array',
-                'data.matches.*.file2_transaction' => 'required|array',
-                'data.matches.*.status' => 'required|string',
+                'data.unmatched.unmatched_file1' => 'array',
+                'data.unmatched.unmatched_file2' => 'array',
+                'data.matches.*.file1_transaction' => 'array',
+                'data.matches.*.file2_transaction' => 'array',
+                'data.matches.*.status' => 'string',
             ]);
 
             return $this->reconciliationService->generateExport($request->input('data'));
