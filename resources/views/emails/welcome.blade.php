@@ -85,25 +85,28 @@
                 <h4>Here's what you can expect:</h4>
                 
                 <div class="feature">
-                    <!-- <div class="feature-icon">★</div> -->
+                    <div class="feature-icon">★</div>
                     <div>
-                        <strong>AI Powered Reconciliation:</strong> Save hours through AI powered repetitive reconciliation processes.
+                        <strong>AI Powered Reconciliation:</strong> Say goodbye to manual reconciliation and save hours through AI-Powered repetitive processes.
                     </div>
                 </div>
                 
                 <div class="feature">
-                    <!-- <div class="feature-icon">★</div> -->
+                    <div class="feature-icon">★</div>
                     <div>
-                        <strong>Easy to use Reconciled Reports:</strong> Minimize human mistakes with intelligent matching.
+                        <strong>Easy to use Reconciled Reports:</strong> Minimize human errors with our smart reconciliation tool, which ensures accurate transaction matching and generates clear, easy-to-read reports.
                     </div>
                 </div>
                 
-                <div class="feature">
-                    <!-- <div class="feature-icon">★</div> -->
+                <!-- <div class="feature">
+                    <div class="feature-icon">★</div>
                     <div>
                         <strong>Need Assistance?</strong> Our support team is here for you! If you have any questions, simply reply to this mail or contact us at <a href="mailto:support@reconxi.com">Support Team</a>.
                     </div>
-                </div>
+                </div> -->
+            </div>
+            <div>
+                <strong>Need Assistance?</strong> Our dedicated support team is here to help. If you have any question, simply reply to this email or contact us via our <a href="mailto:support@reconxi.com">Support Team</a>.
             </div>
             
             <a href="{{ $getStartedUrl }}" class="button">Start Reconciling Now</a>
