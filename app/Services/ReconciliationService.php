@@ -506,6 +506,11 @@ class ReconciliationService
             fputcsv($exportFile, [...$row, 'Unmatched']);
         }
 
+        foreach($data['unmatched']['unmatched_file2'] as $row){
+            $updated = ['', '', '', 'Unmatched', ...$row];
+            fputcsv($exportFile, $updated);
+        }
+
         fclose($exportFile);
 
         return Response::download($exportFileName)->deleteFileAfterSend(true);
