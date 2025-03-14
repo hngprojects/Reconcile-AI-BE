@@ -11,6 +11,9 @@ class NewsLetter extends Model
 
     protected $fillable = [
         'email',
-        'subscribed'
+        'subscribed',
+        'full_name',
+        'business_name',
+        'phone_number',
     ];
 }
