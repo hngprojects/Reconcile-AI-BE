@@ -494,7 +494,7 @@ class ReconciliationService
         foreach ($data['matches'] as $row) {
             $rowData = [
                 ...$row['file1_transaction'],
-                $row['status']
+                ucfirst($row['status'])
             ];
             foreach ($row['file2_transaction'] as $value) {
                 array_push($rowData, $value);
