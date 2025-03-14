@@ -167,12 +167,14 @@ class NewsLetterController extends Controller
             'unsubscribe' => [
                 'success' => 'You have been successfully unsubscribed from our newsletter.',
                 'error' => 'There was an error processing your unsubscribe request. Please try again or contact support.',
-                'invalid' => 'The unsubscribe link is invalid or expired.'
+                'invalid' => 'The unsubscribe link is invalid or expired.',
+                'already' => 'You are already unsubscribed from our newsletter.'
             ],
             'resubscribe' => [
                 'success' => 'Welcome back! You have successfully resubscribed to our newsletter.',
                 'error' => 'There was an error processing your resubscribe request. Please try again or contact support.',
-                'invalid' => 'The resubscribe link is invalid or expired.'
+                'invalid' => 'The resubscribe link is invalid or expired.',
+                'already' => 'You are already subscribed to our newsletter.'
             ]
         ];
 
