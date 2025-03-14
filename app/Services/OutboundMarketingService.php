@@ -3,10 +3,9 @@
 namespace App\Services;
 
 use App\Mail\OutboundMarketingMail;
-use App\Models\OutboundMarketing;
+use App\Models\NewsLetter;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
-use InvalidArgumentException;
 
 class OutboundMarketingService
 {
@@ -29,7 +28,7 @@ class OutboundMarketingService
     public function createOutboundMarketing(array $data): array
     {
         try {
-            $marketing = OutboundMarketing::create($data);
+            $marketing = NewsLetter::create($data);
             Mail::to($data['email'])->send(new OutboundMarketingMail($marketing));
 
             return [true, $marketing];

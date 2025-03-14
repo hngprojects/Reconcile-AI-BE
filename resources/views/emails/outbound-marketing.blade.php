@@ -217,7 +217,8 @@
                     emails?</p>
 
                 {{-- <p>You can <a id="unsubscribe-btn" href="#" class="footer-links">unsubscribe</a> from this list.</p> --}}
-                <p class=" p">You can <span> update your preferences </span> or <span> unsubscribe from this
+                <p class=" p">You can <span> <a
+                            href="{{ url('api/v1/newsletter/unsubscribe/' . $email) }}">unsubscribe</a> from this
                         list.</span></p>
             </div>
         </div>
