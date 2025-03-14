@@ -494,7 +494,7 @@ class ReconciliationService
         foreach ($data['matches'] as $row) {
             $rowData = [
                 ...$row['file1_transaction'],
-                $row['status']
+                ucfirst($row['status'])
             ];
             foreach ($row['file2_transaction'] as $value) {
                 array_push($rowData, $value);
@@ -504,6 +504,11 @@ class ReconciliationService
 
         foreach ($data['unmatched']['unmatched_file1'] as $row) {
             fputcsv($exportFile, [...$row, 'Unmatched']);
+        }
+
+        foreach($data['unmatched']['unmatched_file2'] as $row){
+            $updated = ['', '', '', 'Unmatched', ...$row];
+            fputcsv($exportFile, $updated);
         }
 
         fclose($exportFile);
