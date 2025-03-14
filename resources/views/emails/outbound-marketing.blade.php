@@ -49,8 +49,10 @@
         }
 
         .hero {
-            width: 395px;
+            max-width: 395px;
+            width: 100%;
             margin: 0 auto;
+            overflow: hidden;
         }
 
         .hero img {
@@ -145,13 +147,13 @@
         </div>
     </header>
     <div class="subject-container">
-        <h1 class="subject">{{ $data->full_name }}, YOU’RE JUST A CLICK AWAY FROM SAVING MONEY AND TIME.</h1>
+        <h1 class="subject">, YOU’RE JUST A CLICK AWAY FROM SAVING MONEY AND TIME.</h1>
     </div>
     <div class=" hero">
         <img src="https://api-dev.reconxi.com/assets/outbound-hero.png" alt="">
     </div>
     <div class=" content">
-        <h6>Hi {{ $data->full_name }},</h6>
+        {{-- <h6>Hi {{ $data->full_name }},</h6> --}}
         <p>
             Thank you for your interest in ReconXi! We noticed you recently engaged with our ad and filled out your
             details—great choice!
