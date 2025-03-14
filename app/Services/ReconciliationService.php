@@ -579,30 +579,29 @@ class ReconciliationService
 
         if($data['action'] == 'match'){
 
-            $resArray['only_in_file2'] = array_values(array_udiff(
-                $resArray['only_in_file2'],
-                [$filteredLedger],
-                fn($a, $b) => strcmp(json_encode($a), json_encode($b))
-            ));
+            $resArray['only_in_file2'] = array_values(array_filter($resArray['only_in_file2'], function ($item) use ($filteredLedger) {
+                return !(
+                    json_encode($item) === json_encode($filteredLedger)
+                );
+            }));
 
-            $resArray['unmatched']['unmatched_file2'] = array_values(array_udiff(
-                $resArray['unmatched']['unmatched_file2'],
-                [$filteredLedger],
-                fn($a, $b) => strcmp(json_encode($a), json_encode($b))
-            ));
+            $resArray['unmatched']['unmatched_file2'] = array_values(array_filter($resArray['unmatched']['unmatched_file2'], function ($item) use ($filteredLedger) {
+                return !(
+                    json_encode($item) === json_encode($filteredLedger)
+                );
+            }));
 
-            $resArray['only_in_file1'] = array_values(array_udiff(
-                $resArray['only_in_file1'],
-                [$filteredStatement],
-                fn($a, $b) => strcmp(json_encode($a), json_encode($b))
-            ));
+            $resArray['only_in_file1'] = array_values(array_filter($resArray['only_in_file1'], function ($item) use ($filteredStatement) {
+                return !(
+                    json_encode($item) === json_encode($filteredStatement)
+                );
+            }));
 
-            $resArray['unmatched']['unmatched_file1'] = array_values(array_udiff(
-                $resArray['unmatched']['unmatched_file1'],
-                [$filteredStatement],
-                fn($a, $b) => strcmp(json_encode($a), json_encode($b))
-            ));
-
+            $resArray['unmatched']['unmatched_file1'] = array_values(array_filter($resArray['unmatched']['unmatched_file1'], function ($item) use ($filteredStatement) {
+                    return !(
+                        json_encode($item) === json_encode($filteredStatement)
+                    );
+                }));
             array_push($resArray['matches'], $res);
 
             $resArray['matchSummary']['totalUnmatched'] = count($resArray['unmatched']['unmatched_file1']) + count($resArray['unmatched']['unmatched_file2']);
