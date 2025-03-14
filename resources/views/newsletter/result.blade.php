@@ -34,6 +34,7 @@
         .success { color: #2c664f; }
         .error { color: #d32f2f; }
         .invalid { color: #f57c00; }
+        .already { color: #3f51b5; }
         .message {
             margin: 20px 0;
             line-height: 1.6;
@@ -58,11 +59,13 @@
         
         <div class="status-icon {{ $status }}">
             @if($status == 'success')
-                ✓
+                ✅ Action completed successfully.
             @elseif($status == 'invalid')
-                ⚠
+                ⚠️ Invalid request. Please check your link.
+            @elseif($status == 'already')
+                ℹ️ No changes made.
             @else
-                ✗
+                ❌ Something went wrong. Please try again.
             @endif
         </div>
         
@@ -80,5 +83,6 @@
 
         <a href="https://reconxi.com" class="button">Go to Homepage</a>
     </div>
+
 </body>
 </html>

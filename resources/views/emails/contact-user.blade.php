@@ -177,11 +177,11 @@
                 </a>
             </div>
             
-            <p>Thank you for choosing "ReconXi". Need help? <a href="mailto:support@reconxi.com" class="footer-links">Contact us</a></p>
+            <p>Thank you for choosing ReconXi. Need help? <a href="mailto:support@reconxi.com" class="footer-links">Contact us</a></p>
             
             <div class="divider"></div>
 
-            <p>You are receiving this email because you signed up at Reconxi.com. Want to change how you receive these emails?</p>
+            <p>You are receiving this email because you signed up at <a href="https://reconxi.com/">ReconXi.com</a>. Want to change how you receive these emails?</p>
             <p>You can <a href="{{ url('api/v1/newsletter/unsubscribe/' . $data['email']) }}" class="footer-links">unsubscribe</a> from this list.</p>
         </div>
     </div>

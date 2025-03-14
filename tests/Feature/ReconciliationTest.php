@@ -549,12 +549,30 @@ class ReconciliationTest extends TestCase
                 ]
             ]
         ]);
-        $file = "reconciled-data-" . now()->format('Y-m-d_H-i-s') . ".csv";
-        $response->assertStatus(200);
-        $response->assertHeader('Content-Type', 'text/plain; charset=UTF-8');
-        $response->assertHeader('Content-Disposition', "attachment; filename=$file");
+        // $file = "reconciled-data-" . now()->format('Y-m-d_H-i-s') . ".csv";
+        // $response->assertStatus(200);
+        // $response->assertHeader('Content-Type', 'text/plain; charset=UTF-8');
+        // $response->assertHeader('Content-Disposition', "attachment; filename=$file");
 
-        $response->assertDownload($file);
+        // $response->assertDownload($file);
+
+        // Assert response status
+        $response->assertStatus(200);
+        
+        // Assert content type
+        $response->assertHeader('Content-Type', 'text/plain; charset=UTF-8');
+        
+        // Check Content-Disposition header dynamically
+        $response->assertHeader('Content-Disposition');
+        $headerValue = $response->headers->get('Content-Disposition');
+
+        // Extract actual filename from header
+        preg_match('/filename=(.*)/', $headerValue, $matches);
+        $actualFilename = trim($matches[1] ?? '');
+
+        // Ensure filename starts with expected format, ignoring seconds
+        $expectedPrefix = 'reconciled-data-' . now()->format('Y-m-d_H-i');
+        $this->assertStringStartsWith($expectedPrefix, $actualFilename);
     }
 
     public function test_reconciled_records_are_saved_for_logged_in_users(): void

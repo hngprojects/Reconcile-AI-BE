@@ -86,7 +86,7 @@
                 
                 <p><a href="mailto:support@reconxi.com" class="button">Contact us</a></p>
                 
-                <p>If you change your mind, you're always welcome to <a href="{{ url('api/v1/newsletter/unsubscribe/' . $email) }}" class="button resubscribe-btn">resubscribe here</a>.</p>
+                <p>If you change your mind, you're always welcome to <a href="{{ url('api/v1/newsletter/resubscribe/' . $email) }}" class="button resubscribe-btn">resubscribe here</a>.</p>
                 
                 <p>Thank you for your past engagement with ReconXI.</p>
                 
@@ -102,7 +102,7 @@
                 <a href="https://twitter.com/reconxi"><img src="https://api-dev.reconxi.com/assets/twitter-icon.png" alt="Twitter" width="24"></a>
             </div>
             
-            <p>Thank you for choosing "ReconXi". Need help? <a href="mailto:support@reconxi.com">Contact us</a></p>
+            <p>Thank you for choosing ReconXi. Need help? <a href="mailto:support@reconxi.com">Contact us</a></p>
             
             <div class="divider"></div>
             

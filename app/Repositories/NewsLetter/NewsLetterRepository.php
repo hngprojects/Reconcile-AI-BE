@@ -9,5 +9,6 @@ interface NewsLetterRepository extends Repository{
     public function subscribe($email);
     public function unsubscribe($email);
     public function checkforsubscriber($email);
+    public function findByEmail($email);
     public function resubscribe($email);
 }
