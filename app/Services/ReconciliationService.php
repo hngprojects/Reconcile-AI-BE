@@ -120,7 +120,9 @@ class ReconciliationService
                 'date of payment', 
                 'entry date', 
                 'recorded date', 
-                'timestamp'
+                'timestamp', 
+                'due date', 
+                'payment_due_date'
             ],
             'description' => [
                 'description', 
@@ -134,7 +136,38 @@ class ReconciliationService
                 'memo', 
                 'transaction_name', 
                 'description_text', 
-                'details of transaction'
+                'details of transaction', 
+                'fee type', 
+                'item', 
+                'product', 
+                'service', 
+                'tuition fee', 
+                'school fee', 
+                'sales description',
+                'student ID', 
+                'student_id', 
+                'ID', 
+                'identifier', 
+                'customer ID', 
+                'customer_id', 
+                'invoice number', 
+                'receipt number', 
+                'transaction ID', 
+                'transaction_id',
+                'payer name', 
+                'full name', 
+                'name of student', 
+                'name of customer', 
+                'parent name',
+                'status', 
+                'payment status', 
+                'transaction status', 
+                'fee status', 
+                'sales status', 
+                'completed', 
+                'pending', 
+                'failed', 
+                'successful'
             ],
             'amount' => [
                 'amount', 
@@ -149,11 +182,16 @@ class ReconciliationService
                 'amount_due', 
                 'amount_paid', 
                 'payment amount', 
-                'total_amount', 
+                'total_amount',
+                'total amount', 
                 'net amount', 
                 'gross amount', 
                 'value', 
-                'price'
+                'price', 
+                'fee amount', 
+                'sales amount', 
+                'tuition amount', 
+                'total sales'
             ]
         ];
 
