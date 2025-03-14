@@ -107,9 +107,54 @@ class ReconciliationService
         $normalized = [];
 
         $headerMapping = [
-            'date' => ['date', 'transaction date', 'payment date', 'completed date', 'Date'],
-            'description' => ['description', 'details', 'remark', 'name', 'transaction description'],
-            'amount' => ['amount', 'transaction amount', 'total', 'cashflow', 'inflow', 'credit', 'debit', 'Credit (Inflow)', 'Debit (Outflow)']
+            'date' => [
+                'date', 
+                'transaction date', 
+                'payment date', 
+                'completed date', 
+                'Date', 
+                'transaction_date', 
+                'payment_date', 
+                'settlement date', 
+                'date of transaction', 
+                'date of payment', 
+                'entry date', 
+                'recorded date', 
+                'timestamp'
+            ],
+            'description' => [
+                'description', 
+                'details', 
+                'remark', 
+                'name', 
+                'transaction description', 
+                'transaction_details', 
+                'description of transaction', 
+                'note', 
+                'memo', 
+                'transaction_name', 
+                'description_text', 
+                'details of transaction'
+            ],
+            'amount' => [
+                'amount', 
+                'transaction amount', 
+                'total', 
+                'cashflow', 
+                'inflow', 
+                'credit', 
+                'debit', 
+                'Credit (Inflow)', 
+                'Debit (Outflow)', 
+                'amount_due', 
+                'amount_paid', 
+                'payment amount', 
+                'total_amount', 
+                'net amount', 
+                'gross amount', 
+                'value', 
+                'price'
+            ]
         ];
 
         $headers = array_keys($rawData[0]);
