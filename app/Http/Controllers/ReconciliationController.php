@@ -297,7 +297,7 @@ class ReconciliationController extends Controller
      *         name="reconciliation",
      *         in="path",
      *         required=true,
-     *         description="Type of reconciliation to perform",
+     *         description="Reconciliation ID",
      *         @OA\Schema(type="string")
      *     ),
      *     @OA\RequestBody(
@@ -309,16 +309,16 @@ class ReconciliationController extends Controller
      *                 @OA\Property(
      *                     property="ledger",
      *                     type="object",
-     *                     @OA\Property(property="date", type="string", description="Date of the ledger entry"),
-     *                     @OA\Property(property="description", type="string", description="Description of the ledger entry"),
-     *                     @OA\Property(property="amount", type="integer", description="Amount in the ledger entry")
+     *                     @OA\Property(property="Date", type="string", description="Date of the ledger entry"),
+     *                     @OA\Property(property="Description", type="string", description="Description of the ledger entry"),
+     *                     @OA\Property(property="Amount", type="integer", description="Amount in the ledger entry")
      *                 ),
      *                 @OA\Property(
      *                     property="statement",
      *                     type="object",
-     *                     @OA\Property(property="date", type="string", description="Date of the statement entry"),
-     *                     @OA\Property(property="description", type="string", description="Description of the statement entry"),
-     *                     @OA\Property(property="amount", type="integer", description="Amount in the statement entry")
+     *                     @OA\Property(property="Date", type="string", description="Date of the statement entry"),
+     *                     @OA\Property(property="Description", type="string", description="Description of the statement entry"),
+     *                     @OA\Property(property="Amount", type="integer", description="Amount in the statement entry")
      *                 ),
      *                 @OA\Property(
      *                     property="action",

@@ -206,7 +206,7 @@
                 </a>
             </div>
 
-            <p>Thank you for choosing "ReconXi". Need help? <a href="mailto:support@reconxi.com"
+            <p>Thank you for choosing ReconXi. Need help? <a href="mailto:support@reconxi.com"
                     class="footer-links">Contact us</a></p>
 
             <div class="divider"></div>

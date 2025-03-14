@@ -87,23 +87,26 @@
                 <div class="feature">
                     <div class="feature-icon">★</div>
                     <div>
-                        <strong>Ai Powered Reconciliation:</strong> Save hours through Ai powered repetitive reconciliation processes.
+                        <strong>AI Powered Reconciliation:</strong> Say goodbye to manual reconciliation and save hours through AI-Powered repetitive processes.
                     </div>
                 </div>
                 
                 <div class="feature">
                     <div class="feature-icon">★</div>
                     <div>
-                        <strong>Easy to use Reconciled Reports:</strong> Minimize human mistakes with intelligent matching and verification.
+                        <strong>Easy to use Reconciled Reports:</strong> Minimize human errors with our smart reconciliation tool, which ensures accurate transaction matching and generates clear, easy-to-read reports.
                     </div>
                 </div>
                 
-                <div class="feature">
+                <!-- <div class="feature">
                     <div class="feature-icon">★</div>
                     <div>
                         <strong>Need Assistance?</strong> Our support team is here for you! If you have any questions, simply reply to this mail or contact us at <a href="mailto:support@reconxi.com">Support Team</a>.
                     </div>
-                </div>
+                </div> -->
+            </div>
+            <div>
+                <strong>Need Assistance?</strong> Our dedicated support team is here to help. If you have any question, simply reply to this email or contact us via our <a href="mailto:support@reconxi.com">Support Team</a>.
             </div>
             
             <a href="{{ $getStartedUrl }}" class="button">Start Reconciling Now</a>
@@ -119,7 +122,7 @@
                 <a href="https://x.com/reconxi02"><img src="https://api-dev.reconxi.com/assets/twitter-icon.png" alt="Twitter" width="24"></a>
             </div>
             
-            <p>Thank you for choosing "ReconXi". Need help? <a href="mailto:support@reconxi.com">Contact us</a></p>
+            <p>Thank you for choosing ReconXi. Need help? <a href="mailto:support@reconxi.com">Contact us</a></p>
             
             <div class="divider"></div>
             
