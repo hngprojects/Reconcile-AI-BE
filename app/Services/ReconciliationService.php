@@ -604,7 +604,9 @@ class ReconciliationService
             ));
 
             array_push($resArray['matches'], $res);
-            $resArray['matchSummary']['totalMatched'] += 1;
+
+            $resArray['matchSummary']['totalUnmatched'] = count($resArray['unmatched']['unmatched_file1']) + count($resArray['unmatched']['unmatched_file2']);
+            $resArray['matchSummary']['totalMatched'] = count($resArray['matches']);
 
         }else if($data['action'] === 'unmatch'){
             $match = $this->matchedRepository->remove($ledger, $statement);
