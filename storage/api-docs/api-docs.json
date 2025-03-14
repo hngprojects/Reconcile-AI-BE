@@ -1780,7 +1780,7 @@
                     {
                         "name": "reconciliation",
                         "in": "path",
-                        "description": "Type of reconciliation to perform",
+                        "description": "Reconciliation ID",
                         "required": true,
                         "schema": {
                             "type": "string"
@@ -1800,15 +1800,15 @@
                                 "properties": {
                                     "ledger": {
                                         "properties": {
-                                            "date": {
+                                            "Date": {
                                                 "description": "Date of the ledger entry",
                                                 "type": "string"
                                             },
-                                            "description": {
+                                            "Description": {
                                                 "description": "Description of the ledger entry",
                                                 "type": "string"
                                             },
-                                            "amount": {
+                                            "Amount": {
                                                 "description": "Amount in the ledger entry",
                                                 "type": "integer"
                                             }
@@ -1817,15 +1817,15 @@
                                     },
                                     "statement": {
                                         "properties": {
-                                            "date": {
+                                            "Date": {
                                                 "description": "Date of the statement entry",
                                                 "type": "string"
                                             },
-                                            "description": {
+                                            "Description": {
                                                 "description": "Description of the statement entry",
                                                 "type": "string"
                                             },
-                                            "amount": {
+                                            "Amount": {
                                                 "description": "Amount in the statement entry",
                                                 "type": "integer"
                                             }
