@@ -141,14 +141,14 @@
 <body>
     <header class="header-container">
         <div class="logo-container">
-            <img src="/assets/logo.png" alt="">
+            <img src="https://api-dev.reconxi.com/assets/logo.png" alt="">
         </div>
     </header>
     <div class="subject-container">
         <h1 class="subject">{{ $data->full_name }}, YOU’RE JUST A CLICK AWAY FROM SAVING MONEY AND TIME.</h1>
     </div>
     <div class=" hero">
-        <img src="/assets/outbound-hero.png" alt="">
+        <img src="https://api-dev.reconxi.com/assets/outbound-hero.png" alt="">
     </div>
     <div class=" content">
         <h6>Hi {{ $data->full_name }},</h6>
