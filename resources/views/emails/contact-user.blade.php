@@ -10,8 +10,8 @@
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
-            background-color: #FFFFFF;
-            color: #333333;
+            background-color: #FFFFFF !important;
+            color: #333333 !important;
             line-height: 1.6;
         }
         
@@ -23,7 +23,7 @@
         
         /* Header section */
         .header {
-            background-color: #EAEFED;
+            background-color: #EAEFED !important;
             padding: 20px 0;
             text-align: center;
             width: 100%;
@@ -37,7 +37,7 @@
         /* Content section */
         .content {
             padding: 30px;
-            background-color: #FFFFFF;
+            background-color: #FFFFFF !important;
         }
         
         .illustration {
@@ -56,7 +56,7 @@
             border-radius: 5px;
             padding: 20px;
             margin: 20px 0;
-            background-color: #FAFAFA;
+            background-color: #FAFAFA !important;
         }
         
         .message-details {
@@ -69,12 +69,12 @@
         
         /* Footer section */
         .footer {
-            background-color: #EAEFED;
+            background-color: #EAEFED !important;
             padding: 20px 0;
             text-align: center;
             width: 100%;
             font-size: 14px;
-            color: #666666;
+            color: #666666 !important;
         }
         
         .social-icons {
@@ -98,7 +98,7 @@
         }
         
         .footer-links a {
-            color: #2E604A;
+            color: #2E604A !important;
             text-decoration: none;
             font-weight: bold;
         }
@@ -118,34 +118,19 @@
                 padding: 15px;
             }
         }
-
-        /* Notification Styles */
-        .notification {
-            display: none;
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: #2c664f;
-            color: white;
-            padding: 15px 20px;
-            border-radius: 5px;
-            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-        }
     </style>
 </head>
 <body>
-    @php $base_url = config('app.url'); @endphp
     <div class="container">
         <!-- Header -->
         <div class="header">
-            <img src="{{ $base_url }}/assets/logo.png" alt="ReconXi Logo" class="logo">
+            <img src="https://api-dev.reconxi.com/assets/logo.png" alt="ReconXi Logo" class="logo">
         </div>
         
         <!-- Main Content -->
         <div class="content">
             <div class="illustration">
-                <img src="{{ $base_url }}/assets/personal-data.png" alt="Email Notification">
+                <img src="https://api-dev.reconxi.com/assets/personal-data.png" alt="Email Notification">
             </div>
             
             <h2>Hi {{ $data['name'] }}</h2>
@@ -171,83 +156,34 @@
             
             <p class="mt-20">
                 Best regards,<br>
-                The Reconxi Team
+                The ReconXi Team
             </p>
         </div>
         
         <!-- Footer -->
         <div class="footer">
             <div class="social-icons">
-                <a href="https://www.instagram.com/reconxi02/">
-                    <img src="{{ $base_url }}/assets/instagram-icon.png" alt="Instagram">
+                <a href="https://www.instagram.com/reconxi02">
+                    <img src="https://api-dev.reconxi.com/assets/instagram-icon.png" alt="Instagram">
                 </a>
                 <a href="https://www.facebook.com/profile.php?id=61573471907361">
-                    <img src="{{ $base_url }}/assets/facebook-icon.png" alt="Facebook">
+                    <img src="https://api-dev.reconxi.com/assets/facebook-icon.png" alt="Facebook">
                 </a>
                 <a href="https://www.linkedin.com/in/recon-xi-b06835354">
-                    <img src="{{ $base_url }}/assets/linkedin-icon.png" alt="LinkedIn">
+                    <img src="https://api-dev.reconxi.com/assets/linkedin-icon.png" alt="LinkedIn">
                 </a>
                 <a href="https://x.com/reconxi02">
-                    <img src="{{ $base_url }}/assets/twitter-icon.png" alt="Twitter">
+                    <img src="https://api-dev.reconxi.com/assets/twitter-icon.png" alt="Twitter">
                 </a>
             </div>
             
-            <p>Thank you for choosing "ReconXi". Need help? <a href="mailto:support@reconxi.com" class="footer-links">Contact us</a></p>
+            <p>Thank you for choosing ReconXi. Need help? <a href="mailto:support@reconxi.com" class="footer-links">Contact us</a></p>
             
             <div class="divider"></div>
 
-            <p>You are receiving this email because you signed up at Reconxi.com. Want to change how you receive these emails?</p>
-            
-            <p>You can <a href="#" id="unsubscribe-btn" class="footer-links" data-email="{{ $data['email'] }}">unsubscribe</a> from this list.</p>
+            <p>You are receiving this email because you signed up at <a href="https://reconxi.com/">ReconXi.com</a>. Want to change how you receive these emails?</p>
+            <p>You can <a href="{{ url('api/v1/newsletter/unsubscribe/' . $data['email']) }}" class="footer-links">unsubscribe</a> from this list.</p>
         </div>
     </div>
-
-    <!-- Notification Message -->
-    <div class="notification" id="notification">Resubscription successful! 🎉</div>
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            const unsubscribeBtn = document.getElementById("unsubscribe-btn");
-
-            if (unsubscribeBtn) {
-                unsubscribeBtn.addEventListener("click", function (event) {
-                    event.preventDefault(); // Prevent page navigation
-
-                    const email = this.getAttribute("data-email");
-                    const url = "{{ $base_url }}/api/v1/newsletter/unsubscribe";
-
-                    fetch(url, {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json"
-                        },
-                        body: JSON.stringify({ email: email })
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            showNotification(data.message);
-                        } else {
-                            showNotification("An error occurred: " + data.message, "red");
-                        }
-                    })
-                    .catch(error => {
-                        showNotification("Something went wrong. Please try again!", "red");
-                        console.error(error);
-                    });
-                });
-            }
-
-            function showNotification(message, bgColor = "#2c664f") {
-                let notification = document.getElementById("notification");
-                notification.textContent = message;
-                notification.style.backgroundColor = bgColor;
-                notification.style.display = "block";
-
-                setTimeout(() => {
-                    notification.style.display = "none";
-                }, 7000); // Hide after 7 seconds
-            }
-        });
-    </script>
 </body>
 </html>

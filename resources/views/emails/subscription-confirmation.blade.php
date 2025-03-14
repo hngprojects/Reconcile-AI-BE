@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -9,16 +10,16 @@
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
-            background-color: #f5f5f5;
-            color: #333;
+            background-color: #f5f5f5 !important;
+            color: #333 !important;
         }
         .container {
             max-width: 600px;
             margin: 0 auto;
-            background-color: #ffffff;
+            background-color: #ffffff !important;
         }
         .header {
-            background-color: #f5f5f5;
+            background-color: #f5f5f5 !important;
             padding: 20px;
             text-align: center;
         }
@@ -31,7 +32,7 @@
             padding: 10px 0;
         }
         .footer {
-            background-color: #f5f5f5;
+            background-color: #f5f5f5 !important;
             padding: 20px;
             text-align: center;
         }
@@ -54,7 +55,7 @@
         }
         .feature-icon {
             margin-right: 10px;
-            color: #2c664f;
+            color: #2c664f !important;
         }
         /* Notification Styles */
         .notification {
@@ -63,7 +64,7 @@
             bottom: 20px;
             left: 50%;
             transform: translateX(-50%);
-            background-color: #2c664f;
+            background-color: #2c664f !important;
             color: white;
             padding: 15px 20px;
             border-radius: 5px;
@@ -74,11 +75,11 @@
 <body>
     <div class="container">
         <div class="header">
-            <img src="{{ $base_url }}/assets/logo.png" alt="ReconXi Logo" height="40">
+            <img src="https://api-dev.reconxi.com/assets/logo.png" alt="ReconXi Logo" height="40">
         </div>
         
         <div class="content">
-            <img src="{{ $base_url }}/assets/thank-you-illustration.png" alt="Thank You" width="200">
+            <img src="https://api-dev.reconxi.com/assets/thank-you-illustration.png" alt="Thank You" width="200">
             <h2>Thank you for Subscribing</h2>
             
             <div class="text-content">
@@ -112,73 +113,25 @@
                 <p>We value your privacy and will ensure that our content is relevant and valuable to you. If you have any questions or feedback, please don't hesitate to reach out.</p>
                 <p>Welcome aboard!</p>
                 
-                <p>Best regards,<br>The Reconxi Team</p>
+                <p>Best regards,<br>The ReconXi Team</p>
             </div>
         </div>
         
         <div class="footer">
             <div class="social-links">
-                <a href="https://instagram.com/reconxi"><img src="{{ $base_url }}/assets/instagram-icon.png" alt="Instagram" width="24"></a>
-                <a href="https://facebook.com/reconxi"><img src="{{ $base_url }}/assets/facebook-icon.png" alt="Facebook" width="24"></a>
-                <a href="https://linkedin.com/company/reconxi"><img src="{{ $base_url }}/assets/linkedin-icon.png" alt="LinkedIn" width="24"></a>
-                <a href="https://twitter.com/reconxi"><img src="{{ $base_url }}/assets/twitter-icon.png" alt="Twitter" width="24"></a>
+                <a href="https://instagram.com/reconxi"><img src="https://api-dev.reconxi.com/assets/instagram-icon.png" alt="Instagram" width="24"></a>
+                <a href="https://facebook.com/reconxi"><img src="https://api-dev.reconxi.com/assets/facebook-icon.png" alt="Facebook" width="24"></a>
+                <a href="https://linkedin.com/company/reconxi"><img src="https://api-dev.reconxi.com/assets/linkedin-icon.png" alt="LinkedIn" width="24"></a>
+                <a href="https://twitter.com/reconxi"><img src="https://api-dev.reconxi.com/assets/twitter-icon.png" alt="Twitter" width="24"></a>
             </div>
             
-            <p>Thank you for choosing "ReconXi". Need help? <a href="mailto:support@reconxi.com">Contact us</a></p>
+            <p>Thank you for choosing ReconXi. Need help? <a href="mailto:support@reconxi.com">Contact us</a></p>
             
             <div class="divider"></div>
             
-            <p>You are receiving this email because you signed up at Reconxi.com. Want to change how you receive these emails?</p>
-            <p>You can <a href="#" id="unsubscribe-btn" data-email="{{ $email }}">unsubscribe</a> from this list.</p>
+            <p>You are receiving this email because you signed up at <a href="https://reconxi.com/">ReconXi.com</a>. Want to change how you receive these emails?</p>
+            <p>You can <a href="{{ url('api/v1/newsletter/unsubscribe/' . $email) }}">unsubscribe</a> from this list.</p>
         </div>
     </div>
-
-    <!-- Notification Message -->
-    <div class="notification" id="notification">Resubscription successful! 🎉</div>
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            const unsubscribeBtn = document.getElementById("unsubscribe-btn");
-
-            if (unsubscribeBtn) {
-                unsubscribeBtn.addEventListener("click", function (event) {
-                    event.preventDefault(); // Prevent page navigation
-
-                    const email = this.getAttribute("data-email");
-                    const url = "{{ $base_url }}/api/v1/newsletter/unsubscribe";
-
-                    fetch(url, {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json"
-                        },
-                        body: JSON.stringify({ email: email })
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            showNotification(data.message);
-                        } else {
-                            showNotification("An error occurred: " + data.message, "red");
-                        }
-                    })
-                    .catch(error => {
-                        showNotification("Something went wrong. Please try again!", "red");
-                        console.error(error);
-                    });
-                });
-            }
-
-            function showNotification(message, bgColor = "#2c664f") {
-                let notification = document.getElementById("notification");
-                notification.textContent = message;
-                notification.style.backgroundColor = bgColor;
-                notification.style.display = "block";
-
-                setTimeout(() => {
-                    notification.style.display = "none";
-                }, 7000); // Hide after 7 seconds
-            }
-        });
-    </script>
 </body>
 </html>

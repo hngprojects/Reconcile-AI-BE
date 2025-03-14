@@ -81,28 +81,15 @@ class GoogleAuthController extends Controller
 
         // Generate JWT token
         $token = JWTAuth::fromUser($user);
-        $base_url = env('FRONTEND_URL', 'https://reconxi.com');
-        $referrer_url = request()->headers->get('referer');
-        $url = '';
 
-        // Extract scheme and domain if referrer exists
-        if (!empty($referrer_url)) {
-            $parsed_url = parse_url($referrer_url);
-            $scheme = $parsed_url['scheme'] ?? 'https';
-            $host = $parsed_url['host'] ?? '';
-            $url = $scheme . '://' . $host . '/file-upload?token=' . $token;
-        } else {
-            $url = $base_url . '/file-upload?token=' . $token;
-        }
-
-        // $getStartedUrl = env('FRONTEND_URL', 'https://reconxi.com') . '/file-upload?token=' . $token;
+        $getStartedUrl = env('FRONTEND_URL', 'https://reconxi.com') . '/file-upload?token=' . $token;
 
         // Send welcome email asynchronously only for new users
         if ($isNewUser) {
-            Mail::to($user->email)->queue(new WelcomeEmail($user, $url));
+            Mail::to($user->email)->queue(new WelcomeEmail($user, $getStartedUrl));
         }
 
-        return redirect()->to($url);
+        return redirect()->to($getStartedUrl);
     }
 
     /**

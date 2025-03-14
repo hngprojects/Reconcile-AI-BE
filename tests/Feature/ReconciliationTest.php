@@ -549,12 +549,30 @@ class ReconciliationTest extends TestCase
                 ]
             ]
         ]);
-        $file = "reconciled-data-" . now()->format('Y-m-d_H-i-s') . ".csv";
-        $response->assertStatus(200);
-        $response->assertHeader('Content-Type', 'text/plain; charset=UTF-8');
-        $response->assertHeader('Content-Disposition', "attachment; filename=$file");
+        // $file = "reconciled-data-" . now()->format('Y-m-d_H-i-s') . ".csv";
+        // $response->assertStatus(200);
+        // $response->assertHeader('Content-Type', 'text/plain; charset=UTF-8');
+        // $response->assertHeader('Content-Disposition', "attachment; filename=$file");
 
-        $response->assertDownload($file);
+        // $response->assertDownload($file);
+
+        // Assert response status
+        $response->assertStatus(200);
+        
+        // Assert content type
+        $response->assertHeader('Content-Type', 'text/plain; charset=UTF-8');
+        
+        // Check Content-Disposition header dynamically
+        $response->assertHeader('Content-Disposition');
+        $headerValue = $response->headers->get('Content-Disposition');
+
+        // Extract actual filename from header
+        preg_match('/filename=(.*)/', $headerValue, $matches);
+        $actualFilename = trim($matches[1] ?? '');
+
+        // Ensure filename starts with expected format, ignoring seconds
+        $expectedPrefix = 'reconciled-data-' . now()->format('Y-m-d_H-i');
+        $this->assertStringStartsWith($expectedPrefix, $actualFilename);
     }
 
     public function test_reconciled_records_are_saved_for_logged_in_users(): void
@@ -673,14 +691,14 @@ class ReconciliationTest extends TestCase
         // Prepare test request data
         $payload = [
             'ledger' => [
-                'date' => '2024-12-05',
-                'description' => 'Test Ledger',
-                'amount' => 50000
+                'Date' => '2024-12-05',
+                'Description' => 'Test Ledger',
+                'Amount' => 50000
             ],
             'statement' => [
-                'date' => '2024-12-05',
-                'description' => 'Test Statement',
-                'amount' => 50000
+                'Date' => '2024-12-05',
+                'Description' => 'Test Statement',
+                'Amount' => 50000
             ],
             'action' => 'match'
         ];
@@ -707,14 +725,14 @@ class ReconciliationTest extends TestCase
 
         $data = [
             'ledger' => [
-                'date' => '2024-12-02',
-                'description' => 'Beau',
-                'amount' => 100000
+                'Date' => '2024-12-02',
+                'Description' => 'Beau',
+                'Amount' => 100000
             ],
             'statement' => [
-                'date' => '2024-12-05',
-                'description' => 'Bola',
-                'amount' => 80000
+                'Date' => '2024-12-05',
+                'Description' => 'Bola',
+                'Amount' => 80000
             ],
             'action' => 'unmatch'
         ];
@@ -749,14 +767,14 @@ class ReconciliationTest extends TestCase
 
         $data = [
             'ledger' => [
-                'date' => '2024-12-02',
-                'description' => 'Beau',
-                'amount' => 100000
+                'Date' => '2024-12-02',
+                'Description' => 'Beau',
+                'Amount' => 100000
             ],
             'statement' => [
-                'date' => '2024-12-05',
-                'description' => 'Bola',
-                'amount' => 80000
+                'Date' => '2024-12-05',
+                'Description' => 'Bola',
+                'Amount' => 80000
             ],
             'action' => 'invalid_action'
         ];

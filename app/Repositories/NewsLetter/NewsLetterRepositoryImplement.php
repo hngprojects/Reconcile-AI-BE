@@ -32,4 +32,19 @@ class NewsLetterRepositoryImplement extends Eloquent implements NewsLetterReposi
         $this->model->where('email', $email)->firstOrFail();
         return $this->model->where('email', $email)->update(['subscribed' => false]);
     }
+
+    public function checkforsubscriber($email)
+    {
+        return $this->model->where('email', $email)->firstOrFail();
+    }
+
+    public function findByEmail($email)
+    {
+        return $this->model->where('email', $email)->first();
+    }
+
+    public function resubscribe($email)
+    {
+        return $this->model->where('email', $email)->update(['subscribed' => true]);
+    }
 }

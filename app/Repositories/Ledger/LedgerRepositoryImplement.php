@@ -4,7 +4,6 @@ namespace App\Repositories\Ledger;
 
 use LaravelEasyRepository\Implementations\Eloquent;
 use App\Models\Ledger;
-use Illuminate\Support\Carbon;
 
 class LedgerRepositoryImplement extends Eloquent implements LedgerRepository{
 
@@ -21,13 +20,11 @@ class LedgerRepositoryImplement extends Eloquent implements LedgerRepository{
     }
 
     public function store(array $data){
-        $data['date'] = Carbon::parse($data['date'])->format('Y-m-d');
-
         return $this->model->firstOrCreate([
             'reconciliation_id' => $data['reconciliation_id'],
-            'description' => $data['description'],
-            'amount' => $data['amount'],
-            'date' => $data['date']
+            'description' => $data['Description'],
+            'amount' => $data['Amount'],
+            'date' => $data['Date']
         ]);
     }
 }

@@ -1,7 +1,0 @@
-"Bank Statement",,,,Ledger
-Date,Description,Amount,Status,Date,Description,Amount
-12/4/2023,Test,650,Matched,12/4/2023,Test,650
-12/4/2023,Test,650,Matched,12/4/2023,Test,650
-12/4/2023,Test,650,Matched,12/4/2023,Test,650
-12/4/2023,Test,680,Unmatched
-12/4/2023,Test,900,Unmatched

@@ -10,8 +10,8 @@
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
-            background-color: #FFFFFF;
-            color: #333333;
+            background-color: #FFFFFF !important;
+            color: #333333 !important;
             line-height: 1.6;
         }
         
@@ -23,7 +23,7 @@
         
         /* Header section */
         .header {
-            background-color: #EAEFED;
+            background-color: #EAEFED !important;
             padding: 20px 0;
             text-align: center;
             width: 100%;
@@ -37,7 +37,7 @@
         /* Content section */
         .content {
             padding: 30px;
-            background-color: #FFFFFF;
+            background-color: #FFFFFF !important;
         }
         
         .illustration {
@@ -52,11 +52,11 @@
         
         /* Message box */
         .message-box {
-            border: 1px solid #E0E0E0;
+            border: 1px solid #E0E0E0 !important;
             border-radius: 5px;
             padding: 20px;
             margin: 20px 0;
-            background-color: #FAFAFA;
+            background-color: #FAFAFA !important;
         }
         
         .message-details {
@@ -69,12 +69,12 @@
         
         /* Footer section */
         .footer {
-            background-color: #EAEFED;
+            background-color: #EAEFED !important;
             padding: 20px 0;
             text-align: center;
             width: 100%;
             font-size: 14px;
-            color: #666666;
+            color: #666666 !important;
         }
         
         .social-icons {
@@ -98,7 +98,7 @@
         }
         
         .footer-links a {
-            color: #2E604A;
+            color: #2E604A !important;
             text-decoration: none;
             font-weight: bold;
         }
@@ -121,17 +121,16 @@
     </style>
 </head>
 <body>
-    @php $base_url = config('app.url'); @endphp
     <div class="container">
         <!-- Header -->
         <div class="header">
-            <img src="{{ $base_url }}/assets/logo.png" alt="ReconXi Logo" class="logo">
+            <img src="https://api-dev.reconxi.com/assets/logo.png" alt="ReconXi Logo" class="logo">
         </div>
         
         <!-- Main Content -->
         <div class="content">
             <div class="illustration">
-                <img src="{{ $base_url }}/assets/message-received.png" alt="Email Notification">
+                <img src="https://api-dev.reconxi.com/assets/message-received.png" alt="Email Notification">
             </div>
             
             <h2>Hello Admin</h2>
@@ -160,28 +159,28 @@
             
             <p class="mt-20">
                 Best regards,<br>
-                The Reconxi Team
+                The ReconXi Team
             </p>
         </div>
         
         <!-- Footer -->
         <div class="footer">
             <div class="social-icons">
-                <a href="https://www.instagram.com/reconxi02/">
-                    <img src="{{ $base_url }}/assets/instagram-icon.png" alt="Instagram">
+                <a href="https://www.instagram.com/reconxi02">
+                    <img src="https://api-dev.reconxi.com/assets/instagram-icon.png" alt="Instagram">
                 </a>
                 <a href="https://www.facebook.com/profile.php?id=61573471907361">
-                    <img src="{{ $base_url }}/assets/facebook-icon.png" alt="Facebook">
+                    <img src="https://api-dev.reconxi.com/assets/facebook-icon.png" alt="Facebook">
                 </a>
                 <a href="https://www.linkedin.com/in/recon-xi-b06835354">
-                    <img src="{{ $base_url }}/assets/linkedin-icon.png" alt="LinkedIn">
+                    <img src="https://api-dev.reconxi.com/assets/linkedin-icon.png" alt="LinkedIn">
                 </a>
                 <a href="https://x.com/reconxi02">
-                    <img src="{{ $base_url }}/assets/twitter-icon.png" alt="Twitter">
+                    <img src="https://api-dev.reconxi.com/assets/twitter-icon.png" alt="Twitter">
                 </a>
             </div>
             
-            <p>Thank you for choosing "ReconXi". Need help? <a href="mailto:support@reconxi.com" class="footer-links">Contact us</a></p>
+            <p>Thank you for choosing ReconXi. Need help? <a href="mailto:support@reconxi.com" class="footer-links">Contact us</a></p>
             
             <div class="divider"></div>
         </div>

@@ -38,7 +38,7 @@ class WelcomeEmail extends Mailable implements ShouldQueue
     {
         return new Content(
             view: 'emails.welcome',
-            with: ['user' => $this->user, 'getStartedUrl' => $this->getStartedUrl, 'base_url' => config('app.url')]
+            with: ['user' => $this->user, 'getStartedUrl' => $this->getStartedUrl]
         );
     }
 

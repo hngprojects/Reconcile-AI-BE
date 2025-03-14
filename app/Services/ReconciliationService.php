@@ -241,7 +241,7 @@ class ReconciliationService
                 foreach ($headers as $header) {
                     if (stripos($header, $expected) !== false) {
                         $mappedHeaders[$standardField] = $header;
-                        break 2; 
+                        break 2;
                     }
                 }
             }
@@ -414,6 +414,7 @@ class ReconciliationService
         - **Case sensitivity** should be ignored in the name fields.
         - Synonyms of the headers description
         - Ignore unrelated columns unless the value is of the columns are valuable to the decision making of the reconciliation.
+        - If there's a duplicate and it has a match, create one match for them and add the other instances to the duplicates array. Otherwise, classify one of them as unmatched if they are not matched and add the other instances to the duplicate array
 
         Here is an example of how the reconciliation should work:
 
@@ -428,7 +429,7 @@ class ReconciliationService
         File1 Transactions: {$formattedData1}
         File2 Transactions: {$formattedData2}
 
-        Return a JSON with 'matches', 'only_in_file1', 'only_in_file2', 'unmatched', and 'matchSummary'.";
+        Return a JSON with 'matches' as an array, 'only_in_file1' as an array, 'only_in_file2' as an array, 'duplicates' as an array, 'unmatched' as an array, and 'matchSummary' as an array.";
     }
 
     protected function processAIResponse(string $response, array $data1, array $data2)
@@ -449,6 +450,7 @@ class ReconciliationService
                 'unmatched_file1' => $unmatchedFile1,
                 'unmatched_file2' => $unmatchedFile2,
             ],
+            'duplicates' => $decodedResponse['duplicates'] ?? [],
             'matchSummary' => $decodedResponse['matchSummary'] ?? [
                 'totalMatched' => count($decodedResponse['matches'] ?? []),
                 'totalUnmatchedFile1' => count($unmatchedFile1),
@@ -577,7 +579,7 @@ class ReconciliationService
         foreach ($data['matches'] as $row) {
             $rowData = [
                 ...$row['file1_transaction'],
-                $row['status']
+                ucfirst($row['status'])
             ];
             foreach ($row['file2_transaction'] as $value) {
                 array_push($rowData, $value);
@@ -587,6 +589,11 @@ class ReconciliationService
 
         foreach ($data['unmatched']['unmatched_file1'] as $row) {
             fputcsv($exportFile, [...$row, 'Unmatched']);
+        }
+
+        foreach($data['unmatched']['unmatched_file2'] as $row){
+            $updated = ['', '', '', 'Unmatched', ...$row];
+            fputcsv($exportFile, $updated);
         }
 
         fclose($exportFile);
@@ -655,33 +662,53 @@ class ReconciliationService
 
         if($data['action'] == 'match'){
 
-            if (($key = array_search($ledger, $resArray['only_in_file2'])) !== false) {
-                unset($resArray['only_in_file2'][$key]);
-            }else if (($key = array_search($ledger, $resArray['unmatched']['unmatched_file2'])) !== false) {
-                unset($resArray['unmatched']['unmatched_file2'][$key]);
-            }else if (($key = array_search($statement, $resArray['only_in_file1'])) !== false) {
-                $resArray['matchSummary']['totalUnmatched'] -= 1;
-                unset($response['only_in_file1'][$key]);
-            }else if (($key = array_search($statement, $resArray['unmatched']['unmatched_file1'])) !== false) {
-                $resArray['matchSummary']['totalUnmatched'] -= 1;
-                unset($resArray['unmatched']['unmatched_file1'][$key]);
-            }
+            $resArray['only_in_file2'] = array_values(array_udiff(
+                $resArray['only_in_file2'],
+                [$filteredLedger],
+                fn($a, $b) => strcmp(json_encode($a), json_encode($b))
+            ));
+
+            $resArray['unmatched']['unmatched_file2'] = array_values(array_udiff(
+                $resArray['unmatched']['unmatched_file2'],
+                [$filteredLedger],
+                fn($a, $b) => strcmp(json_encode($a), json_encode($b))
+            ));
+
+            $resArray['only_in_file1'] = array_values(array_udiff(
+                $resArray['only_in_file1'],
+                [$filteredStatement],
+                fn($a, $b) => strcmp(json_encode($a), json_encode($b))
+            ));
+
+            $resArray['unmatched']['unmatched_file1'] = array_values(array_udiff(
+                $resArray['unmatched']['unmatched_file1'],
+                [$filteredStatement],
+                fn($a, $b) => strcmp(json_encode($a), json_encode($b))
+            ));
 
             array_push($resArray['matches'], $res);
-            $resArray['matchSummary']['totalMatched'] += 2;
+
+            $resArray['matchSummary']['totalUnmatched'] = count($resArray['unmatched']['unmatched_file1']) + count($resArray['unmatched']['unmatched_file2']);
+            $resArray['matchSummary']['totalMatched'] = count($resArray['matches']);
+
         }else if($data['action'] === 'unmatch'){
             $match = $this->matchedRepository->remove($ledger, $statement);
 
-            if (($key = array_search($res, $resArray['matches'])) !== false) {
-                $resArray['matchSummary']['totalMatched'] -= 2;
-                unset($resArray['matches'][$key]);
-            }
+            $resArray['matches'] = array_values(array_filter($resArray['matches'], function ($item) use ($filteredStatement, $filteredLedger) {
+            return !(
+                json_encode($item['file1_transaction']) === json_encode($filteredStatement) &&
+                json_encode($item['file2_transaction']) === json_encode($filteredLedger)
+            );
+        }));
 
             array_push($resArray['only_in_file1'], $filteredStatement);
             array_push($resArray['unmatched']['unmatched_file1'], $filteredStatement);
             array_push($resArray['only_in_file2'], $filteredLedger);
             array_push($resArray['unmatched']['unmatched_file2'], $filteredLedger);
-            $resArray['matchSummary']['totalUnmatched'] += 2;
+
+
+            $resArray['matchSummary']['totalUnmatched'] = count($resArray['unmatched']['unmatched_file1']) + count($resArray['unmatched']['unmatched_file2']);
+            $resArray['matchSummary']['totalMatched'] = count($resArray['matches']);
         }
 
         $response->data = $resArray;

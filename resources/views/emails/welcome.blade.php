@@ -9,16 +9,16 @@
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
-            background-color: #f5f5f5;
-            color: #333;
+            background-color: #f5f5f5 !important;
+            color: #333 !important;
         }
         .container {
             max-width: 600px;
             margin: 0 auto;
-            background-color: #ffffff;
+            background-color: #ffffff !important;
         }
         .header {
-            background-color: #f5f5f5;
+            background-color: #f5f5f5 !important;
             padding: 20px;
             text-align: center;
         }
@@ -32,15 +32,15 @@
         }
         .button {
             display: inline-block;
-            background-color: #2c664f;
-            color: #ffffff;
+            background-color: #2c664f !important;
+            color: #ffffff !important;
             padding: 15px 30px;
             text-decoration: none;
             border-radius: 5px;
             margin: 20px 0;
         }
         .footer {
-            background-color: #f5f5f5;
+            background-color: #f5f5f5 !important;
             padding: 20px;
             text-align: center;
         }
@@ -63,52 +63,18 @@
         }
         .feature-icon {
             margin-right: 10px;
-            color: #2c664f;
-        }
-        .flash-message {
-            display: none; 
-            position: fixed;
-            top: 10px;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: #2c664f; /* Success Color */
-            color: #fff;
-            padding: 15px 20px;
-            border-radius: 5px;
-            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-            z-index: 1000;
-            opacity: 0;
-            transition: opacity 0.5s ease-in-out;
-        }
-
-        .flash-message.show {
-            display: block;
-            opacity: 1;
-        }
-
-        /* Notification Styles */
-        .notification {
-            display: none;
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: #2c664f;
-            color: white;
-            padding: 15px 20px;
-            border-radius: 5px;
-            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+            color: #2c664f !important;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <img src="{{ $base_url }}/assets/logo.png" alt="ReconXi Logo" height="40">
+            <img src="https://api-dev.reconxi.com/assets/logo.png" alt="ReconXi Logo" height="40">
         </div>
         
         <div class="content">
-            <img src="{{ $base_url }}/assets/welcome-illustration.png" alt="Welcome" width="200">
+            <img src="https://api-dev.reconxi.com/assets/welcome-illustration.png" alt="Welcome" width="200">
             <h2>Welcome to ReconXi</h2>
             <p>Thanks for signing up</p>
             
@@ -121,118 +87,48 @@
                 <div class="feature">
                     <div class="feature-icon">★</div>
                     <div>
-                        <strong>Ai Powered Reconciliation:</strong> Save hours through Ai powered repetitive reconciliation processes.
+                        <strong>AI Powered Reconciliation:</strong> Say goodbye to manual reconciliation and save hours through AI-Powered repetitive processes.
                     </div>
                 </div>
                 
                 <div class="feature">
                     <div class="feature-icon">★</div>
                     <div>
-                        <strong>Easy to use Reconciled Reports:</strong> Minimize human mistakes with intelligent matching and verification.
+                        <strong>Easy to use Reconciled Reports:</strong> Minimize human errors with our smart reconciliation tool, which ensures accurate transaction matching and generates clear, easy-to-read reports.
                     </div>
                 </div>
                 
-                <div class="feature">
+                <!-- <div class="feature">
                     <div class="feature-icon">★</div>
                     <div>
                         <strong>Need Assistance?</strong> Our support team is here for you! If you have any questions, simply reply to this mail or contact us at <a href="mailto:support@reconxi.com">Support Team</a>.
                     </div>
-                </div>
+                </div> -->
+            </div>
+            <div>
+                <strong>Need Assistance?</strong> Our dedicated support team is here to help. If you have any question, simply reply to this email or contact us via our <a href="mailto:support@reconxi.com">Support Team</a>.
             </div>
             
             <a href="{{ $getStartedUrl }}" class="button">Start Reconciling Now</a>
             
-            <p>Best regards,<br>The Reconxi Team</p>
+            <p>Best regards,<br>The ReconXi Team</p>
         </div>
         
         <div class="footer">
             <div class="social-links">
-                <a href="https://www.instagram.com/reconxi02"><img src="{{ $base_url }}/assets/instagram-icon.png" alt="Instagram" width="24"></a>
-                <a href="https://www.facebook.com/profile.php?id=61573471907361"><img src="{{ $base_url }}/assets/facebook-icon.png" alt="Facebook" width="24"></a>
-                <a href="https://www.linkedin.com/in/recon-xi-b06835354"><img src="{{ $base_url }}/assets/linkedin-icon.png" alt="LinkedIn" width="24"></a>
-                <a href="https://x.com/reconxi02"><img src="{{ $base_url }}/assets/twitter-icon.png" alt="Twitter" width="24"></a>
+                <a href="https://www.instagram.com/reconxi02"><img src="https://api-dev.reconxi.com/assets/instagram-icon.png" alt="Instagram" width="24"></a>
+                <a href="https://www.facebook.com/profile.php?id=61573471907361"><img src="https://api-dev.reconxi.com/assets/facebook-icon.png" alt="Facebook" width="24"></a>
+                <a href="https://www.linkedin.com/in/recon-xi-b06835354"><img src="https://api-dev.reconxi.com/assets/linkedin-icon.png" alt="LinkedIn" width="24"></a>
+                <a href="https://x.com/reconxi02"><img src="https://api-dev.reconxi.com/assets/twitter-icon.png" alt="Twitter" width="24"></a>
             </div>
             
-            <p>Thank you for choosing "ReconXi". Need help? <a href="mailto:support@reconxi.com">Contact us</a></p>
+            <p>Thank you for choosing ReconXi. Need help? <a href="mailto:support@reconxi.com">Contact us</a></p>
             
-            <!-- <div id="flash-message" class="flash-message"></div> -->
             <div class="divider"></div>
             
-            <p>You are receiving this email because you signed up at Reconxi.com. Want to change how you receive these emails?</p>
-            <p>You can <a href="#" id="unsubscribe-btn" data-email="{{ $user->email }}">unsubscribe</a> from this list.</p>
+            <p>You are receiving this email because you signed up at <a href="https://reconxi.com/">ReconXi.com</a>. Want to change how you receive these emails?</p>
+            <p>You can <a href="{{ url('api/v1/newsletter/unsubscribe/' . $user->email) }}">unsubscribe</a> from this list.</p>
         </div>
     </div>
-
-    <!-- Notification Message -->
-    <div class="notification" id="notification">Resubscription successful! 🎉</div>
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            const unsubscribeBtn = document.getElementById("unsubscribe-btn");
-
-            if (unsubscribeBtn) {
-                unsubscribeBtn.addEventListener("click", function (event) {
-                    event.preventDefault(); // Prevent page navigation
-
-                    const email = this.getAttribute("data-email");
-                    const url = "{{ $base_url }}/api/v1/newsletter/unsubscribe";
-
-                    fetch(url, {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json"
-                        },
-                        body: JSON.stringify({ email: email })
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        /* if (data.success) {
-                            showFlashMessage(data.message, "success");
-                        } else {
-                            showFlashMessage("An error occurred: " + data.message, "error");
-                        } */
-                        if (data.success) {
-                            showNotification(data.message);
-                        } else {
-                            showNotification("An error occurred: " + data.message, "red");
-                        }
-                    })
-                    .catch(error => {
-                        // showFlashMessage("An error occurred. Please try again.", "error");
-                        showNotification("Something went wrong. Please try again!", "red");
-                        console.error(error);
-                    });
-                });
-            }
-
-            function showFlashMessage(message, type = "success") {
-                const flashMessage = document.getElementById("flash-message");
-
-                if (type === "error") {
-                    flashMessage.style.backgroundColor = "#d9534f"; // Red for error
-                } else {
-                    flashMessage.style.backgroundColor = "#2c664f"; // Green for success
-                }
-
-                flashMessage.innerText = message;
-                flashMessage.classList.add("show");
-
-                setTimeout(() => {
-                    flashMessage.classList.remove("show");
-                    setTimeout(() => flashMessage.style.display = "none", 500); // Wait for transition
-                }, 5000); // Hide after 5 seconds
-            }
-
-            function showNotification(message, bgColor = "#2c664f") {
-                let notification = document.getElementById("notification");
-                notification.textContent = message;
-                notification.style.backgroundColor = bgColor;
-                notification.style.display = "block";
-
-                setTimeout(() => {
-                    notification.style.display = "none";
-                }, 7000); // Hide after 7 seconds
-            }
-        });
-    </script>
 </body>
 </html>
