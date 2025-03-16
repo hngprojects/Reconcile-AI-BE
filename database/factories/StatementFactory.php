@@ -18,7 +18,8 @@ class StatementFactory extends Factory
     {
         return [
             'date' => fake()->date(),
-            'description' => fake()->name(),
+            'person' => fake()->name(),
+            'other_information' => fake()->sentence(),
             'amount' => fake()->randomNumber()
         ];
     }

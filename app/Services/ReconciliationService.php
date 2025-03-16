@@ -13,7 +13,12 @@ use App\Repositories\Ledger\LedgerRepository;
 use App\Repositories\Statement\StatementRepository;
 use App\Repositories\MatchingTransaction\MatchingTransactionRepository;
 use App\Models\Reconciliation;
+use App\Models\Statement;
 use App\Http\Resources\TransactionResource;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
+use Gemini\Laravel\Facades\Gemini;
+use Illuminate\Support\Collection;
 
 class ReconciliationService
 {
@@ -349,7 +354,7 @@ class ReconciliationService
         Return a JSON with 'matches' as an array, 'only_in_file1' as an array, 'only_in_file2' as an array, 'duplicates' as an array, 'unmatched' as an array, and 'matchSummary' as an array.";
     }
 
-    protected function processAIResponse(string $response, array $data1, array $data2)
+    protected function processAIResponse(string $response, array $data1=[], array $data2=[])
     {
         $cleanResponse = trim(str_replace(["```json", "```"], "", $response));
 

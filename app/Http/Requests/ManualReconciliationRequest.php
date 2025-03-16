@@ -19,10 +19,10 @@ class ManualReconciliationRequest extends FormRequest
             'statement' => 'required',
             'action' => ['required', Rule::in(['match', 'unmatch'])],
             'ledger.Date' => 'required|string',
-            'ledger.Description' => 'required|string',
+            'ledger.Person' => 'required|string',
             'ledger.Amount' => 'required',
             'statement.Date' => 'required|string',
-            'statement.Description' => 'required|string',
+            'statement.Person' => 'required|string',
             'statement.Amount' => 'required',
         ];
     }
