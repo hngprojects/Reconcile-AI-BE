@@ -23,9 +23,9 @@ jobs:
         run: |
           if ! command -v psql &> /dev/null; then
           echo "Installing PostgreSQL..."
-          sudo apt update && sudo apt install -y postgresql postgresql-contrib
-          sudo systemctl start postgresql
-          sudo systemctl enable postgresql
+          sudo -n apt update && sudo -n apt install -y postgresql postgresql-contrib
+          sudo -n systemctl start postgresql
+          sudo -n systemctl enable postgresql
           else
             echo "PostgreSQL is installed."
           fi
