@@ -1,9 +1,12 @@
 name: Testing
 
 on:
+  push:
+    branches: [main, dev] # Runs on push to main and dev branches
   pull_request:
     branches: [main, dev] # Runs for same-repo PRs
     types: [opened, synchronize]
+
 
 jobs:
   test:
