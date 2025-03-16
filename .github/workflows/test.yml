@@ -2,39 +2,43 @@ name: Testing
 
 on:
   push:
-    branches: [main, dev] # Runs on push to main and dev branches
+    branches: [main, dev]
   pull_request:
-    branches: [main, dev] # Runs for same-repo PRs
+    branches: [main, dev]
     types: [opened, synchronize]
-
 
 jobs:
   test:
-    # runs-on: reconcile
-    runs-on: ubuntu-latest
+    runs-on: reconcile  # Self-hosted runner
     timeout-minutes: 10
-
-    services:
-      postgres:
-        image: postgres:16
-        env:
-          POSTGRES_DB: test_db
-          POSTGRES_USER: test_user
-          POSTGRES_PASSWORD: test_pass
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd="pg_isready -U test_user -d test_db"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=5
 
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.sha }} # Checkout the fork's branch
+          ref: ${{ github.event.pull_request.head.sha }}
           persist-credentials: false
+
+      - name: Check if PostgreSQL is installed
+        run: |
+          if ! command -v psql &> /dev/null; then
+            echo "PostgreSQL is NOT installed on reconcile!"
+            exit 1
+          else
+            echo "PostgreSQL is installed."
+          fi
+
+      - name: Ensure PostgreSQL service is running
+        run: |
+          sudo systemctl start postgresql
+          sudo systemctl enable postgresql
+          sudo systemctl status postgresql --no-pager
+
+      - name: Create Database & User (if not exists)
+        run: |
+          sudo -u postgres psql -c "SELECT 'Database exists' FROM pg_database WHERE datname = 'test_db';" || sudo -u postgres psql -c "CREATE DATABASE test_db;"
+          sudo -u postgres psql -c "SELECT 'User exists' FROM pg_roles WHERE rolname = 'test_user';" || sudo -u postgres psql -c "CREATE USER test_user WITH PASSWORD 'test_pass';"
+          sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE test_db TO test_user;"
 
       - name: Set up PHP
         uses: shivammathur/setup-php@v2
@@ -43,8 +47,7 @@ jobs:
           extensions: mbstring, xml, ctype, json, pdo, bcmath, pgsql, pdo_pgsql, zip, apcu
 
       - name: Install Laravel dependencies
-        run: |
-          composer install --no-progress --prefer-dist --no-interaction
+        run: composer install --no-progress --prefer-dist --no-interaction
 
       - name: Set environment variables for CI
         run: |
@@ -53,7 +56,7 @@ jobs:
           php artisan jwt:secret
           echo "APP_KEY=${{ secrets.APP_KEY }}" >> .env
           echo "DB_CONNECTION=pgsql" >> .env
-          echo "DB_HOST=localhost" >> .env
+          echo "DB_HOST=127.0.0.1" >> .env
           echo "DB_PORT=5432" >> .env
           echo "DB_DATABASE=test_db" >> .env
           echo "DB_USERNAME=test_user" >> .env
