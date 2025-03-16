@@ -1804,7 +1804,7 @@
                                                 "description": "Date of the ledger entry",
                                                 "type": "string"
                                             },
-                                            "Description": {
+                                            "Person": {
                                                 "description": "Description of the ledger entry",
                                                 "type": "string"
                                             },
@@ -1821,7 +1821,7 @@
                                                 "description": "Date of the statement entry",
                                                 "type": "string"
                                             },
-                                            "Description": {
+                                            "Person": {
                                                 "description": "Description of the statement entry",
                                                 "type": "string"
                                             },

@@ -335,7 +335,10 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
             'data' => $response
         ]);
 
-        return $response;
+        return [
+            'reconciliation_id' => $reconciliation->id,
+            ...$response
+        ];
     }
 
     public function usingRecox($statement, $ledger)
