@@ -26,7 +26,7 @@ class LedgerRepositoryImplement extends Eloquent implements LedgerRepository{
             'reconciliation_id' => $data['reconciliation_id'],
             'person' => $data['Person'],
             'amount' => $data['Amount'],
-            'other_information' => $data['Other Information'],
+            'other_information' => $data['Other Information'] ?? null,
             'date' => $data['Date']
         ]);
     }
@@ -37,7 +37,7 @@ class LedgerRepositoryImplement extends Eloquent implements LedgerRepository{
                 'reconciliation_id' => $reconciliation->id,
                 'person' => $ledger['Person'],
                 'amount' => (string) $ledger['Amount'],
-                'other_information' => $ledger['Other Information'],
+                'other_information' => $ledger['Other Information'] ?? null,
                 'date' => $ledger['Date']
             ]);
         }

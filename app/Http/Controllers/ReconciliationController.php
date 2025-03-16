@@ -313,14 +313,14 @@ class ReconciliationController extends Controller
      *                     property="ledger",
      *                     type="object",
      *                     @OA\Property(property="Date", type="string", description="Date of the ledger entry"),
-     *                     @OA\Property(property="Description", type="string", description="Description of the ledger entry"),
+     *                     @OA\Property(property="Person", type="string", description="Description of the ledger entry"),
      *                     @OA\Property(property="Amount", type="integer", description="Amount in the ledger entry")
      *                 ),
      *                 @OA\Property(
      *                     property="statement",
      *                     type="object",
      *                     @OA\Property(property="Date", type="string", description="Date of the statement entry"),
-     *                     @OA\Property(property="Description", type="string", description="Description of the statement entry"),
+     *                     @OA\Property(property="Person", type="string", description="Description of the statement entry"),
      *                     @OA\Property(property="Amount", type="integer", description="Amount in the statement entry")
      *                 ),
      *                 @OA\Property(

@@ -558,10 +558,10 @@ class ReconciliationTest extends TestCase
 
         // Assert response status
         $response->assertStatus(200);
-        
+
         // Assert content type
         $response->assertHeader('Content-Type', 'text/plain; charset=UTF-8');
-        
+
         // Check Content-Disposition header dynamically
         $response->assertHeader('Content-Disposition');
         $headerValue = $response->headers->get('Content-Disposition');
@@ -692,12 +692,12 @@ class ReconciliationTest extends TestCase
         $payload = [
             'ledger' => [
                 'Date' => '2024-12-05',
-                'Description' => 'Test Ledger',
+                'Person' => 'Test Ledger',
                 'Amount' => 50000
             ],
             'statement' => [
                 'Date' => '2024-12-05',
-                'Description' => 'Test Statement',
+                'Person' => 'Test Statement',
                 'Amount' => 50000
             ],
             'action' => 'match'
@@ -726,12 +726,12 @@ class ReconciliationTest extends TestCase
         $data = [
             'ledger' => [
                 'Date' => '2024-12-02',
-                'Description' => 'Beau',
+                'Person' => 'Beau',
                 'Amount' => 100000
             ],
             'statement' => [
                 'Date' => '2024-12-05',
-                'Description' => 'Bola',
+                'Person' => 'Bola',
                 'Amount' => 80000
             ],
             'action' => 'unmatch'
@@ -768,12 +768,12 @@ class ReconciliationTest extends TestCase
         $data = [
             'ledger' => [
                 'Date' => '2024-12-02',
-                'Description' => 'Beau',
+                'Person' => 'Beau',
                 'Amount' => 100000
             ],
             'statement' => [
                 'Date' => '2024-12-05',
-                'Description' => 'Bola',
+                'Person' => 'Bola',
                 'Amount' => 80000
             ],
             'action' => 'invalid_action'
