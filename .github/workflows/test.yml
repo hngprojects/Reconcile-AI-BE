@@ -22,8 +22,10 @@ jobs:
       - name: Check if PostgreSQL is installed
         run: |
           if ! command -v psql &> /dev/null; then
-            echo "PostgreSQL is NOT installed on reconcile!"
-            exit 1
+          echo "Installing PostgreSQL..."
+          sudo apt update && sudo apt install -y postgresql postgresql-contrib
+          sudo systemctl start postgresql
+          sudo systemctl enable postgresql
           else
             echo "PostgreSQL is installed."
           fi
