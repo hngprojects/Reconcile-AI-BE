@@ -4,6 +4,8 @@ on:
     branches:
       - main
       - dev
+      - staging
+
 jobs:
   deployment:
     runs-on: reconcile
@@ -26,11 +28,22 @@ jobs:
               php artisan jwt:secret
               php artisan optimize:clear
               php artisan migrate --force
-              sudo systemctl restart nginx
+              # sudo systemctl restart nginx
+            elif [[ "${{ github.ref }}" == "refs/heads/staging" ]]; then
+              echo "Starting Laravel deployment for development..."
+              cd /var/www/html/Reconcile-AI-BE-staging
+              git pull origin staging
+              composer install --no-interaction --prefer-dist
+              php artisan optimize:clear
+              php artisan migrate --force
+              # Restart the staging service
+              # sudo systemctl restart nginx
             else
               echo "Starting Laravel deployment..."
-              # Start the deployment service (using explicit sudo with NOPASSWD permission)
-              sudo systemctl daemon-reload
-              sudo systemctl restart laravel-deploy.service
+              echo "Starting Laravel deployment for development..."
+              cd /var/www/html/Reconcile-AI-BE-dev
+              git pull origin dev
+              composer install --no-interaction --prefer-dist
+              php artisan optimize:clear
+              php artisan migrate --force
             fi
-
