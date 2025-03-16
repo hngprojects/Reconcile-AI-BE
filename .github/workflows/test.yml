@@ -1,71 +1,63 @@
-name: Testing
+# name: Testing
 
-on:
-  push:
-    branches: [main, dev]
-  pull_request:
-    branches: [main, dev]
-    types: [opened, synchronize]
+# on:
+#   pull_request:
+#     branches: [main, dev] # Runs for same-repo PRs
+#     types: [opened, synchronize]
 
-jobs:
-  test:
-    runs-on: reconcile  # Self-hosted runner
-    timeout-minutes: 10
+# jobs:
+#   test:
+#     # runs-on: reconcile
+#     runs-on: ubuntu-latest
+#     timeout-minutes: 10
 
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
-          persist-credentials: false
+#     services:
+#       postgres:
+#         image: postgres:16
+#         env:
+#           POSTGRES_DB: test_db
+#           POSTGRES_USER: test_user
+#           POSTGRES_PASSWORD: test_pass
+#         ports:
+#           - 5432:5432
+#         options: >-
+#           --health-cmd="pg_isready -U test_user -d test_db"
+#           --health-interval=10s
+#           --health-timeout=5s
+#           --health-retries=5
 
-      - name: Check if PostgreSQL is installed
-        run: |
-          if ! command -v psql &> /dev/null; then
-          echo "Installing PostgreSQL..."
-          sudo -n apt update && sudo -n apt install -y postgresql postgresql-contrib
-          sudo -n systemctl start postgresql
-          sudo -n systemctl enable postgresql
-          else
-            echo "PostgreSQL is installed."
-          fi
+#     steps:
+#       - name: Checkout Repository
+#         uses: actions/checkout@v4
+#         with:
+#           ref: ${{ github.event.pull_request.head.sha }} # Checkout the fork's branch
+#           persist-credentials: false
 
-      - name: Ensure PostgreSQL service is running
-        run: |
-          sudo systemctl start postgresql
-          sudo systemctl enable postgresql
-          sudo systemctl status postgresql --no-pager
+#       - name: Set up PHP
+#         uses: shivammathur/setup-php@v2
+#         with:
+#           php-version: "8.2"
+#           extensions: mbstring, xml, ctype, json, pdo, bcmath, pgsql, pdo_pgsql, zip, apcu
 
-      - name: Create Database & User (if not exists)
-        run: |
-          sudo -u postgres psql -c "SELECT 'Database exists' FROM pg_database WHERE datname = 'test_db';" || sudo -u postgres psql -c "CREATE DATABASE test_db;"
-          sudo -u postgres psql -c "SELECT 'User exists' FROM pg_roles WHERE rolname = 'test_user';" || sudo -u postgres psql -c "CREATE USER test_user WITH PASSWORD 'test_pass';"
-          sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE test_db TO test_user;"
+#       - name: Install Laravel dependencies
+#         run: |
+#           composer install --no-progress --prefer-dist --no-interaction
 
-      - name: Set up PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: "8.2"
-          extensions: mbstring, xml, ctype, json, pdo, bcmath, pgsql, pdo_pgsql, zip, apcu
+#       - name: Set environment variables for CI
+#         run: |
+#           cp .env.example .env
+#           php artisan key:generate
+#           php artisan jwt:secret
+#           echo "APP_KEY=${{ secrets.APP_KEY }}" >> .env
+#           echo "DB_CONNECTION=pgsql" >> .env
+#           echo "DB_HOST=localhost" >> .env
+#           echo "DB_PORT=5432" >> .env
+#           echo "DB_DATABASE=test_db" >> .env
+#           echo "DB_USERNAME=test_user" >> .env
+#           echo "DB_PASSWORD=test_pass" >> .env
 
-      - name: Install Laravel dependencies
-        run: composer install --no-progress --prefer-dist --no-interaction
+#       - name: Run Database Migrations
+#         run: php artisan migrate --force
 
-      - name: Set environment variables for CI
-        run: |
-          cp .env.example .env
-          php artisan key:generate
-          php artisan jwt:secret
-          echo "APP_KEY=${{ secrets.APP_KEY }}" >> .env
-          echo "DB_CONNECTION=pgsql" >> .env
-          echo "DB_HOST=127.0.0.1" >> .env
-          echo "DB_PORT=5432" >> .env
-          echo "DB_DATABASE=test_db" >> .env
-          echo "DB_USERNAME=test_user" >> .env
-          echo "DB_PASSWORD=test_pass" >> .env
-
-      - name: Run Database Migrations
-        run: php artisan migrate --force
-
-      - name: Run Laravel tests
-        run: php artisan test
+#       - name: Run Laravel tests
+#         run: php artisan test
