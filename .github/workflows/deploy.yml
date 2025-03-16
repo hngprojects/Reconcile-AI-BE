@@ -1,10 +1,17 @@
 name: Deployment
 on:
-  push:
+  # push:
+  #   branches:
+  #     - main
+  #     - dev
+  #     - staging
+  pull_request:
     branches:
       - main
       - dev
       - staging
+    types: [opened, synchronize]
+
 
 jobs:
   deployment:
