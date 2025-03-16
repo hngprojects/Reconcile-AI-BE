@@ -8,7 +8,7 @@ on:
 jobs:
   test:
     # runs-on: reconcile
-    runs-on: ubuntu-latest
+    runs-on: reconcile
     timeout-minutes: 10
 
     services:
