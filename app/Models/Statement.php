@@ -18,7 +18,7 @@ class Statement extends Model
         'date',
         'person',
         'amount',
-        'other_information'
+        'other_information',
         'reconciliation_id'
     ];
     protected $keyType = 'string';

@@ -46,4 +46,10 @@ class StatementRepositoryImplement extends Eloquent implements StatementReposito
     public function findAll(Reconciliation $reconciliation){
         return Statement::where('reconciliation_id', '=', $reconciliation->id)->get();
     }
+
+    public function addVector(Statement $statement, array $data){
+        $statement->vector = json_encode($data);
+
+        return $ledger;
+    }
 }

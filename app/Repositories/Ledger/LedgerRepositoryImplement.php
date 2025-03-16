@@ -31,7 +31,6 @@ class LedgerRepositoryImplement extends Eloquent implements LedgerRepository{
         ]);
     }
 
-
     public function storeMany(array $ledgers, Reconciliation $reconciliation){
         foreach ($ledgers as $ledger) {
             $this->model->firstOrCreate([
@@ -46,6 +45,12 @@ class LedgerRepositoryImplement extends Eloquent implements LedgerRepository{
     }
 
     public function findAll(Reconciliation $reconciliation){
-        return Ledger::where('reconciliation_id', '=', $reconciliation->id)->get();
+        return $this->model->where('reconciliation_id', '=', $reconciliation->id)->get();
+    }
+
+    public function addVector(Ledger $ledger, array $data){
+        $ledger->vector = json_encode($data);
+
+        return $ledger;
     }
 }
