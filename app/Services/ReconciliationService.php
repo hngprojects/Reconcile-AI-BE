@@ -13,9 +13,12 @@ use App\Repositories\Ledger\LedgerRepository;
 use App\Repositories\Statement\StatementRepository;
 use App\Repositories\MatchingTransaction\MatchingTransactionRepository;
 use App\Models\Reconciliation;
+use App\Models\Statement;
 use App\Http\Resources\TransactionResource;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Gemini\Laravel\Facades\Gemini;
+use Illuminate\Support\Collection;
 
 class ReconciliationService
 {
@@ -641,144 +644,5 @@ class ReconciliationService
                 ...$updated->data
             ]
         ];
-    }
-
-    function loadComplexCsv($filePath)
-    {
-        $data = [];
-        if (($handle = fopen($filePath, 'r')) !== false) {
-            $headers = fgetcsv($handle);
-            while (($row = fgetcsv($handle)) !== false) {
-                if(count(array_filter($headers)) < count($headers)/2){
-                    $headers = $row;
-                }else {
-                    $data[] = array_combine($headers, $row);
-                }
-            }
-            fclose($handle);
-        }
-        return $data;
-    }
-
-    public function storeReconciliation($file1, $file2){
-        DB::beginTransaction();
-
-        $statement = $this->fileRepository->store([
-            'user_id' => Auth::id(),
-            'file_name' => $file1,
-            'type' => 'Bank Statement'
-        ]);
-
-        $ledger = $this->fileRepository->store([
-            'user_id' => Auth::id(),
-            'file_name' => $file2,
-            'type' => 'Ledger'
-        ]);
-
-        $reconciliation = $this->mainRepository->store([
-            'user_id' => Auth::id(),
-            'option' => 'reconcile_with_Gemini'
-        ]);
-
-        DB::commit();
-
-        return $reconciliation;
-    }
-
-    public function structuringData($file){
-        $data = $this->loadComplexCsv($file);
-
-        $chunks = array_chunk($data, 15);
-
-        $structured = [];
-
-        $prompt = "Please structure the attached JSON object into a JSON object with the following properties: Date, Person, Amount and Other Information. The JSON object could be a school ledger, an invoice ledger, a company ledger, a hospital ledger or a bank statement. Please keep this in mind as you go through the dataset. The person property can be derived from properties like Student Name, Student ID, Invoice ID, Invoice Detail, Narration, Summary, Remarks or any other synonyms that are used in a ledger or bank statement. Please only include the exact value provided in the document only. The amount can be derived from the debit, credit, amount, total, or anything that fits this criteria. Ensure the value for the amount that has been paid only so put into consideration any synonyms that may highlight this. Any other information should be added to the 'Other Information' property. Intelligently map through all the properties in the JSON and extract all the relevant information for this data structure. Use the relevant columns to extract this data and ensure the amount is always an absolute value and it should not have any symbols. Return all the data present in the provided JSON in JSON format. Please don't truncate the result.";
-
-        foreach ($chunks as $chunk) {
-            $response = $this->callGemini("$prompt. Here's the JSON you need to structure: " . json_encode($chunk) . ". Please return only a valid JSON object");
-
-            $cleanResponse = str_replace(["\"\"", "```json", "```"], "", $response);
-
-            $decodedResponse = json_decode($cleanResponse, true);
-
-            if (json_last_error() === JSON_ERROR_NONE && is_array($decodedResponse)) {
-                $structured = array_merge($structured, $decodedResponse);
-            } else {
-                \Log::error('Failed to decode Gemini response for data2: ' . json_last_error_msg());
-            }
-        }
-
-        return $structured;
-    }
-
-    public function savingData(array $statements, array $ledgers, Reconciliation $reconciliation){
-        DB::beginTransaction();
-
-        $this->statementRepository->storeMany($statements, $reconciliation);
-        $this->ledgerRepository->storeMany($ledgers, $reconciliation);
-
-        DB::commit();
-    }
-
-    public function findMatches(Reconciliation $reconciliation){
-        $statements = $this->statementRepository->findAll($reconciliation);
-        $ledgers = $this->ledgerRepository->findAll($reconciliation);
-
-        $statementChunks = array_chunk($statements->toArray(), 20);
-        $ledgerChunks = array_chunk($ledgers->toArray(), 20);
-
-        $matches = [];
-        $unmatchedStatements = [];
-        $unmatchedLedgers = [];
-
-        foreach ($statementChunks as $sChunk) {
-            foreach ($sChunk as $statement) {
-                foreach ($ledgerChunks as $lChunk) {
-                    foreach ($lChunk as $ledger) {
-                        $score = $this->calculateFuzzyMatchScore($statement, $ledger);
-
-                        if ($this->isExactMatch($statement, $ledger)) {
-                            $matches[] = [
-                                'file1_transaction' => $statement,
-                                'file2_transaction' => $ledger,
-                                'match_score' => 100,
-                            ];
-                        $newMatch = $this->matchedRepository->store($ledger, $statement);
-                            break;
-                        }else if ($score > 70) {
-                            $matches[] = [
-                                'file1_transaction' => $statement,
-                                'file2_transaction' => $ledger,
-                                'match_score' => $score,
-                            ];
-                            $newMatch = $this->matchedRepository->store($ledger, $statement);
-                            break;
-                        }else {
-                            $unmatchedStatements[] = $statement;
-                            $unmatchedLedgers[] = $ledger;
-                        }
-                    }
-                }
-            }
-        }
-
-        return [
-            'reconciliation_id' => $reconciliation->id
-            'matches' => $matches,
-            'unmatched_statements' => $unmatchedStatements,
-            'unmatched_ledgers' => $unmatchedLedgers
-        ];
-    }
-
-    public function testGemini($statement, $ledger)
-    {
-        $reconciliation = $this->storeReconciliation($statement, $ledger);
-
-        $structuredStatements = $this->structuringData($statement);
-        $structuredLedgers = $this->structuringData($ledger);
-
-        $this->savingData($structuredStatements, $structuredLedgers, $reconciliation);
-
-        return $this->findMatches($reconciliation);
     }
 }
