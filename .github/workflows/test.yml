@@ -11,9 +11,10 @@ on:
       - staging
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
+  deployment:
+    runs-on: reconcile
     timeout-minutes: 10
+
 
     steps:
       - name: Checkout Repository
