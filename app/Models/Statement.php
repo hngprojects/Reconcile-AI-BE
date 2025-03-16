@@ -3,7 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relation\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use App\Models\MatchedTransaction;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use App\Models\Reconciliation;
@@ -16,8 +16,9 @@ class Statement extends Model
 
     protected $fillable = [
         'date',
-        'description',
+        'person',
         'amount',
+        'other_information'
         'reconciliation_id'
     ];
     protected $keyType = 'string';
