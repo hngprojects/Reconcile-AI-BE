@@ -1,10 +1,10 @@
 name: Deployment
 on:
-  # push:
-  #   branches:
-  #     - main
-  #     - dev
-  #     - staging
+  push:
+    branches:
+      - main
+      - dev
+      - staging
   pull_request:
     branches:
       - main
@@ -52,5 +52,5 @@ jobs:
               git pull origin dev
               composer install --no-interaction --prefer-dist
               php artisan optimize:clear
-              php artisan migrate --force
+              # php artisan migrate --force
             fi
