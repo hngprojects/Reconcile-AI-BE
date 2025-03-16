@@ -46,6 +46,8 @@ jobs:
           composer install --no-progress --prefer-dist --no-interaction
 
           # Set environment variables
+
+          rm .env
           cp .env.example .env
           php artisan key:generate
           php artisan jwt:secret
@@ -56,9 +58,12 @@ jobs:
           echo "DB_DATABASE=test_db" >> .env
           echo "DB_USERNAME=test_user" >> .env
           echo "DB_PASSWORD=test_pass" >> .env
+          
+          #dropping all tables
+          php artisan migrate:fresh
 
           # Run migrations
-          php artisan migrate --force
+          # php artisan migrate --force
 
           # Run Laravel tests
           php artisan test
