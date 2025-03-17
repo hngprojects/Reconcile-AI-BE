@@ -1447,6 +1447,151 @@
                 }
             }
         },
+        "/api/v1/partners": {
+            "post": {
+                "tags": [
+                    "Partners"
+                ],
+                "summary": "Submit a partnership request",
+                "description": "Submits a partnership request form with contact and business details",
+                "operationId": "14e408d7c3c03d8d77fc6d0d1dc964ed",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "full_name",
+                                    "service_interested",
+                                    "email",
+                                    "phone_number"
+                                ],
+                                "properties": {
+                                    "full_name": {
+                                        "description": "Full name of the partner",
+                                        "type": "string",
+                                        "example": "John Smith"
+                                    },
+                                    "business_name": {
+                                        "description": "Name of the business (optional)",
+                                        "type": "string",
+                                        "example": "Acme Corp"
+                                    },
+                                    "service_interested": {
+                                        "description": "Services the partner is interested in",
+                                        "type": "string",
+                                        "example": "Data reconciliation services"
+                                    },
+                                    "email": {
+                                        "description": "Partner email address",
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "john@acmecorp.com"
+                                    },
+                                    "phone_number": {
+                                        "description": "Partner phone number",
+                                        "type": "string",
+                                        "example": "1234567890"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Partnership request submitted successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Thank you for your submission. We will contact you shortly."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "errors": {
+                                            "properties": {
+                                                "full_name": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string",
+                                                        "example": "The full name field is required."
+                                                    }
+                                                },
+                                                "service_interested": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string",
+                                                        "example": "The service interested field is required."
+                                                    }
+                                                },
+                                                "email": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string",
+                                                        "example": "The email must be a valid email address."
+                                                    }
+                                                },
+                                                "phone_number": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string",
+                                                        "example": "The phone number field is required."
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Internal server error"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/reconcile": {
             "post": {
                 "tags": [
@@ -2271,6 +2416,10 @@
         {
             "name": "Marketing",
             "description": "Marketing"
+        },
+        {
+            "name": "Partners",
+            "description": "Partners"
         },
         {
             "name": "WaitList",
