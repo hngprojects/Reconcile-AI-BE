@@ -469,6 +469,7 @@ class ReconciliationController extends Controller
             if (isset($statementPath, $ledgerPath)) {
                 Storage::delete([$statementPath, $ledgerPath]);
             }
+            \Log::error('Failed to reconcile ' . $e);
             return response()->json([
                 "message" => "Failed to reconcile",
                 "status" => "success",
@@ -578,6 +579,7 @@ class ReconciliationController extends Controller
             if (isset($statementPath, $ledgerPath)) {
                 Storage::delete([$statementPath, $ledgerPath]);
             }
+            \Log::error('Failed to reconcile ' . $e);
             return response()->json([
                 "message" => "Failed to reconcile",
                 "status" => "success",
