@@ -11,7 +11,7 @@ on:
       - staging
 
 jobs:
-  deployment:
+  test:
     runs-on: reconcile
     timeout-minutes: 10
 
