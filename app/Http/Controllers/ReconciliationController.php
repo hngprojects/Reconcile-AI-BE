@@ -11,6 +11,8 @@ use App\Models\ReconciledRecord;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Reconciliation;
 use App\Http\Requests\ManualReconciliationRequest;
+use App\Jobs\ProcessReconciliation;
+use App\Jobs\ProcessRecoxReconciliation;
 
 /**
  * @OA\Tag(
@@ -455,7 +457,8 @@ class ReconciliationController extends Controller
                 return response()->json(['error' => 'One or both files are not in the correct format.'], 422);
             }
 
-            $result = $this->testService->usingRecox($statementFullPath, $ledgerFullPath);
+            $result = ProcessRecoxReconciliation::dispatch($statementFullPath, $ledgerFullPath);
+
 
             return response()->json([
                 "message" => "Reconciliation successful",
@@ -469,6 +472,7 @@ class ReconciliationController extends Controller
             if (isset($statementPath, $ledgerPath)) {
                 Storage::delete([$statementPath, $ledgerPath]);
             }
+            \Log::error('Failed to reconcile ' . $e);
             return response()->json([
                 "message" => "Failed to reconcile",
                 "status" => "success",
@@ -564,20 +568,20 @@ class ReconciliationController extends Controller
                 return response()->json(['error' => 'One or both files are not in the correct format.'], 422);
             }
 
-            $result = $this->testService->usingEmbeddings($statementFullPath, $ledgerFullPath);
+            $user = $request->user();
+            $result = ProcessReconciliation::dispatch($statementFullPath, $ledgerFullPath, $user);
 
             return response()->json([
                 "message" => "Reconciliation successful",
                 "status" => "success",
                 "status_code" => 200,
-                'data' => [
-                    ...$result
-                ]
+                'data' => $result
             ], 200);
         } catch (\Exception $e) {
             if (isset($statementPath, $ledgerPath)) {
                 Storage::delete([$statementPath, $ledgerPath]);
             }
+            \Log::error('Failed to reconcile ' . $e);
             return response()->json([
                 "message" => "Failed to reconcile",
                 "status" => "success",

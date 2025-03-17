@@ -79,12 +79,7 @@ class EmbeddingsTest extends TestCase
                 'status',
                 'status_code',
                 'message',
-                'data' => [
-                    'reconciliation_id',
-                    'matches',
-                    'unmatched_ledgers',
-                    'unmatched_statements'
-                ]
+                'data'
             ]);
     }
 
