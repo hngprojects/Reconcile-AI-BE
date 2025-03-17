@@ -26,7 +26,7 @@ class LedgerRepositoryImplement extends Eloquent implements LedgerRepository{
             'reconciliation_id' => $data['reconciliation_id'],
             'person' => $data['Person'],
             'amount' => $data['Amount'],
-            'other_information' => $data['Other Information'] ?? null,
+            'other_information' => array_key_exists('Other Information', $data) ? json_encode($data['Other Information']) : null,
             'date' => $data['Date']
         ]);
     }
@@ -37,7 +37,7 @@ class LedgerRepositoryImplement extends Eloquent implements LedgerRepository{
                 'reconciliation_id' => $reconciliation->id,
                 'person' => $ledger['Person'],
                 'amount' => (string) $ledger['Amount'],
-                'other_information' => $ledger['Other Information'] ?? null,
+                'other_information' => array_key_exists('Other Information', $ledger) ? json_encode($ledger['Other Information']) : null,
                 'date' => $ledger['Date']
             ]);
         }
@@ -49,7 +49,8 @@ class LedgerRepositoryImplement extends Eloquent implements LedgerRepository{
     }
 
     public function addVector(Ledger $ledger, array $data){
-        $ledger->vector = json_encode($data);
+        $ledger->embedding = json_encode($data);
+        $ledger->save();
 
         return $ledger;
     }

@@ -146,47 +146,34 @@
             <img src="https://api-dev.reconxi.com/assets/logo.png" alt="">
         </div>
     </header>
-    <div class="subject-container">
-        <h1 class="subject"> {{ $data->full_name }}, YOU’RE JUST A CLICK AWAY FROM SAVING MONEY AND TIME.</h1>
-    </div>
+
     <div class=" hero">
-        <img src="https://api-dev.reconxi.com/assets/outbound-hero.png" alt="">
+        <img src="https://api-dev.reconxi.com/assets/partner.png" alt="">
     </div>
     <div class=" content">
-        <h6>Hi {{ $data->full_name }},</h6>
+        {{-- <h6>Hi {{ $data->full_name }},</h6> --}}
+        <h6>Dear {{ $data->full_name }},</h6>
         <p>
-            Thank you for your interest in ReconXi! We noticed you recently engaged with our ad and filled out your
-            details—great choice!
+            Thank you for reaching out to us and expressing your interest with ReconXi! We appreciate you taking the
+            time to fill out our Partner with Us form. We are excited about the possibility of collaborating with you
+            and exploring how we can work together to create value for our clients.
+            Our team is currently reviewing your submission, and we will get back to you shortly to discuss potential
+            partnership opportunities.
         </p>
         <p>
 
-            You’re this close to transforming how you reconcile financial records—but time is ticking.
-            Every day without ReconXi means more manual work, more errors, and more wasted hours.
+            In the meantime, if you have any questions or need further information, please feel free to reach out to us
+            at [support email] or [phone number].
         </p>
         <p>
-            Why struggle when you can have AI-powered accuracy and seamless reconciliation in minutes?
-        </p>
-        <p>
-            Watch the Demo Now!
-        </p>
-        <p>
-            ➡️
-            <a href="https://drive.google.com/file/d/1SaIAF_aF483lICD6dAFEumhWhnjpkcry/view"> Click here!
-            </a>
-        </p>
-        <p>
+            Thank you once again for your interest. We look forward to connecting soon! </p>
 
-            You’ll love how easy it is to manage your schedule once you’ve perform your reconciliations.
-        </p>
         <p>
-            Don’t just take our word for it. Experience ReconXi yourself.
-        </p>
+            Best regards, </p>
+        <p>Mercy</p>
+        <p>Team Lead</p>
         <p>
-            See you inside,
-        </p>
-        <p>
-            The ReconXi Team.
-        </p>
+            ReconXi </p>
     </div>
     <footer>
         <!-- Footer -->
