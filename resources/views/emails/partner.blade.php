@@ -152,7 +152,7 @@
     </div>
     <div class=" content">
         {{-- <h6>Hi {{ $data->full_name }},</h6> --}}
-        <h6>Dear John,</h6>
+        <h6>Dear {{ $data->full_name }},</h6>
         <p>
             Thank you for reaching out to us and expressing your interest with ReconXi! We appreciate you taking the
             time to fill out our Partner with Us form. We are excited about the possibility of collaborating with you
