@@ -11,7 +11,7 @@ on:
 jobs:
   deployment:
     runs-on: reconcile
-    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event_name == 'workflow_run' }}  # ✅ Completely hide workflow if CI failed
+    if: ${{ github.event.workflow_run.conclusion == 'success' }} # ✅ Deploy only if CI passed
     timeout-minutes: 10
     steps:
       # - uses: actions/checkout@v4
