@@ -17,6 +17,9 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Gemini\Laravel\Facades\Gemini;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Log;
+use App\Mail\ReconciliationCompleted;
+use Illuminate\Support\Facades\Mail;
 
 class NewReconciliationServiceImplement extends ServiceApi implements NewReconciliationService{
 
@@ -120,6 +123,7 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
     {
         $client = new \GuzzleHttp\Client();
         $apiKey = env('GEMINI_API_KEY');
+        Log::info('Gemini API Key:', ['key' => env('GEMINI_API_KEY')]);
 
         $url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={$apiKey}";
 
@@ -140,6 +144,7 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
             ]);
 
             $body = json_decode($response->getBody()->getContents(), true);
+            Log::info('Reconciliation result:', ['result' => $body]);
 
             return $body['candidates'][0]['content']['parts'][0]['text'] ?? json_encode($body);
 
@@ -156,7 +161,7 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
 
         $structured = [];
 
-        $prompt = "Please structure the attached JSON object into a JSON object with the following properties: Date, Person, Amount and Other Information. The JSON object could be a school ledger, an invoice ledger, a company ledger, a hospital ledger or a bank statement. Please keep this in mind as you go through the dataset. The person property can be derived from properties like Student Name, Student ID, Invoice ID, Invoice Detail, Narration, Summary, Remarks or any other synonyms that are used in a ledger or bank statement. Please ensure you derive a name and add it to the Person property. If it's not available add a short summary of the description instead. The amount can be derived from the debit, credit, amount, total, or anything that fits this criteria. Ensure the value for the amount that has been paid only so put into consideration any synonyms that may highlight this. Any other information should be added to the 'Other Information' property. Intelligently map through all the properties in the JSON and extract all the relevant information for this data structure. Use the relevant columns to extract this data and ensure the amount is always an absolute value and it should not have any symbols. Return all the data present in the provided JSON in JSON format. Please don't truncate the result.";
+        $prompt = "Please structure the attached JSON object into a JSON object with the following properties: Date, Person, Amount and Other Information. The JSON object could be a school ledger, an invoice ledger, a company ledger, a hospital ledger or a bank statement. Please keep this in mind as you go through the dataset. The person property can be derived from properties like Student Name, Student ID, Invoice ID, Invoice Detail, Narration, Summary, Remarks or any other synonyms that are used in a ledger or bank statement. Please ensure you derive a name and add it to the Person property. If it's not available add a short summary of the description instead. The amount can be derived from the debit, credit, amount, total, or anything that fits this criteria. Ensure the value for the amount that has been paid only so put into consideration any synonyms that may highlight this. Any other information should be added to the 'Other Information' property. Intelligently map through all the properties in the JSON and extract all the relevant information for this data structure. Please exclude any rows that have no data. Use the relevant columns to extract this data and ensure the amount is always an absolute value and it should not have any symbols. Return all the data present in the provided JSON in JSON format. Please don't truncate the result.";
 
         foreach ($chunks as $chunk) {
             $response = $this->callGemini("$prompt. Here's the JSON you need to structure: " . json_encode($chunk) . ". Please return only a valid JSON object");
@@ -168,7 +173,7 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
             if (json_last_error() === JSON_ERROR_NONE && is_array($decodedResponse)) {
                 $structured = array_merge($structured, $decodedResponse);
             } else {
-                \Log::error('Failed to decode Gemini response for data2: ' . json_last_error_msg());
+                Log::error('Failed to decode Gemini response for data2: ' . json_last_error_msg());
             }
         }
 
@@ -347,10 +352,46 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
             'data' => $response
         ]);
 
+        $file = $this->generateCSV($response);
+        Mail::to($user->email)->send(new ReconciliationCompleted($reconciliation, $file));
+
         return [
             'reconciliation_id' => $reconciliation->id,
             ...$response
         ];
+    }
+
+    protected function generateCSV($data){
+        $timestamp = now()->format('Y-m-d_H-i-s');
+        $exportFileName = public_path("reconciled-data-" . now()->format('Y-m-d_H-i-s') . ".csv");
+
+        $exportFile = fopen($exportFileName, 'w');
+        fputcsv($exportFile, ['Bank Statement', '', '', '', 'Ledger']);
+        fputcsv($exportFile, ['Date', 'Description', 'Amount', 'Status', 'Date', 'Description', 'Amount']);
+
+        foreach ($data['matches'] as $row) {
+            $rowData = [
+                ...$row['statement'],
+                'Matched'
+            ];
+            foreach ($row['ledger'] as $value) {
+                array_push($rowData, $value);
+            }
+            fputcsv($exportFile, $rowData);
+        }
+
+        foreach ($data['unmatched_statements'] as $row) {
+            fputcsv($exportFile, [...$row, 'Unmatched']);
+        }
+
+        foreach($data['unmatched_ledgers'] as $row){
+            $updated = ['', '', '', 'Unmatched', ...$row];
+            fputcsv($exportFile, $updated);
+        }
+
+        fclose($exportFile);
+
+        return $exportFileName;
     }
 
     public function usingRecox(string $statement, string $ledger, User $user)

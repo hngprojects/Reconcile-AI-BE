@@ -9,6 +9,7 @@ use Illuminate\Queue\SerializesModels;
 use App\Services\NewReconciliation\NewReconciliationService;
 use Illuminate\Foundation\Bus\Dispatchable;
 use App\Models\User;
+use Illuminate\Support\Facades\Log;
 
 class ProcessReconciliation implements ShouldQueue
 {
@@ -32,7 +33,7 @@ class ProcessReconciliation implements ShouldQueue
         try{
             $service->usingEmbeddings($this->statement, $this->ledger, $this->user);
         }catch(Throwable $e){
-            Log::error("ProcessReconciliation Job Failed: " . $e->getMessage());
+            \Log::error("ProcessReconciliation Job Failed: " . $e->getMessage());
             $this->fail($e);
         }
     }
