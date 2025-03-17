@@ -49,7 +49,8 @@ class LedgerRepositoryImplement extends Eloquent implements LedgerRepository{
     }
 
     public function addVector(Ledger $ledger, array $data){
-        $ledger->vector = json_encode($data);
+        $ledger->embedding = json_encode($data);
+        $ledger->save();
 
         return $ledger;
     }

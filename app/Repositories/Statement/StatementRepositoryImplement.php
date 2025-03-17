@@ -48,8 +48,9 @@ class StatementRepositoryImplement extends Eloquent implements StatementReposito
     }
 
     public function addVector(Statement $statement, array $data){
-        $statement->vector = json_encode($data);
+        $statement->embedding = json_encode($data);
+        $statement->save();
 
-        return $ledger;
+        return $statement;
     }
 }
