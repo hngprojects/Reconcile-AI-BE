@@ -30,19 +30,32 @@ jobs:
           # Navigate to project directory
           cd /home/Reconcile/runner-be
 
-          # Fetch latest changes
+          # Fetch all branches from remote
           git fetch --all
 
-          # Check if the branch exists locally
-          if git rev-parse --verify ${{ github.head_ref }}; then
-              git checkout ${{ github.head_ref }}
+          # Store the branch name
+          BRANCH_NAME="${{ github.head_ref || github.ref_name }}"
+
+          # Debug: Print the detected branch
+          echo "Detected branch: $BRANCH_NAME"
+
+          # Ensure the branch exists remotely before checking out
+          if git show-ref --verify --quiet refs/remotes/origin/$BRANCH_NAME; then
+              # If branch exists locally, switch to it
+              if git show-ref --verify --quiet refs/heads/$BRANCH_NAME; then
+                  git checkout $BRANCH_NAME
+              else
+                  git checkout -b $BRANCH_NAME origin/$BRANCH_NAME
+              fi
+
+              # Reset and pull latest changes
+              git reset --hard origin/$BRANCH_NAME
+              git pull origin $BRANCH_NAME
           else
-              git checkout -b ${{ github.head_ref }} origin/${{ github.head_ref }}
+              echo "❌ ERROR: Branch '$BRANCH_NAME' not found on remote. Exiting."
+              exit 1
           fi
 
-          # Reset and pull the latest code from the branch
-          git reset --hard origin/${{ github.head_ref }}
-          git pull origin ${{ github.head_ref }}
 
 
 
