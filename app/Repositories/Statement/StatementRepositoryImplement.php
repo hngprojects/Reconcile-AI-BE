@@ -25,7 +25,7 @@ class StatementRepositoryImplement extends Eloquent implements StatementReposito
             'reconciliation_id' => $data['reconciliation_id'],
             'person' => $data['Person'],
             'amount' => $data['Amount'],
-            'other_information' => $data['Other Information'] ?? null,
+            'other_information' => array_key_exists('Other Information', $data) ? json_encode($data['Other Information']) : null,
             'date' => $data['Date']
         ]);
     }
@@ -36,7 +36,7 @@ class StatementRepositoryImplement extends Eloquent implements StatementReposito
                 'reconciliation_id' => $reconciliation->id,
                 'person' => $statement['Person'],
                 'amount' => (string) $statement['Amount'],
-                'other_information' => $ledger['Other Information'] ?? null,
+                'other_information' => array_key_exists('Other Information', $statement) ? json_encode($statement['Other Information']) : null,
                 'date' => $statement['Date']
             ]);
         }
