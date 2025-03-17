@@ -1,7 +1,7 @@
 name: Deployment
 on:
   workflow_run:
-    workflows: ["Testing"]  # 🚀 This runs ONLY after CI workflow completes
+    workflows: ["CI Testing"]  # 🚀 This runs ONLY after CI workflow completes
     types:
       - completed  # Runs when CI finishes (success or failure)
   push:
