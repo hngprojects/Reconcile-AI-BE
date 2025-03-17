@@ -33,12 +33,17 @@ jobs:
           # Fetch latest changes
           git fetch --all
 
-          # Ensure the branch exists locally
-          git checkout -B ${{ github.head_ref }} origin/${{ github.head_ref }}
+          # Check if the branch exists locally
+          if git rev-parse --verify ${{ github.head_ref }}; then
+              git checkout ${{ github.head_ref }}
+          else
+              git checkout -b ${{ github.head_ref }} origin/${{ github.head_ref }}
+          fi
 
           # Reset and pull the latest code from the branch
           git reset --hard origin/${{ github.head_ref }}
           git pull origin ${{ github.head_ref }}
+
 
 
           # Install dependencies
