@@ -17,6 +17,8 @@ class ProcessReconciliation implements ShouldQueue
     protected $statement;
     protected $ledger;
     protected $user;
+    public $tries = 3;
+    public $timeout = 10800;
 
     public function __construct(string $statement, string $ledger, User $user)
     {
