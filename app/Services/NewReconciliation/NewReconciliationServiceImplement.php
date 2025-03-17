@@ -10,6 +10,8 @@ use App\Repositories\Statement\StatementRepository;
 use App\Repositories\MatchingTransaction\MatchingTransactionRepository;
 use App\Models\Reconciliation;
 use App\Models\Statement;
+use App\Models\Ledger;
+use App\Models\User;
 use App\Http\Resources\TransactionResource;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
@@ -72,23 +74,23 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
         return $data;
     }
 
-    protected function storeReconciliation($file1, $file2){
+    protected function storeReconciliation($file1, $file2, $user){
         DB::beginTransaction();
 
         $statement = $this->fileRepository->store([
-            'user_id' => Auth::id(),
+            'user_id' => $user,
             'file_name' => $file1,
             'type' => 'Bank Statement'
         ]);
 
         $ledger = $this->fileRepository->store([
-            'user_id' => Auth::id(),
+            'user_id' => $user,
             'file_name' => $file2,
             'type' => 'Ledger'
         ]);
 
         $reconciliation = $this->mainRepository->store([
-            'user_id' => Auth::id(),
+            'user_id' => $user,
             'option' => 'reconcile_with_Gemini'
         ]);
 
@@ -100,15 +102,15 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
     protected function isExactMatch(array $bankEntry, array $ledgerEntry): bool
     {
         return $bankEntry['amount'] === $ledgerEntry['amount'] &&
-            strtolower($bankEntry['description']) === strtolower($ledgerEntry['description']);
+            strtolower($bankEntry['person']) === strtolower($ledgerEntry['person']);
     }
 
     protected function calculateFuzzyMatchScore(array $bankEntry, array $ledgerEntry): float
     {
-        $amountDiff = abs($bankEntry['amount'] - $ledgerEntry['amount']);
+        $amountDiff = abs((int)$bankEntry['amount'] - (int)$ledgerEntry['amount']);
         $amountScore = $amountDiff <= 0.5 ? (1 - $amountDiff / 0.5) * 50 : 0;
 
-        similar_text(strtolower($bankEntry['description']), strtolower($ledgerEntry['description']), $descPercent);
+        similar_text(strtolower($bankEntry['person']), strtolower($ledgerEntry['person']), $descPercent);
         $descScore = $descPercent >= 75 ? $descPercent / 2 : 0;
 
         return $amountScore + $descScore;
@@ -154,7 +156,7 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
 
         $structured = [];
 
-        $prompt = "Please structure the attached JSON object into a JSON object with the following properties: Date, Person, Amount and Other Information. The JSON object could be a school ledger, an invoice ledger, a company ledger, a hospital ledger or a bank statement. Please keep this in mind as you go through the dataset. The person property can be derived from properties like Student Name, Student ID, Invoice ID, Invoice Detail, Narration, Summary, Remarks or any other synonyms that are used in a ledger or bank statement. Please only include the exact value provided in the document only. The amount can be derived from the debit, credit, amount, total, or anything that fits this criteria. Ensure the value for the amount that has been paid only so put into consideration any synonyms that may highlight this. Any other information should be added to the 'Other Information' property. Intelligently map through all the properties in the JSON and extract all the relevant information for this data structure. Use the relevant columns to extract this data and ensure the amount is always an absolute value and it should not have any symbols. Return all the data present in the provided JSON in JSON format. Please don't truncate the result.";
+        $prompt = "Please structure the attached JSON object into a JSON object with the following properties: Date, Person, Amount and Other Information. The JSON object could be a school ledger, an invoice ledger, a company ledger, a hospital ledger or a bank statement. Please keep this in mind as you go through the dataset. The person property can be derived from properties like Student Name, Student ID, Invoice ID, Invoice Detail, Narration, Summary, Remarks or any other synonyms that are used in a ledger or bank statement. Please ensure you derive a name and add it to the Person property. If it's not available add a short summary of the description instead. The amount can be derived from the debit, credit, amount, total, or anything that fits this criteria. Ensure the value for the amount that has been paid only so put into consideration any synonyms that may highlight this. Any other information should be added to the 'Other Information' property. Intelligently map through all the properties in the JSON and extract all the relevant information for this data structure. Use the relevant columns to extract this data and ensure the amount is always an absolute value and it should not have any symbols. Return all the data present in the provided JSON in JSON format. Please don't truncate the result.";
 
         foreach ($chunks as $chunk) {
             $response = $this->callGemini("$prompt. Here's the JSON you need to structure: " . json_encode($chunk) . ". Please return only a valid JSON object");
@@ -182,53 +184,62 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
         DB::commit();
     }
 
-    protected function findMatches(Reconciliation $reconciliation){
+    protected function findMatches(Reconciliation $reconciliation)
+    {
         $statements = $this->statementRepository->findAll($reconciliation);
         $ledgers = $this->ledgerRepository->findAll($reconciliation);
 
-        $statementChunks = array_chunk($statements->toArray(), 20);
-        $ledgerChunks = array_chunk($ledgers->toArray(), 20);
-
         $matches = [];
-        $unmatchedStatements = [];
-        $unmatchedLedgers = [];
+        $matchedStatementIds = [];
+        $matchedLedgerIds = [];
 
-        foreach ($statementChunks as $sChunk) {
-            foreach ($sChunk as $statement) {
-                foreach ($ledgerChunks as $lChunk) {
-                    foreach ($lChunk as $ledger) {
-                        $score = $this->calculateFuzzyMatchScore($statement, $ledger);
+        foreach ($statements as $statement) {
+            foreach ($ledgers as $ledger) {
+                $score = $this->calculateFuzzyMatchScore($statement->toArray(), $ledger->toArray());
 
-                        if ($this->isExactMatch($statement, $ledger)) {
-                            $matches[] = [
-                                'file1_transaction' => $statement,
-                                'file2_transaction' => $ledger,
-                                'match_score' => 100,
-                            ];
-                        $newMatch = $this->matchedRepository->store($ledger, $statement);
-                            break;
-                        }else if ($score > 70) {
-                            $matches[] = [
-                                'file1_transaction' => $statement,
-                                'file2_transaction' => $ledger,
-                                'match_score' => $score,
-                            ];
-                            $newMatch = $this->matchedRepository->store($ledger, $statement);
-                            break;
-                        }else {
-                            $unmatchedStatements[] = $statement;
-                            $unmatchedLedgers[] = $ledger;
-                        }
-                    }
+                if ($this->isExactMatch($statement->toArray(), $ledger->toArray())) {
+                    $matches[] = [
+                        'statement' => (new TransactionResource($statement))->toArray(request()),
+                        'ledger' => (new TransactionResource($ledger))->toArray(request()),
+                        'score' => 100,
+                    ];
+                    $newMatch = $this->matchedRepository->store($ledger, $statement);
+
+                    $matchedStatementIds[] = $statement->id;
+                    $matchedLedgerIds[] = $ledger->id;
+                    break;
+                } else if ($score > 70) {
+                    $matches[] = [
+                        'statement' => (new TransactionResource($statement))->toArray(request()),
+                        'ledger' => (new TransactionResource($ledger))->toArray(request()),
+                        'score' => $score,
+                    ];
+                    $newMatch = $this->matchedRepository->store($ledger, $statement);
+
+                    $matchedStatementIds[] = $statement->id;
+                    $matchedLedgerIds[] = $ledger->id;
+                    break;
                 }
             }
         }
+
+        $unmatchedStatements = $statements->filter(function ($statement) use ($matchedStatementIds) {
+            return !in_array($statement->id, $matchedStatementIds);
+        })->map(function ($statement) {
+            return (new TransactionResource($statement))->toArray(request());
+        })->values()->toArray();
+
+        $unmatchedLedgers = $ledgers->filter(function ($ledger) use ($matchedLedgerIds) {
+            return !in_array($ledger->id, $matchedLedgerIds);
+        })->map(function ($ledger) {
+            return (new TransactionResource($ledger))->toArray(request());
+        })->values()->toArray();
 
         return [
             'reconciliation_id' => $reconciliation->id,
             'matches' => $matches,
             'unmatched_statements' => $unmatchedStatements,
-            'unmatched_ledgers' => $unmatchedLedgers
+            'unmatched_ledgers' => $unmatchedLedgers,
         ];
     }
 
@@ -242,13 +253,13 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
         $statements->map(function (Statement $statement) {
             $combinedText = "Name: {$statement->person}, Amount: {$statement->amount}, Description: {$statement->other_information} Date: {$statement->date}";
             $embedding = $this->getEmbedding($combinedText);
-            $this->statementRepository->addVectore($statement, $embedding);
+            $this->statementRepository->addVector($statement, $embedding);
         });
 
         $ledgers->map(function (Ledger $ledger) {
             $combinedText = "Name: {$ledger->person}, Amount: {$ledger->amount}, Description: {$ledger->other_information} Date: {$ledger->date}";
             $embedding = $this->getEmbedding($combinedText);
-            $this->statementRepository->addVectore($ledger, $embedding);
+            $this->ledgerRepository->addVector($ledger, $embedding);
         });
     }
 
@@ -270,14 +281,15 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
         return $dotProduct / ($magnitudeA * $magnitudeB);
     }
 
-    protected function matchUsingEmbeddings(Collection $statements, Collection $ledgers){
+    protected function matchUsingEmbeddings(Collection $statements, Collection $ledgers)
+    {
         $matches = [];
         $unmatchedLedgers = [];
         $unmatchedStatements = [];
 
         foreach ($ledgers as $ledger) {
             $bestMatch = null;
-            $bestScore = PHP_FLOAT_MAX;
+            $bestScore = -1;
 
             foreach ($statements as $statement) {
                 $ledgerEmbedding = json_decode($ledger->embedding, true);
@@ -285,27 +297,27 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
 
                 $score = $this->cosineSimilarity($ledgerEmbedding, $statementEmbedding);
 
-                if ($score < $bestScore) {
+                if ($score > $bestScore) {
                     $bestScore = $score;
                     $bestMatch = $statement;
                 }
             }
 
-            if ($bestScore < 0.2) {
+            if ($bestScore > 0.9) {
                 $matches[] = [
-                    'ledger' => $ledger,
-                    'statement' => $bestMatch,
+                    'ledger' => (new TransactionResource($ledger))->toArray(request()),
+                    'statement' => (new TransactionResource($bestMatch))->toArray(request()),
                     'score' => $bestScore,
                 ];
 
-                $newMatch = $this->matchedRepository->store($ledger, $statement);
+                $this->matchedRepository->store($ledger, $bestMatch);
             } else {
-                $unmatchedLedgers[] = $ledger;
+                $unmatchedLedgers[] = (new TransactionResource($ledger))->toArray(request());
             }
         }
 
         $matchedStatementIds = collect($matches)->pluck('statement.id')->toArray();
-        $unmatchedStatements = $statements->whereNotIn('id', $matchedStatementIds);
+        $unmatchedStatements = $statements->whereNotIn('id', $matchedStatementIds)->map(fn($stat) => (new TransactionResource($stat))->toArray(request()));
 
         return [
             'matches' => $matches,
@@ -314,9 +326,9 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
         ];
     }
 
-    public function usingEmbeddings($statement, $ledger)
+    public function usingEmbeddings(string $statement, string $ledger, User $user)
     {
-        $reconciliation = $this->storeReconciliation($statement, $ledger);
+        $reconciliation = $this->storeReconciliation($statement, $ledger, $user->id);
 
         $structuredStatements = $this->structuringData($statement);
         $structuredLedgers = $this->structuringData($ledger);
@@ -341,16 +353,22 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
         ];
     }
 
-    public function usingRecox($statement, $ledger)
+    public function usingRecox(string $statement, string $ledger, User $user)
     {
-        $reconciliation = $this->storeReconciliation($statement, $ledger);
+        $reconciliation = $this->storeReconciliation($statement, $ledger, $user->id);
 
         $structuredStatements = $this->structuringData($statement);
         $structuredLedgers = $this->structuringData($ledger);
 
         $this->savingData($structuredStatements, $structuredLedgers, $reconciliation);
 
-        return $this->findMatches($reconciliation);
+        $response = $this->findMatches($reconciliation);
+        $record = $this->mainRepository->storeResponse([
+            'reconciliation_id' => $reconciliation->id,
+            'data' => $response
+        ]);
+
+        return $response;
     }
 
 }
