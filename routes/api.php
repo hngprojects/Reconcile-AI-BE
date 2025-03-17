@@ -46,8 +46,9 @@ Route::prefix('v1')->group(function () {
     // outbound marketing api
     Route::post('/outbound-marketing', [OutboundMarketingController::class, 'store']);
 
+
     // partners 
-    Route::post('/partners', [PartnerController::class, 'store'])->name('partners');
+    Route::post('/partners', [PartnerController::class, 'submit'])->name('partners');
     Route::post('/reconcile', [ReconciliationController::class, 'reconcile'])->name('reconcile')->middleware(ThrottleUnauthenticated::class);
     Route::get('/reconciliations/{reconciliation}', [ReconciliationController::class, 'getReconciledRecords'])->whereUuid('reconciliation')->name('reconciled-records');
     Route::post('/reconcile/export', [ReconciliationController::class, 'export'])->name('export');
