@@ -33,12 +33,13 @@ jobs:
           # Fetch latest changes
           git fetch --all
 
-          # Checkout the branch from the PR
-          git checkout ${{ github.head_ref }}
+          # Ensure the branch exists locally
+          git checkout -B ${{ github.head_ref }} origin/${{ github.head_ref }}
 
           # Reset and pull the latest code from the branch
           git reset --hard origin/${{ github.head_ref }}
           git pull origin ${{ github.head_ref }}
+
 
           # Install dependencies
           composer install --no-progress --prefer-dist --no-interaction
