@@ -4,9 +4,9 @@ on:
   pull_request:
     branches: [main, dev] # Runs for same-repo PRs
     types: [opened, synchronize]
-  push:
-    branches:
-      - '**'
+  # push:
+  #   branches:
+  #     - '**'
 
 
 jobs:
