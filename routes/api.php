@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\WaitListController;
 use App\Http\Controllers\Api\NewsLetterController;
+use App\Http\Controllers\CustomerFeedbackController;
 use App\Http\Controllers\GoogleAuthController;
 use App\Http\Controllers\ReconciliationController;
 use App\Http\Middleware\ThrottleUnauthenticated;
@@ -41,6 +42,10 @@ Route::prefix('v1')->group(function () {
         Route::post('/subscribe', [NewsLetterController::class, 'subscribe'])->name('subscribe');
         Route::post('/unsubscribe', [NewsLetterController::class, 'unsubscribe'])->name('unsubscribe');
     });
+
+    // feebback api
+    Route::post('/customer-feedback', [CustomerFeedbackController::class, 'store']);
+
 
     // outbound marketing api
     Route::post('/outbound-marketing', [OutboundMarketingController::class, 'store']);
