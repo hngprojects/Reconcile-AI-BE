@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\OutboundMarketingController;
+use App\Http\Controllers\PartnerController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
@@ -43,14 +44,13 @@ Route::prefix('v1')->group(function () {
         Route::post('/unsubscribe', [NewsLetterController::class, 'unsubscribe'])->name('unsubscribe');
     });
 
-    // feebback api
-    Route::post('/customer-feedback', [CustomerFeedbackController::class, 'store']);
-
 
     // outbound marketing api
     Route::post('/outbound-marketing', [OutboundMarketingController::class, 'store']);
 
 
+    // partners 
+    Route::post('/partners', [PartnerController::class, 'submit'])->name('partners');
     Route::post('/reconcile', [ReconciliationController::class, 'reconcile'])->name('reconcile')->middleware(ThrottleUnauthenticated::class);
     Route::get('/reconciliations/{reconciliation}', [ReconciliationController::class, 'getReconciledRecords'])->whereUuid('reconciliation')->name('reconciled-records');
     Route::post('/reconcile/export', [ReconciliationController::class, 'export'])->name('export');
@@ -59,4 +59,7 @@ Route::prefix('v1')->group(function () {
     Route::post('/reconcile/{reconciliation}', [ReconciliationController::class, 'matchUnmatch'])->whereUuid('reconciliation')->name('manual-reconciliation');
     Route::post('/wait-list', [WaitListController::class, 'store'])->name('wait-list');
     Route::post('/contact', [ContactController::class, 'contact'])->name('contact');
+
+    // feebback api
+    Route::post('/customer-feedback', [CustomerFeedbackController::class, 'store'])->name('customer.feedback');
 });

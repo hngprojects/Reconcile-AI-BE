@@ -17,7 +17,7 @@ class CustomerFeedbackController extends Controller
 
     /**
      * @OA\Post(
-     *     path="/api/customer-feedback",
+     *     path="/api/v1/customer-feedback",
      *     summary="Submit customer feedback",
      *     description="Submits customer feedback and sends confirmation email",
      *     tags={"Feedback"},
