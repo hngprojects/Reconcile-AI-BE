@@ -4,6 +4,9 @@ on:
   pull_request:
     branches: [main, dev] # Runs for same-repo PRs
     types: [opened, synchronize]
+  push:
+    branches:
+      - '**'
 
 
 jobs:
@@ -17,7 +20,6 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.sha }} # Checkout the PR branch
           persist-credentials: false
-
 
 
       - name: Run Tests Remotely
@@ -52,7 +54,6 @@ jobs:
               echo "❌ ERROR: Branch '$BRANCH_NAME' not found on remote. Exiting."
               exit 1
           fi
-
 
           # Install dependencies
           composer install --no-progress --prefer-dist --no-interaction
