@@ -4,9 +4,6 @@ on:
   pull_request:
     branches: [main, dev] # Runs for same-repo PRs
     types: [opened, synchronize]
-  push:
-    branches:
-      - '**'
 
 
 jobs:
@@ -55,8 +52,6 @@ jobs:
               echo "❌ ERROR: Branch '$BRANCH_NAME' not found on remote. Exiting."
               exit 1
           fi
-
-
 
 
           # Install dependencies
