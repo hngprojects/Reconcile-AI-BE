@@ -13,7 +13,12 @@ use App\Repositories\Ledger\LedgerRepository;
 use App\Repositories\Statement\StatementRepository;
 use App\Repositories\MatchingTransaction\MatchingTransactionRepository;
 use App\Models\Reconciliation;
+use App\Models\Statement;
 use App\Http\Resources\TransactionResource;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
+use Gemini\Laravel\Facades\Gemini;
+use Illuminate\Support\Collection;
 
 class ReconciliationService
 {
@@ -432,7 +437,7 @@ class ReconciliationService
         Return a JSON with 'matches' as an array, 'only_in_file1' as an array, 'only_in_file2' as an array, 'duplicates' as an array, 'unmatched' as an array, and 'matchSummary' as an array.";
     }
 
-    protected function processAIResponse(string $response, array $data1, array $data2)
+    protected function processAIResponse(string $response, array $data1=[], array $data2=[])
     {
         $cleanResponse = trim(str_replace(["```json", "```"], "", $response));
 
@@ -662,30 +667,29 @@ class ReconciliationService
 
         if($data['action'] == 'match'){
 
-            $resArray['only_in_file2'] = array_values(array_udiff(
-                $resArray['only_in_file2'],
-                [$filteredLedger],
-                fn($a, $b) => strcmp(json_encode($a), json_encode($b))
-            ));
+            $resArray['only_in_file2'] = array_values(array_filter($resArray['only_in_file2'], function ($item) use ($filteredLedger) {
+                return !(
+                    json_encode($item) === json_encode($filteredLedger)
+                );
+            }));
 
-            $resArray['unmatched']['unmatched_file2'] = array_values(array_udiff(
-                $resArray['unmatched']['unmatched_file2'],
-                [$filteredLedger],
-                fn($a, $b) => strcmp(json_encode($a), json_encode($b))
-            ));
+            $resArray['unmatched']['unmatched_file2'] = array_values(array_filter($resArray['unmatched']['unmatched_file2'], function ($item) use ($filteredLedger) {
+                return !(
+                    json_encode($item) === json_encode($filteredLedger)
+                );
+            }));
 
-            $resArray['only_in_file1'] = array_values(array_udiff(
-                $resArray['only_in_file1'],
-                [$filteredStatement],
-                fn($a, $b) => strcmp(json_encode($a), json_encode($b))
-            ));
+            $resArray['only_in_file1'] = array_values(array_filter($resArray['only_in_file1'], function ($item) use ($filteredStatement) {
+                return !(
+                    json_encode($item) === json_encode($filteredStatement)
+                );
+            }));
 
-            $resArray['unmatched']['unmatched_file1'] = array_values(array_udiff(
-                $resArray['unmatched']['unmatched_file1'],
-                [$filteredStatement],
-                fn($a, $b) => strcmp(json_encode($a), json_encode($b))
-            ));
-
+            $resArray['unmatched']['unmatched_file1'] = array_values(array_filter($resArray['unmatched']['unmatched_file1'], function ($item) use ($filteredStatement) {
+                    return !(
+                        json_encode($item) === json_encode($filteredStatement)
+                    );
+                }));
             array_push($resArray['matches'], $res);
 
             $resArray['matchSummary']['totalUnmatched'] = count($resArray['unmatched']['unmatched_file1']) + count($resArray['unmatched']['unmatched_file2']);

@@ -2,31 +2,30 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class OutboundMarketing extends Model
+class Partner extends Model
 {
-    use HasUuids;
-
-    protected $table = 'outbound_marketing';
+    use HasFactory;
 
     /**
      * The attributes that are mass assignable.
      *
-     * @var array
+     * @var array<int, string>
      */
     protected $fillable = [
         'full_name',
-        'email',
         'business_name',
+        'service_interested',
+        'email',
         'phone_number',
     ];
 
     /**
      * The attributes that should be cast.
      *
-     * @var array
+     * @var array<string, string>
      */
     protected $casts = [
         'created_at' => 'datetime',

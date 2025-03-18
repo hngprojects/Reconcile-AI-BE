@@ -1,5 +1,9 @@
 name: Deployment
 on:
+  workflow_run:
+    workflows: ["CI Testing"]  # 🚀 This runs ONLY after CI workflow completes
+    types:
+      - completed  # Runs when CI finishes (success or failure)
   push:
     branches:
       - main
@@ -30,7 +34,12 @@ jobs:
             else
               echo "Starting Laravel deployment..."
               # Start the deployment service (using explicit sudo with NOPASSWD permission)
-              sudo systemctl daemon-reload
-              sudo systemctl restart laravel-deploy.service
+              cd /var/www/html/Reconcile-AI-BE-dev
+              git pull origin dev
+              composer install --no-interaction --prefer-dist --no-dev
+              php artisan jwt:secret
+              php artisan optimize:clear
+              php artisan migrate --force
+              sudo systemctl restart nginx
             fi
 
