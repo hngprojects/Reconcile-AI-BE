@@ -110,11 +110,11 @@
             <a href="https://x.com/reconxi02"><img src="{{ $message->embed(public_path('assets/twitter-icon.png')) }}" alt="Twitter"></a>
         </div>
         
-        <p>Thank you for choosing "ReconXi". Need help? <a href="mailto:support@reconxi.com">Contact us</a></p>
+        <p>Thank you for choosing ReconXi. Need help? <a href="mailto:support@reconxi.com">Contact us</a></p>
         
         <div class="divider"></div>
         
-        <p>You are receiving this email because you signed up at Reconxi.com. Want to change how you receive these emails?</p>
+        <p>You are receiving this email because you signed up at <a href="https://reconxi.com/">ReconXi.com</a>. Want to change how you receive these emails?</p>
         <p>You can <a href="{{ route('newsletter.one-click-unsubscribe', ['email' => $feedback->email]) }}">unsubscribe</a> from this list.</p>
     </div>
 </body>

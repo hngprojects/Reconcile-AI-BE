@@ -104,20 +104,51 @@
         </div>
         
         <div class="content">
-            <h1>Dear {{ $data->full_name }},</h1>
+            <h1>Dear Admin,</h1>
             
-            <p>Thank you for reaching out to us and expressing your interest with ReconXi! We appreciate you taking the time to fill out our Partner with Us form. We are excited about the possibility of collaborating with you and exploring how we can work together to create value for our clients.</p>
+            <p>We have received a new partner signup submission through the "Partner with Us" form on our website. Below are the details of the submission:</p>
             
-            <p>Our team is currently reviewing your submission, and we will get back to you shortly to discuss potential partnership opportunities.</p>
+            <p><strong>Partner Details:</strong></p>
+            <ul>
+                <li>
+                    <strong>Name:</strong> {{ $data->full_name }}
+                </li>
+
+                <li>
+                    <strong>Company Name:</strong> {{ $data->business_name }}
+                </li>
+
+                <li>
+                    <strong>Email:</strong> {{ $data->email }}
+                </li>
+
+                <li>
+                    <strong>Phone Number:</strong> {{ $data->phone_number }}
+                </li>
+
+                <li>
+                    <strong>Reason for Partnership:</strong> {{ $data->service_interested }}
+                </li>
+            </ul>
             
-            <p>In the meantime, if you have any questions or need further information, please feel free to reach out to us at <a href="mailto:support@reconxi.com">support email</a> or <a href="tel:">phone number</a></p>
+            <p>
+                Our team should review this submission to assess the alignment of the potential partnership 
+                with our goals and offerings. Once the evaluation is complete, we can follow up with the partner 
+                to discuss collaboration opportunities.
+            </p>
             
-            <p>Thank you once again for your interest. We look forward to connecting soon!</p>
+            <p>
+                Please ensure that a response is sent promptly to acknowledge their interest and provide further 
+                details on the next steps. If any additional information is required from the partner, kindly reach 
+                out to them at the provided contact details.
+            </p>
+
+            <p>For any questions or further clarifications regarding this submission, please let me know.</p>
             
             <p>Best regards,<br>
-            Mercy<br>
-            Team Lead<br>
-            ReconXi</p>
+            Sasa<br>
+            Partnership Officer<br>
+            ReconXi Team</p>
         </div>
         
         <div class="footer">
@@ -127,14 +158,6 @@
                 <a href="https://www.linkedin.com/in/recon-xi-b06835354"><img src="{{ $message->embed(public_path('assets/linkedin-icon.png')) }}" alt="LinkedIn"></a>
                 <a href="https://x.com/reconxi02"><img src="{{ $message->embed(public_path('assets/twitter-icon.png')) }}" alt="Twitter"></a>
             </div>
-            
-            <p>Thank you for choosing ReconXi. Need help? <a href="mailto:support@reconxi.com" class="contact-link">Contact us</a></p>
-            
-            <div class="divider"></div>
-            
-            <p class="footer-text">You are receiving this email because you signed up at <a href="https://reconxi.com/">ReconXi.com</a>. Want to change how you receive these emails?</p>
-            
-            <p class="footer-text">You can <a href="{{ route('newsletter.one-click-unsubscribe', ['email' => $data->email]) }}" class="footer-link">unsubscribe from this list</a>.</p>
         </div>
     </div>
 </body>

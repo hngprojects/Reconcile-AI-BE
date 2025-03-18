@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>New Enquiry - ReconXi</title>
+    <title>New Customer Feedback - ReconXi</title>
     <style>
         /* Base styles */
         body {
@@ -135,15 +135,19 @@
             
             <h2>Hello Admin</h2>
             
-            <p>A new enquiry has been submitted via the Contact Us form on our application. Please find the details below:</p>
+            <p>A new customer feedback request has been submitted. Please find the details below:</p>
             
             <div class="message-box">
                 <div class="message-details">
-                    <strong>Name:</strong> {{ $data['name'] }}
+                    <strong>Name:</strong> {{ $feedback->name }}
                 </div>
                 
                 <div class="message-details">
-                    <strong>Email:</strong> {{ $data['email'] }}
+                    <strong>Email:</strong> {{ $feedback->email }}
+                </div>
+
+                <div class="message-details">
+                    <strong>Request Type:</strong> {{ $feedback->request_type }}
                 </div>
                 
                 <div class="message-details">
@@ -151,14 +155,22 @@
                 </div>
                 
                 <div class="message-content">
-                    {{ $data['message'] }}
+                    {{ $feedback->message }}
                 </div>
             </div>
             
-            <p>Please review and follow up with the user as soon as possible.</p>
+            <p>
+                Please review the submission and assess any necessary follow-up actions. If the feedback 
+                requires further clarification or a response, kindly reach out to the customer to acknowledge their 
+                input or provide any relevant updates. Ensuring a prompt and thoughtful response will help 
+                maintain a positive customer experience and demonstrate our commitment to continuous 
+                improvement.
+            </p>
             
             <p class="mt-20">
-                Best regards,<br>
+                Best regards,<br/>
+                Sasa<br/>
+                Customer Experience<br/>
                 The ReconXi Team
             </p>
         </div>
@@ -179,10 +191,6 @@
                     <img src="{{ $message->embed(public_path('assets/twitter-icon.png')) }}" alt="Twitter">
                 </a>
             </div>
-            
-            <p>Thank you for choosing ReconXi. Need help? <a href="mailto:support@reconxi.com" class="footer-links">Contact us</a></p>
-            
-            <div class="divider"></div>
         </div>
     </div>
 </body>

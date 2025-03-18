@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\AdminPartnerMail;
 use App\Mail\PartnerWelcomeMail;
 use App\Models\Partner;
 use Illuminate\Http\Request;
@@ -69,41 +70,51 @@ class PartnerController extends Controller
     public function submit(Request $request)
     {
         // Validate the form data
-        $validator = Validator::make($request->all(), [
+        $validatedData = $this->validateSubmission($request);
+
+        // Store the contact submission
+        $submission = Partner::create($validatedData);
+
+        // Attempt to send emails (failures won't affect response)
+        $this->sendEmailsIndividually($submission);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Thank you for your submission. We will contact you shortly.'
+        ], 200);
+    }
+
+    /**
+     * Validate the submission request.
+     */
+    private function validateSubmission(Request $request): array
+    {
+        return $request->validate([
             'full_name' => 'required|string|max:255',
             'business_name' => 'nullable|string|max:255',
             'service_interested' => 'required|string|max:500',
             'email' => 'required|email|max:255',
             'phone_number' => 'required|string|max:20',
         ]);
+    }
 
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'errors' => $validator->errors()
-            ], 422);
-        }
-
-        // Store the contact submission
-        $submission = Partner::create([
-            'full_name' => $request->full_name,
-            'business_name' => $request->business_name,
-            'service_interested' => $request->service_interested,
-            'email' => $request->email,
-            'phone_number' => $request->phone_number,
-        ]);
-
-        // Send notification email
+    /**
+     * Send emails separately so one failure does not affect others.
+     */
+    private function sendEmailsIndividually(Partner $submission): void
+    {
+        // Send user email
         try {
-            Mail::to(config('mail.admin_address'))->send(new PartnerWelcomeMail($submission));
+            Mail::to($submission->email)->queue(new PartnerWelcomeMail($submission));
         } catch (\Exception $e) {
-            // Log the error but don't fail the request
-            Log::error('Failed to send contact form email: ' . $e->getMessage());
+            Log::error('Failed to send PartnerWelcomeMail to ' . $submission->email . ': ' . $e->getMessage());
         }
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Thank you for your submission. We will contact you shortly.'
-        ], 200);
+        // Send admin email
+        try {
+            Mail::to(config('mail.admin_address'))->queue(new AdminPartnerMail($submission));
+        } catch (\Exception $e) {
+            Log::error('Failed to send AdminPartnerMail to admin: ' . $e->getMessage());
+        }
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Services\CustomerFeedback;
 
+use App\Mail\AdminFeedbackMail;
 use App\Mail\FeedbackMail;
 use LaravelEasyRepository\ServiceApi;
 use App\Repositories\CustomerFeedback\CustomerFeedbackRepository;
@@ -49,6 +50,7 @@ class CustomerFeedbackServiceImplement extends ServiceApi implements CustomerFee
 
             // Send confirmation email
             Mail::to($feedback->email)->queue(new FeedbackMail($feedback));
+            Mail::to(config('mail.admin_address'))->queue(new AdminFeedbackMail($feedback));
 
             return $this->setCode(200)
                 ->setMessage("Feedback Submitted Successfully")

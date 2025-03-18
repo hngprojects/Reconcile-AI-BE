@@ -143,14 +143,14 @@
 <body>
     <header class="header-container">
         <div class="logo-container">
-            <img src="https://api-dev.reconxi.com/assets/logo.png" alt="">
+            <img src="{{ $message->embed(public_path('assets/logo.png')) }}" alt="">
         </div>
     </header>
     <div class="subject-container">
         <h1 class="subject"> {{ $data->full_name }}, YOU’RE JUST A CLICK AWAY FROM SAVING MONEY AND TIME.</h1>
     </div>
     <div class=" hero">
-        <img src="https://api-dev.reconxi.com/assets/outbound-hero.png" alt="">
+        <img src="{{ $message->embed(public_path('assets/outbound-hero.png')) }}" alt="">
     </div>
     <div class=" content">
         <h6>Hi {{ $data->full_name }},</h6>
@@ -193,26 +193,25 @@
         <div class="footer">
             <div class="social-icons">
                 <a href="https://www.instagram.com/reconxi02">
-                    <img src="https://api-dev.reconxi.com/assets/instagram-icon.png" alt="Instagram">
+                    <img src="{{ $message->embed(public_path('assets/instagram-icon.png')) }}" alt="Instagram">
                 </a>
                 <a href="https://www.facebook.com/profile.php?id=61573471907361">
-                    <img src="https://api-dev.reconxi.com/assets/facebook-icon.png" alt="Facebook">
+                    <img src="{{ $message->embed(public_path('assets/facebook-icon.png')) }}" alt="Facebook">
                 </a>
                 <a href="https://www.linkedin.com/in/recon-xi-b06835354">
-                    <img src="https://api-dev.reconxi.com/assets/linkedin-icon.png" alt="LinkedIn">
+                    <img src="{{ $message->embed(public_path('assets/linkedin-icon.png')) }}" alt="LinkedIn">
                 </a>
                 <a href="https://x.com/reconxi02">
-                    <img src="https://api-dev.reconxi.com/assets/twitter-icon.png" alt="Twitter">
+                    <img src="{{ $message->embed(public_path('assets/twitter-icon.png')) }}" alt="Twitter">
                 </a>
             </div>
 
-            <p>Thank you for choosing ReconXi. Need help? <a href="mailto:support@reconxi.com"
-                    class="footer-links">Contact us</a></p>
+            <p>Thank you for choosing ReconXi. Need help? <a href="mailto:support@reconxi.com" class="footer-links">Contact us</a></p>
 
             <div class="divider"></div>
 
             <div class=" footer-bottom">
-                <p>You are receiving this email because you signed up at Reconxi.com. Want to change how you receive
+                <p>You are receiving this email because you signed up at <a href="https://reconxi.com/">ReconXi.com</a>. Want to change how you receive
                     these
                     emails?</p>
 
