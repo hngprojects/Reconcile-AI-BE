@@ -1087,6 +1087,116 @@
                 }
             }
         },
+        "/api/v1/customer-feedback": {
+            "post": {
+                "tags": [
+                    "Feedback"
+                ],
+                "summary": "Submit customer feedback",
+                "description": "Submits customer feedback and sends confirmation email",
+                "operationId": "2f66252f2b7747156bc0e69c76a51b65",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "email"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "description": "Customer name",
+                                        "type": "string",
+                                        "example": "Mercy"
+                                    },
+                                    "email": {
+                                        "description": "Customer email address",
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "mercy@example.com"
+                                    },
+                                    "message": {
+                                        "description": "Feedback message",
+                                        "type": "string",
+                                        "example": "I enjoyed using the reconciliation platform"
+                                    },
+                                    "request_type": {
+                                        "description": "Type of request",
+                                        "type": "string",
+                                        "example": "Feedback"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Feedback submitted successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Feedback Submitted Successfully"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "name": {
+                                                    "type": "string",
+                                                    "example": "Mercy"
+                                                },
+                                                "email": {
+                                                    "type": "string",
+                                                    "example": "mercy@example.com"
+                                                },
+                                                "created_at": {
+                                                    "type": "string",
+                                                    "format": "date-time"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Validation error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Feedback Submission Failed"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/auth/google": {
             "get": {
                 "tags": [
@@ -2404,6 +2514,10 @@
         {
             "name": "Contact",
             "description": "Contact"
+        },
+        {
+            "name": "Feedback",
+            "description": "Feedback"
         },
         {
             "name": "User",

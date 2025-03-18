@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\WaitListController;
 use App\Http\Controllers\Api\NewsLetterController;
+use App\Http\Controllers\CustomerFeedbackController;
 use App\Http\Controllers\GoogleAuthController;
 use App\Http\Controllers\ReconciliationController;
 use App\Http\Middleware\ThrottleUnauthenticated;
@@ -43,6 +44,7 @@ Route::prefix('v1')->group(function () {
         Route::post('/unsubscribe', [NewsLetterController::class, 'unsubscribe'])->name('unsubscribe');
     });
 
+
     // outbound marketing api
     Route::post('/outbound-marketing', [OutboundMarketingController::class, 'store']);
 
@@ -57,4 +59,7 @@ Route::prefix('v1')->group(function () {
     Route::post('/reconcile/{reconciliation}', [ReconciliationController::class, 'matchUnmatch'])->whereUuid('reconciliation')->name('manual-reconciliation');
     Route::post('/wait-list', [WaitListController::class, 'store'])->name('wait-list');
     Route::post('/contact', [ContactController::class, 'contact'])->name('contact');
+
+    // feebback api
+    Route::post('/customer-feedback', [CustomerFeedbackController::class, 'store'])->name('customer.feedback');
 });

@@ -9,16 +9,16 @@ use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
-class PartnerWelcomeMail extends Mailable implements ShouldQueue
+class AdminPartnerMail extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
 
     /**
      * Create a new message instance.
      */
-
     public function __construct(public $data)
     {
+        //
     }
 
     /**
@@ -27,7 +27,7 @@ class PartnerWelcomeMail extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Partner Welcome Mail',
+            subject: 'New Partner Signup Submission - '.$this->data->full_name,
         );
     }
 
@@ -37,11 +37,10 @@ class PartnerWelcomeMail extends Mailable implements ShouldQueue
     public function content(): Content
     {
         return new Content(
-            view: 'emails.partner',
+            view: 'emails.admin-partner',
             with: [
                 'data' => $this->data,
             ],
-
         );
     }
 
