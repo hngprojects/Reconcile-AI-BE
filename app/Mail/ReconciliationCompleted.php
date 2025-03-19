@@ -41,7 +41,7 @@ class ReconciliationCompleted extends Mailable
     {
         return new Content(
             view: 'mail.reconciliation-completed',
-            with: ['user' => $user]
+            with: ['user' => $this->user]
         );
     }
 
