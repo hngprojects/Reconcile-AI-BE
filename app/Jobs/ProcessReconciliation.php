@@ -15,23 +15,23 @@ class ProcessReconciliation implements ShouldQueue
 {
     use InteractsWithQueue, Queueable, SerializesModels, Dispatchable;
 
-    protected $statement;
-    protected $ledger;
+    protected $statements;
+    protected $ledgers;
     protected $user;
     public $tries = 3;
     public $timeout = 10800;
 
-    public function __construct(string $statement, string $ledger, User $user)
+    public function __construct(array $statements, array $ledgers, User $user)
     {
-        $this->statement = $statement;
-        $this->ledger = $ledger;
+        $this->statements = $statements;
+        $this->ledgers = $ledgers;
         $this->user = $user;
     }
 
     public function handle(NewReconciliationService $service)
     {
         try{
-            $service->usingEmbeddings($this->statement, $this->ledger, $this->user);
+            $service->usingEmbeddings($this->statements, $this->ledgers, $this->user);
         }catch(Throwable $e){
             \Log::error("ProcessReconciliation Job Failed: " . $e->getMessage());
             $this->fail($e);
