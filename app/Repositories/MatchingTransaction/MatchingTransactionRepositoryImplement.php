@@ -6,6 +6,9 @@ use LaravelEasyRepository\Implementations\Eloquent;
 use App\Models\MatchingTransaction;
 use App\Models\Ledger;
 use App\Models\Statement;
+use App\Models\Reconciliation;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class MatchingTransactionRepositoryImplement extends Eloquent implements MatchingTransactionRepository{
 
@@ -25,7 +28,7 @@ class MatchingTransactionRepositoryImplement extends Eloquent implements Matchin
         return $this->model->create([
             'ledger_id' => $ledger->id,
             'statement_id' => $statement->id,
-            'status' => 'Matched'
+            'score' => 1.0
         ]);
     }
 
@@ -34,5 +37,34 @@ class MatchingTransactionRepositoryImplement extends Eloquent implements Matchin
             'ledger_id' => $ledger->id,
             'statement_id' => $statement->id,
         ])->first()->delete();
+    }
+
+    public function matchTransactions(Reconciliation $reconciliation){
+        $matches = DB::select("
+                SELECT DISTINCT ON (s.id)
+                    s.id AS statement_id,
+                    l.id AS ledger_id,
+                    1 - (s.embedding <=> l.embedding) AS cosine_similarity
+                FROM
+                    statements s
+                JOIN
+                    ledgers l ON s.reconciliation_id = l.reconciliation_id
+                WHERE
+                    s.reconciliation_id = ?
+                    AND 1 - (s.embedding <=> l.embedding) > 0.85
+                ORDER BY
+                    s.id, cosine_similarity DESC
+            ", [$reconciliation->id]);
+
+        foreach ($matches as $match) {
+           $this->model->create([
+                'ledger_id' => $match->ledger_id,
+                'statement_id' => $match->statement_id,
+                'score' => $match->cosine_similarity
+            ]);
+        }
+
+        Log::info('Matching results', ['matches' => $matches]);
+        return $matches;
     }
 }
