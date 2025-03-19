@@ -21,11 +21,11 @@ class MatchingTransactionRepositoryImplement extends Eloquent implements Matchin
         $this->model = $model;
     }
 
-    public function store(Ledger $ledger, Statement $statement){
+    public function store(Ledger $ledger, Statement $statement, int $score){
         return $this->model->create([
             'ledger_id' => $ledger->id,
             'statement_id' => $statement->id,
-            'status' => 'Matched'
+            'score' => $score
         ]);
     }
 

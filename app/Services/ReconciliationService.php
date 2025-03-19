@@ -559,31 +559,9 @@ class ReconciliationService
         return $reconciliation;
      }
 
-    public function matchUnmatch(array $data, Reconciliation $reconciliation){
-        $ledger = $this->ledgerRepository->store([
-            'reconciliation_id' => $reconciliation->id,
-            ...$data['ledger']
-        ]);
-
-        $statement = $this->statementRepository->store([
-            'reconciliation_id' => $reconciliation->id,
-            ...$data['statement']
-        ]);
-
-        $filteredStatement = (new TransactionResource($statement))->toArray(request());
-        $filteredLedger = (new TransactionResource($ledger))->toArray(request());
-
-        $response = $this->mainRepository->findResponse($reconciliation);
-        $resArray = $response->data;
-        $newMatch = $this->matchedRepository->store($ledger, $statement);
-        $res = [
-            'file1_transaction' => $filteredStatement,
-            'file2_transaction' => $filteredLedger,
-            'match_score' => 100
-        ];
-
-        if($data['action'] == 'match'){
-
+    protected function matchRecords($ledger, $statement, $action, $resArray, $filteredLedger, $filteredStatement){
+        if($action == 'match'){
+            $newMatch = $this->matchedRepository->store($ledger, $statement, 100);
             $resArray['only_in_file2'] = array_values(array_filter($resArray['only_in_file2'], function ($item) use ($filteredLedger) {
                 return !(
                     json_encode($item) === json_encode($filteredLedger)
@@ -630,6 +608,67 @@ class ReconciliationService
 
             $resArray['matchSummary']['totalUnmatched'] = count($resArray['unmatched']['unmatched_file1']) + count($resArray['unmatched']['unmatched_file2']);
             $resArray['matchSummary']['totalMatched'] = count($resArray['matches']);
+        }
+
+        return $resArray;
+    }
+
+    public function matchUnmatch(array $data, Reconciliation $reconciliation){
+        $ledgers = [];
+        $statements = [];
+
+        foreach ($data['ledgers'] as $ledger) {
+            $ledgers[] = $this->ledgerRepository->store([
+                'reconciliation_id' => $reconciliation->id,
+                ...$ledger
+            ]);
+        }
+
+        foreach ($data['statements'] as $statement) {
+            $statements[] = $this->statementRepository->store([
+                'reconciliation_id' => $reconciliation->id,
+                ...$statement
+            ]);
+        }
+        $response = $this->mainRepository->findResponse($reconciliation);
+        $resArray = $response->data;
+
+        if(count($ledgers) > 1 && count($statements) == 1){
+            $file1 = [];
+            $file2 = [];
+            foreach ($ledgers as $ledg) {
+                $filteredStatement = (new TransactionResource($statements[0]))->toArray(request());
+                $filteredLedger = (new TransactionResource($ledg))->toArray(request());
+
+
+                $resArray = $this->matchRecords($ledg, $statements[0], $data['action'], $resArray, $filteredLedger, $filteredStatement);
+
+                $file1[] = $filteredStatement;
+                $file2[] = $filteredLedger;
+            }
+            $res = [
+                'file1_transaction' => $file1,
+                'file2_transaction' => $file2,
+            ];
+        }else if(count($statements) > 1 && count($ledgers) == 1){
+            $file1 = [];
+            $file2 = [];
+            foreach ($statements as $stat) {
+                $filteredStatement = (new TransactionResource($ledgers[0]))->toArray(request());
+                $filteredLedger = (new TransactionResource($stat))->toArray(request());
+
+                $response = $this->mainRepository->findResponse($reconciliation);
+                $resArray = $response->data;
+
+                $this->matchRecords($ledgers[0], $stat, $data['action'], $resArray, $filteredLedger, $filteredStatement);
+
+                $file1[] = $filteredStatement;
+                $file2[] = $filteredLedger;
+            }
+            $res = [
+                'file1_transaction' => $file1,
+                'file2_transaction' => $file2,
+            ];
         }
 
         $response->data = $resArray;
