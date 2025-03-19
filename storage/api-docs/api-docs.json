@@ -1093,16 +1093,18 @@
                     "Feedback"
                 ],
                 "summary": "Submit customer feedback",
-                "description": "Submits customer feedback and sends confirmation email",
+                "description": "Submits customer feedback with an optional file attachment",
                 "operationId": "2f66252f2b7747156bc0e69c76a51b65",
                 "requestBody": {
                     "required": true,
                     "content": {
-                        "application/json": {
+                        "multipart/form-data": {
                             "schema": {
                                 "required": [
                                     "name",
-                                    "email"
+                                    "email",
+                                    "message",
+                                    "request_type"
                                 ],
                                 "properties": {
                                     "name": {
@@ -1114,12 +1116,22 @@
                                         "description": "Customer email address",
                                         "type": "string",
                                         "format": "email",
-                                        "example": "mercy@example.com"
+                                        "example": "tulbadex@gmail.com"
+                                    },
+                                    "subject": {
+                                        "description": "Subject of the feedback",
+                                        "type": "string",
+                                        "example": "Product Feedback"
                                     },
                                     "message": {
                                         "description": "Feedback message",
                                         "type": "string",
                                         "example": "I enjoyed using the reconciliation platform"
+                                    },
+                                    "file": {
+                                        "description": "Optional file attachment",
+                                        "type": "string",
+                                        "format": "binary"
                                     },
                                     "request_type": {
                                         "description": "Type of request",
@@ -1159,7 +1171,15 @@
                                                 },
                                                 "email": {
                                                     "type": "string",
-                                                    "example": "mercy@example.com"
+                                                    "example": "tulbadex@gmail.com"
+                                                },
+                                                "subject": {
+                                                    "type": "string",
+                                                    "example": "Product Feedback"
+                                                },
+                                                "file_path": {
+                                                    "type": "string",
+                                                    "example": "/storage/feedback_attachments/1647782345_document.pdf"
                                                 },
                                                 "created_at": {
                                                     "type": "string",

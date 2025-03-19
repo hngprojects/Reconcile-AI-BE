@@ -93,6 +93,7 @@
             <p><strong>Submission Details</strong></p>
             <p><strong>Date:</strong> {{ $feedback->created_at->format('d/m/Y') }}.</p>
             <p><strong>Request Type:</strong> {{ $feedback->request_type ?? "Feedback" }}.</p>
+            <p><strong>Subject:</strong> {{ $feedback->subject ?? "Subject" }}.</p>
             <p><strong>Message:</strong> {{ $feedback->message }}</p>
         </div>
         

@@ -25,7 +25,9 @@ class CustomerFeedbackRequest extends FormRequest
             'email' => 'required|email|max:255',
             'name' => 'required|string|max:255',
             'message' => 'required|string',
-            'request_type' => 'sometimes|string|max:255'
+            'request_type' => 'sometimes|string|max:255',
+            'subject' => 'nullable|string|max:255',
+            'file' => 'nullable|file|mimes:jpg,jpeg,png,pdf,doc,docx|max:10240', // 10MB max file size // Allow images & documents (max: 2MB) 2048
         ];
     }
 }
