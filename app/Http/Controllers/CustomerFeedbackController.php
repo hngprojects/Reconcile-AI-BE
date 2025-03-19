@@ -28,7 +28,7 @@ class CustomerFeedbackController extends Controller
      *             @OA\Schema(
      *                 required={"name", "email", "message", "request_type"},
      *                 @OA\Property(property="name", type="string", example="Mercy", description="Customer name"),
-     *                 @OA\Property(property="email", type="string", format="email", example="tulbadex@gmail.com", description="Customer email address"),
+     *                 @OA\Property(property="email", type="string", format="email", example="mercy@reconxi.com", description="Customer email address"),
      *                 @OA\Property(property="subject", type="string", example="Product Feedback", description="Subject of the feedback"),
      *                 @OA\Property(property="message", type="string", example="I enjoyed using the reconciliation platform", description="Feedback message"),
      *                 @OA\Property(property="file", type="string", format="binary", description="Optional file attachment"),
