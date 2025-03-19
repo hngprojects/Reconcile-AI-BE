@@ -17,7 +17,7 @@ class ReconciliationCompleted extends Mailable
     /**
      * Create a new message instance.
      */
-    public function __construct($reconciliation, $filePath)
+    public function __construct($reconciliation, $filePath, $user)
     {
         $this->reconciliation = $reconciliation;
         $this->filePath = $filePath;
@@ -40,6 +40,7 @@ class ReconciliationCompleted extends Mailable
     {
         return new Content(
             view: 'mail.reconciliation-completed',
+            with: ['user' => $user]
         );
     }
 
