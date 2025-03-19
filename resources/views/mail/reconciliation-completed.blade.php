@@ -98,11 +98,6 @@
             </div>
 
             <p>Thank you for choosing ReconXi. Need help? <a href="mailto:support@reconxi.com">Contact us</a></p>
-
-            <div class="divider"></div>
-
-            <p>You are receiving this email because you signed up at <a href="https://reconxi.com/">ReconXi.com</a>. Want to change how you receive these emails?</p>
-            <p>You can <a href="{{ url('api/v1/newsletter/unsubscribe/' . $email) }}">unsubscribe</a> from this list.</p>
         </div>
     </div>
 </body>
