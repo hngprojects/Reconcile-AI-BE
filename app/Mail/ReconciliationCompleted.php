@@ -21,6 +21,7 @@ class ReconciliationCompleted extends Mailable
     {
         $this->reconciliation = $reconciliation;
         $this->filePath = $filePath;
+        $this->user = $user;
     }
 
     /**
@@ -40,7 +41,7 @@ class ReconciliationCompleted extends Mailable
     {
         return new Content(
             view: 'mail.reconciliation-completed',
-            with: ['user' => $user]
+            with: ['user' => $this->user]
         );
     }
 
