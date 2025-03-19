@@ -41,7 +41,7 @@ class MatchingTransactionRepositoryImplement extends Eloquent implements Matchin
 
     public function matchTransactions(Reconciliation $reconciliation){
         $matches = DB::select("
-                SELECT
+                SELECT DISTINCT ON (s.id)
                     s.id AS statement_id,
                     l.id AS ledger_id,
                     1 - (s.embedding <=> l.embedding) AS cosine_similarity
@@ -53,7 +53,7 @@ class MatchingTransactionRepositoryImplement extends Eloquent implements Matchin
                     s.reconciliation_id = ?
                     AND 1 - (s.embedding <=> l.embedding) > 0.85
                 ORDER BY
-                    cosine_similarity DESC
+                    s.id, cosine_similarity DESC
             ", [$reconciliation->id]);
 
         foreach ($matches as $match) {

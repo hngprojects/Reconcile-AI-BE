@@ -100,25 +100,33 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
         return ['data' => $data, 'headers' => $headers];
     }
 
-    protected function storeReconciliation($file1, $file2, $user){
+    protected function storeReconciliation($statements, $ledgers, $user){
         DB::beginTransaction();
-
-        $statement = $this->fileRepository->store([
-            'user_id' => $user,
-            'file_name' => $file1,
-            'type' => 'Bank Statement'
-        ]);
-
-        $ledger = $this->fileRepository->store([
-            'user_id' => $user,
-            'file_name' => $file2,
-            'type' => 'Ledger'
-        ]);
 
         $reconciliation = $this->mainRepository->store([
             'user_id' => $user,
             'option' => 'reconcile_with_Gemini'
         ]);
+
+        foreach ($statements as $key => $value) {
+            $statement = $this->fileRepository->store([
+                'user_id' => $user,
+                'file_name' => $value,
+                'type' => 'Bank Statement'
+            ]);
+
+            $reconciliation->files()->attach($statement->id);
+        }
+
+        foreach ($ledgers as $key => $value) {
+            $ledger = $this->fileRepository->store([
+                'user_id' => $user,
+                'file_name' => $value,
+                'type' => 'Ledger'
+            ]);
+
+            $reconciliation->files()->attach($ledger->id);
+        }
 
         DB::commit();
 
@@ -170,29 +178,34 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
             return $res;
         }
 
-    protected function structuringData($file){
-        $data = $this->loadComplexCsv($file);
-
-        $chunks = array_chunk($data, 15);
-
+    protected function structuringData($files){
         $structured = [];
+        Log::info('Starting data structuring....', ['files' => $files]);
 
-        $prompt = "Please structure the attached JSON object into a JSON object with the following properties: Date, Person, Amount and Other Information. The JSON object could be a school ledger, an invoice ledger, a company ledger, a hospital ledger or a bank statement. Please keep this in mind as you go through the dataset. The person property can be derived from properties like Student Name, Student ID, Invoice ID, Invoice Detail, Narration, Summary, Remarks or any other synonyms that are used in a ledger or bank statement. Please ensure you derive a name and add it to the Person property. If it's not available add a short summary of the description instead or the unique identifier. The amount can be derived from the debit, credit, amount, total, or anything that fits this criteria. Ensure the value for the amount that has been paid only so put into consideration any synonyms that may highlight this. Any other information should be added to the 'Other Information' property. Intelligently map through all the properties in the JSON and extract all the relevant information for this data structure. Please exclude any rows that have no data. Use the relevant columns to extract this data and ensure the amount is always an absolute value and it should not have any symbols. Return all the data present in the provided JSON in JSON format. Please don't truncate the result.";
+        foreach ($files as $file) {
+            $data = $this->loadComplexCsv($file);
 
-        foreach ($chunks as $chunk) {
-            $response = $this->callGemini("$prompt. Here's the JSON you need to structure: " . json_encode($chunk) . ". Please return only a valid JSON object");
+            $chunks = array_chunk($data, 15);
 
-            $cleanResponse = str_replace(["```json", "```"], "", $response);
+            $prompt = "Please structure the attached JSON object into a JSON object with the following properties: Date, Person, Amount and Other Information. The JSON object could be a school ledger, an invoice ledger, a company ledger, a hospital ledger or a bank statement. Please keep this in mind as you go through the dataset. The person property can be derived from properties like Student Name, Invoice Detail, Narration, Summary, Remarks or any other synonyms that are used in a ledger or bank statement. Please ensure you derive a name and add it to the Person property. If it's not available, provide a short summary of the provided data. The amount can be derived from the debit, credit, amount, total, or anything that fits this criteria. Ensure the value for the amount that has been paid only so put into consideration any synonyms that may highlight this. Any other information should be added to the 'Other Information' property. Intelligently map through all the properties in the JSON and extract all the relevant information for this data structure. Please exclude any rows that have no data. Use the relevant columns to extract this data and ensure the amount is always an absolute value and it should not have any symbols. Return all the data present in the provided JSON in JSON format. Please don't truncate the result.";
 
-            $decodedResponse = json_decode($cleanResponse, true);
+            foreach ($chunks as $chunk) {
+                Log::info('Calling Gemini......');
+                $response = $this->callGemini("$prompt. Here's the JSON you need to structure: " . json_encode($chunk) . ". Please return only a valid JSON object");
 
-            if (json_last_error() === JSON_ERROR_NONE && is_array($decodedResponse)) {
-                $structured = array_merge($structured, $decodedResponse);
-            } else {
-                Log::error('Failed to decode Gemini response for data2: ' . json_last_error_msg());
+                $cleanResponse = str_replace(["```json", "```"], "", $response);
+
+                $decodedResponse = json_decode($cleanResponse, true);
+
+                if (json_last_error() === JSON_ERROR_NONE && is_array($decodedResponse)) {
+                    $structured = array_merge($structured, $decodedResponse);
+                } else {
+                    Log::error('Failed to decode Gemini response for data2: ' . json_last_error_msg());
+                }
+
+                Log::info('Sleeping for 2 seconds....');
+                Sleep::for(2.5)->seconds();
             }
-
-            Sleep::for(2.5)->seconds();
         }
 
         return $structured;
@@ -215,13 +228,15 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
 
     protected function generateEmbeddings(Collection $statements, Collection $ledgers){
         $statements->map(function (Statement $statement) {
-            $combinedText = "{$statement->person}, {$statement->amount},{$statement->other_information}, {$statement->date}";
+            $formattedDate = date('Y-m-d', strtotime($statement->date));
+            $combinedText = "Person's name: {$statement->person}, Amount: {$statement->amount}, Other relevant information: {$statement->other_information}, Date: {$formattedDate}";
             $embedding = $this->getEmbedding($combinedText);
             $this->statementRepository->addVector($statement, $embedding);
         });
 
         $ledgers->map(function (Ledger $ledger) {
-            $combinedText = "{$ledger->person}, {$ledger->amount}, {$ledger->other_information}, {$ledger->date}";
+            $formattedDate = date('Y-m-d', strtotime($ledger->date));
+            $combinedText = "Person's name: {$ledger->person}, Amount: {$ledger->amount}, Other relevant information: {$ledger->other_information}, Date: {$formattedDate}";
             $embedding = $this->getEmbedding($combinedText);
             $this->ledgerRepository->addVector($ledger, $embedding);
         });
@@ -264,21 +279,21 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
         ];
     }
 
-    public function usingEmbeddings(string $statement, string $ledger, User $user)
+    public function usingEmbeddings(array $statements, array $ledgers, User $user)
     {
-        $reconciliation = $this->storeReconciliation($statement, $ledger, $user->id);
+        $reconciliation = $this->storeReconciliation($statements, $ledgers, $user->id);
 
-        $structuredStatements = $this->structuringData($statement);
-        $structuredLedgers = $this->structuringData($ledger);
+        $structuredStatements = $this->structuringData($statements);
+        $structuredLedgers = $this->structuringData($ledgers);
 
         $this->savingData($structuredStatements, $structuredLedgers, $reconciliation);
 
-        $statements = $this->statementRepository->findAll($reconciliation);
-        $ledgers = $this->ledgerRepository->findAll($reconciliation);
+        $savedStatements = $this->statementRepository->findAll($reconciliation);
+        $savedLedgers = $this->ledgerRepository->findAll($reconciliation);
 
-        $this->generateEmbeddings($statements, $ledgers);
+        $this->generateEmbeddings($savedStatements, $savedLedgers);
 
-        $response = $this->matchUsingEmbeddings($statements, $ledgers);
+        $response = $this->matchUsingEmbeddings($savedStatements, $savedLedgers);
 
         $record = $this->mainRepository->storeResponse([
             'reconciliation_id' => $reconciliation->id,
@@ -305,7 +320,8 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
         foreach ($data['matches'] as $row) {
             $rowData = [
                 ...$row['statement'],
-                'Matched'
+                'Matched',
+                $row['score']
             ];
             foreach ($row['ledger'] as $value) {
                 array_push($rowData, $value);
@@ -318,7 +334,7 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
         }
 
         foreach($data['unmatched_ledgers'] as $row){
-            $updated = ['', '', '', 'Unmatched', ...$row];
+            $updated = ['', '', '', '','Unmatched', ...$row];
             fputcsv($exportFile, $updated);
         }
 
