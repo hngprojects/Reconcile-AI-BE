@@ -20,6 +20,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use App\Mail\ReconciliationCompleted;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Sleep;
 
 class NewReconciliationServiceImplement extends ServiceApi implements NewReconciliationService{
 
@@ -63,18 +64,40 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
     protected function loadComplexCsv($filePath)
     {
         $data = [];
+        $headers = [];
+
         if (($handle = fopen($filePath, 'r')) !== false) {
-            $headers = fgetcsv($handle);
             while (($row = fgetcsv($handle)) !== false) {
-                if(count(array_filter($headers)) < count($headers)/2){
+                if (count(array_filter($row)) === 0) {
+                    continue;
+                }
+
+                $filtered = array_filter($headers, function ($item) {
+                    return $item !== "" && $item !== "#N/A";
+                });
+
+                $filteredRow = array_filter($row, function ($item) {
+                    return $item === "" || $item === "#N/A";
+                });
+
+                if (empty($headers) || count($filtered) != count($row)) {
                     $headers = $row;
-                }else {
+                    continue;
+                }
+
+                if (count($headers) === count($row) && count($filteredRow) !== count($headers)) {
                     $data[] = array_combine($headers, $row);
+                } else {
+                    Log::warning('Row does not match header count: ', ['row' => $row]);
                 }
             }
+
             fclose($handle);
+        } else {
+            throw new \Exception('Unable to open the CSV file.');
         }
-        return $data;
+
+        return ['data' => $data, 'headers' => $headers];
     }
 
     protected function storeReconciliation($file1, $file2, $user){
@@ -102,30 +125,13 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
         return $reconciliation;
     }
 
-    protected function isExactMatch(array $bankEntry, array $ledgerEntry): bool
-    {
-        return $bankEntry['amount'] === $ledgerEntry['amount'] &&
-            strtolower($bankEntry['person']) === strtolower($ledgerEntry['person']);
-    }
-
-    protected function calculateFuzzyMatchScore(array $bankEntry, array $ledgerEntry): float
-    {
-        $amountDiff = abs((int)$bankEntry['amount'] - (int)$ledgerEntry['amount']);
-        $amountScore = $amountDiff <= 0.5 ? (1 - $amountDiff / 0.5) * 50 : 0;
-
-        similar_text(strtolower($bankEntry['person']), strtolower($ledgerEntry['person']), $descPercent);
-        $descScore = $descPercent >= 75 ? $descPercent / 2 : 0;
-
-        return $amountScore + $descScore;
-    }
-
     protected function callGemini(string $prompt)
     {
         $client = new \GuzzleHttp\Client();
         $apiKey = env('GEMINI_API_KEY');
         Log::info('Gemini API Key:', ['key' => env('GEMINI_API_KEY')]);
 
-        $url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={$apiKey}";
+        $url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key={$apiKey}";
 
         try {
             $response = $client->post($url, [
@@ -144,7 +150,6 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
             ]);
 
             $body = json_decode($response->getBody()->getContents(), true);
-            Log::info('Reconciliation result:', ['result' => $body]);
 
             return $body['candidates'][0]['content']['parts'][0]['text'] ?? json_encode($body);
 
@@ -154,29 +159,101 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
         }
     }
 
+    protected function getOtherData($d, $otherHeaders) {
+            $res = [];
+            foreach ($otherHeaders as $key) {
+                if(array_key_exists($key, $d)){
+                    $res[$key] = $d[$key];
+                }
+            }
+
+            return $res;
+        }
+
     protected function structuringData($file){
-        $data = $this->loadComplexCsv($file);
+        $fileData = $this->loadComplexCsv($file);
+        $data = $fileData['data'];
+        $headers = json_encode($fileData['headers']);
 
-        $chunks = array_chunk($data, 15);
-
+        $descriptions = [];
         $structured = [];
 
-        $prompt = "Please structure the attached JSON object into a JSON object with the following properties: Date, Person, Amount and Other Information. The JSON object could be a school ledger, an invoice ledger, a company ledger, a hospital ledger or a bank statement. Please keep this in mind as you go through the dataset. The person property can be derived from properties like Student Name, Student ID, Invoice ID, Invoice Detail, Narration, Summary, Remarks or any other synonyms that are used in a ledger or bank statement. Please ensure you derive a name and add it to the Person property. If it's not available add a short summary of the description instead. The amount can be derived from the debit, credit, amount, total, or anything that fits this criteria. Ensure the value for the amount that has been paid only so put into consideration any synonyms that may highlight this. Any other information should be added to the 'Other Information' property. Intelligently map through all the properties in the JSON and extract all the relevant information for this data structure. Please exclude any rows that have no data. Use the relevant columns to extract this data and ensure the amount is always an absolute value and it should not have any symbols. Return all the data present in the provided JSON in JSON format. Please don't truncate the result.";
+        Log::info('CSV Headers: ', ['data' => $headers]);
 
-        foreach ($chunks as $chunk) {
-            $response = $this->callGemini("$prompt. Here's the JSON you need to structure: " . json_encode($chunk) . ". Please return only a valid JSON object");
+        $prompt1 = "Which of these headers: {$headers} are best suited for the date and amount? The amount should be from a property that contains the amount that has been paid. Also which of the headers is most likely to contain the person's name or can be a unique identifier for the row. Return your response in this format: { date_extracted_from: header, amount_extracted_from: header, name_likely_from: header }";
 
-            $cleanResponse = str_replace(["```json", "```"], "", $response);
+        $response = $this->callGemini("$prompt1. Please return only a valid JSON object");
 
-            $decodedResponse = json_decode($cleanResponse, true);
+        $cleanResponse = str_replace(["```json", "```"], "", $response);
 
-            if (json_last_error() === JSON_ERROR_NONE && is_array($decodedResponse)) {
-                $structured = array_merge($structured, $decodedResponse);
-            } else {
-                Log::error('Failed to decode Gemini response for data2: ' . json_last_error_msg());
+        $decodedResponse = json_decode($cleanResponse, true);
+
+        $dateHeader = array_key_exists('date_extracted_from', $decodedResponse) ? $decodedResponse['date_extracted_from'] : null;
+        $amountHeader = array_key_exists('amount_extracted_from', $decodedResponse) ? $decodedResponse['amount_extracted_from'] : null;
+        $nameHeader = array_key_exists('name_likely_from', $decodedResponse) ? $decodedResponse['name_likely_from'] : null;
+
+        Log::info('Headers results', ['data' => $decodedResponse]);
+
+        $excludeHeaders = [$dateHeader, $nameHeader, $amountHeader];
+        Log::info('Excluded: ', ['data' => $excludeHeaders]);
+
+        $otherHeaders = array_filter(json_decode($headers), function ($header) use ($excludeHeaders) {
+            return !in_array(strtolower(trim($header)), array_map('strtolower', $excludeHeaders));
+        });
+
+
+        foreach ($data as $key) {
+            if(str_contains(strtolower($nameHeader), 'name')) {
+                $otherInfo = $this->getOtherData($key, $otherHeaders);
+                $structured[] = [
+                    'Person' => $key[$nameHeader],
+                    'Date' => $dateHeader ? $key[$dateHeader] : null,
+                    'Amount' => $key[$amountHeader],
+                    'Other Information' => $otherInfo
+                ];
+            }else {
+                $descriptions[] = $key[$nameHeader];
             }
         }
 
+        Log::info('Structured: ', ['data' => $structured]);
+
+        if(!empty($descriptions)){
+            $chunks = array_chunk($descriptions, 40);
+            $names = [];
+            $chunkIndex = 0;
+
+            foreach ($chunks as $chunk) {
+                $chunk = json_encode($chunk);
+                $prompt2 = "Please extract the names from this JSON object: {$chunk}. Return a JSON object in the same order only in your response";
+
+                $res = $this->callGemini("$prompt2. Please return only a valid JSON object");
+
+                $cleanRes = str_replace(["```json", "```"], "", $res);
+
+                $decodedRes = json_decode($cleanRes, true);
+
+                Log::info('Headers results', ['data' => $decodedResponse]);
+                if (json_last_error() === JSON_ERROR_NONE && is_array($decodedRes)) {
+                    foreach ($decodedRes as $key => $value) {
+                        Log::info('key', ['data' => $key]);
+                        Log::info('key', ['data' => $data]);
+                        $otherInfo = $this->getOtherData($data[$key], $otherHeaders);
+                        $structured[] = [
+                            'Person' => $value,
+                            'Date' => $dateHeader ? $data[$key][$dateHeader] : null,
+                            'Amount' => $data[$key][$amountHeader],
+                            'Other Information' => $otherInfo
+                        ];
+                    }
+                } else {
+                    Log::error('Failed to decode Gemini response for data2: ' . json_last_error_msg());
+                }
+                Sleep::for(5)->second();
+            }
+        }
+
+        Log::info('Structured: ', ['data' => $structured]);
         return $structured;
     }
 
@@ -187,65 +264,6 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
         $this->ledgerRepository->storeMany($ledgers, $reconciliation);
 
         DB::commit();
-    }
-
-    protected function findMatches(Reconciliation $reconciliation)
-    {
-        $statements = $this->statementRepository->findAll($reconciliation);
-        $ledgers = $this->ledgerRepository->findAll($reconciliation);
-
-        $matches = [];
-        $matchedStatementIds = [];
-        $matchedLedgerIds = [];
-
-        foreach ($statements as $statement) {
-            foreach ($ledgers as $ledger) {
-                $score = $this->calculateFuzzyMatchScore($statement->toArray(), $ledger->toArray());
-
-                if ($this->isExactMatch($statement->toArray(), $ledger->toArray())) {
-                    $matches[] = [
-                        'statement' => (new TransactionResource($statement))->toArray(request()),
-                        'ledger' => (new TransactionResource($ledger))->toArray(request()),
-                        'score' => 100,
-                    ];
-                    $newMatch = $this->matchedRepository->store($ledger, $statement);
-
-                    $matchedStatementIds[] = $statement->id;
-                    $matchedLedgerIds[] = $ledger->id;
-                    break;
-                } else if ($score > 70) {
-                    $matches[] = [
-                        'statement' => (new TransactionResource($statement))->toArray(request()),
-                        'ledger' => (new TransactionResource($ledger))->toArray(request()),
-                        'score' => $score,
-                    ];
-                    $newMatch = $this->matchedRepository->store($ledger, $statement);
-
-                    $matchedStatementIds[] = $statement->id;
-                    $matchedLedgerIds[] = $ledger->id;
-                    break;
-                }
-            }
-        }
-
-        $unmatchedStatements = $statements->filter(function ($statement) use ($matchedStatementIds) {
-            return !in_array($statement->id, $matchedStatementIds);
-        })->map(function ($statement) {
-            return (new TransactionResource($statement))->toArray(request());
-        })->values()->toArray();
-
-        $unmatchedLedgers = $ledgers->filter(function ($ledger) use ($matchedLedgerIds) {
-            return !in_array($ledger->id, $matchedLedgerIds);
-        })->map(function ($ledger) {
-            return (new TransactionResource($ledger))->toArray(request());
-        })->values()->toArray();
-
-        return [
-            'reconciliation_id' => $reconciliation->id,
-            'matches' => $matches,
-            'unmatched_statements' => $unmatchedStatements,
-            'unmatched_ledgers' => $unmatchedLedgers,
-        ];
     }
 
     protected function getEmbedding(string $text){
@@ -268,66 +286,40 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
         });
     }
 
-    protected function cosineSimilarity($embeddingA, $embeddingB)
-    {
-        $dotProduct = 0;
-        $magnitudeA = 0;
-        $magnitudeB = 0;
-
-        for ($i = 0; $i < count($embeddingA); $i++) {
-            $dotProduct += $embeddingA[$i] * $embeddingB[$i];
-            $magnitudeA += $embeddingA[$i] * $embeddingA[$i];
-            $magnitudeB += $embeddingB[$i] * $embeddingB[$i];
-        }
-
-        $magnitudeA = sqrt($magnitudeA);
-        $magnitudeB = sqrt($magnitudeB);
-
-        return $dotProduct / ($magnitudeA * $magnitudeB);
-    }
-
     protected function matchUsingEmbeddings(Collection $statements, Collection $ledgers)
     {
         $matches = [];
         $unmatchedLedgers = [];
         $unmatchedStatements = [];
 
-        foreach ($ledgers as $ledger) {
-            $bestMatch = null;
-            $bestScore = -1;
+        $matched = $this->matchedRepository->matchTransactions($statements->first()->reconciliation);
+        $matchedStatementIds = [];
+        $matchedLedgerIds = [];
 
-            foreach ($statements as $statement) {
-                $ledgerEmbedding = json_decode($ledger->embedding, true);
-                $statementEmbedding = json_decode($statement->embedding, true);
-
-                $score = $this->cosineSimilarity($ledgerEmbedding, $statementEmbedding);
-
-                if ($score > $bestScore) {
-                    $bestScore = $score;
-                    $bestMatch = $statement;
-                }
-            }
-
-            if ($bestScore > 0.9) {
-                $matches[] = [
-                    'ledger' => (new TransactionResource($ledger))->toArray(request()),
-                    'statement' => (new TransactionResource($bestMatch))->toArray(request()),
-                    'score' => $bestScore,
-                ];
-
-                $this->matchedRepository->store($ledger, $bestMatch);
-            } else {
-                $unmatchedLedgers[] = (new TransactionResource($ledger))->toArray(request());
-            }
+        foreach ($matched as $match) {
+            $percent = $match->cosine_similarity * 100;
+            $matches[] = [
+                'statement' => (new TransactionResource($this->statementRepository->findById($match->statement_id)))->toArray(request()),
+                'ledger' => (new TransactionResource($this->ledgerRepository->findById($match->ledger_id)))->toArray(request()),
+                'score' => "{$percent}%"
+            ];
+            $matchedLedgerIds[] = $match->ledger_id;
+            $matchedStatementIds[] = $match->statement_id;
         }
-
-        $matchedStatementIds = collect($matches)->pluck('statement.id')->toArray();
+        Log::info('Matched Statements', ['data' => $matchedStatementIds]);
+        Log::info('Matched Ledgers', ['data' => $matchedLedgerIds]);
         $unmatchedStatements = $statements->whereNotIn('id', $matchedStatementIds)->map(fn($stat) => (new TransactionResource($stat))->toArray(request()));
+        $unmatchedLedgers = $ledgers->whereNotIn('id', $matchedLedgerIds)->map(fn($ledg) => (new TransactionResource($ledg))->toArray(request()));
 
         return [
             'matches' => $matches,
             'unmatched_ledgers' => $unmatchedLedgers,
             'unmatched_statements' => $unmatchedStatements,
+            'summary' => [
+                'totalMatched' => count($matches),
+                'totalUnmatched' => count($unmatchedLedgers) + count($unmatchedStatements),
+                'total' => count($unmatchedLedgers) + count($unmatchedStatements) + count($matches)
+            ]
         ];
     }
 
@@ -393,23 +385,4 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
 
         return $exportFileName;
     }
-
-    public function usingRecox(string $statement, string $ledger, User $user)
-    {
-        $reconciliation = $this->storeReconciliation($statement, $ledger, $user->id);
-
-        $structuredStatements = $this->structuringData($statement);
-        $structuredLedgers = $this->structuringData($ledger);
-
-        $this->savingData($structuredStatements, $structuredLedgers, $reconciliation);
-
-        $response = $this->findMatches($reconciliation);
-        $record = $this->mainRepository->storeResponse([
-            'reconciliation_id' => $reconciliation->id,
-            'data' => $response
-        ]);
-
-        return $response;
-    }
-
 }

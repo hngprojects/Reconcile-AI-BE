@@ -6,6 +6,8 @@ use LaravelEasyRepository\Implementations\Eloquent;
 use App\Models\Ledger;
 use App\Models\Reconciliation;
 use Illuminate\Support\Facades\DB;
+use Pgvector\Laravel\Vector;
+use Illuminate\Support\Facades\Log;
 
 class LedgerRepositoryImplement extends Eloquent implements LedgerRepository{
 
@@ -32,6 +34,7 @@ class LedgerRepositoryImplement extends Eloquent implements LedgerRepository{
     }
 
     public function storeMany(array $ledgers, Reconciliation $reconciliation){
+        Log::info('Storing ledgers in db');
         foreach ($ledgers as $ledger) {
             $this->model->firstOrCreate([
                 'reconciliation_id' => $reconciliation->id,
@@ -41,6 +44,7 @@ class LedgerRepositoryImplement extends Eloquent implements LedgerRepository{
                 'date' => $ledger['Date']
             ]);
         }
+        Log::info('Ledgers stored successfully');
         return;
     }
 
@@ -48,8 +52,12 @@ class LedgerRepositoryImplement extends Eloquent implements LedgerRepository{
         return $this->model->where('reconciliation_id', '=', $reconciliation->id)->get();
     }
 
+    public function findById(string $id){
+        return $this->model->where('id', '=', $id)->first();
+    }
+
     public function addVector(Ledger $ledger, array $data){
-        $ledger->embedding = json_encode($data);
+        $ledger->embedding = new Vector($data);
         $ledger->save();
 
         return $ledger;
