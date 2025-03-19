@@ -559,38 +559,24 @@ class ReconciliationService
         return $reconciliation;
      }
 
-    protected function matchRecords($ledger, $statement, $action, $resArray, $filteredLedger, $filteredStatement){
+    protected function matchRecords($ledger, $statement, $action, $resArray, $filteredLedger, $filteredStatement, $res){
         if($action == 'match'){
             $newMatch = $this->matchedRepository->store($ledger, $statement, 100);
-            $resArray['only_in_file2'] = array_values(array_filter($resArray['only_in_file2'], function ($item) use ($filteredLedger) {
+
+            $resArray['unmatched_ledgers'] = array_values(array_filter($resArray['unmatched_ledgers'], function ($item) use ($filteredLedger) {
                 return !(
                     json_encode($item) === json_encode($filteredLedger)
                 );
             }));
 
-            $resArray['unmatched']['unmatched_file2'] = array_values(array_filter($resArray['unmatched']['unmatched_file2'], function ($item) use ($filteredLedger) {
-                return !(
-                    json_encode($item) === json_encode($filteredLedger)
-                );
-            }));
-
-            $resArray['only_in_file1'] = array_values(array_filter($resArray['only_in_file1'], function ($item) use ($filteredStatement) {
-                return !(
-                    json_encode($item) === json_encode($filteredStatement)
-                );
-            }));
-
-            $resArray['unmatched']['unmatched_file1'] = array_values(array_filter($resArray['unmatched']['unmatched_file1'], function ($item) use ($filteredStatement) {
+            $resArray['unmatched_statements'] = array_values(array_filter($resArray['unmatched_statements'], function ($item) use ($filteredStatement) {
                     return !(
                         json_encode($item) === json_encode($filteredStatement)
                     );
                 }));
             array_push($resArray['matches'], $res);
 
-            $resArray['matchSummary']['totalUnmatched'] = count($resArray['unmatched']['unmatched_file1']) + count($resArray['unmatched']['unmatched_file2']);
-            $resArray['matchSummary']['totalMatched'] = count($resArray['matches']);
-
-        }else if($data['action'] === 'unmatch'){
+        }else if($action == 'unmatch'){
             $match = $this->matchedRepository->remove($ledger, $statement);
 
             $resArray['matches'] = array_values(array_filter($resArray['matches'], function ($item) use ($filteredStatement, $filteredLedger) {
@@ -600,15 +586,12 @@ class ReconciliationService
             );
         }));
 
-            array_push($resArray['only_in_file1'], $filteredStatement);
-            array_push($resArray['unmatched']['unmatched_file1'], $filteredStatement);
-            array_push($resArray['only_in_file2'], $filteredLedger);
-            array_push($resArray['unmatched']['unmatched_file2'], $filteredLedger);
+            array_push($resArray['unmatched_statements'], $filteredStatement);
+            array_push($resArray['unmatched_ledgers'], $filteredLedger);
 
-
-            $resArray['matchSummary']['totalUnmatched'] = count($resArray['unmatched']['unmatched_file1']) + count($resArray['unmatched']['unmatched_file2']);
-            $resArray['matchSummary']['totalMatched'] = count($resArray['matches']);
         }
+        $resArray['summary']['totalUnmatched'] = count($resArray['unmatched_statements']) + count($resArray['unmatched_ledgers']);
+        $resArray['summary']['totalMatched'] = count($resArray['matches']);
 
         return $resArray;
     }
@@ -623,6 +606,7 @@ class ReconciliationService
                 ...$ledger
             ]);
         }
+        Log::info('Ledgers: ', ['data' => $ledgers]);
 
         foreach ($data['statements'] as $statement) {
             $statements[] = $this->statementRepository->store([
@@ -630,6 +614,7 @@ class ReconciliationService
                 ...$statement
             ]);
         }
+        Log::info('Statements: ', ['data' => $statements]);
         $response = $this->mainRepository->findResponse($reconciliation);
         $resArray = $response->data;
 
@@ -660,7 +645,7 @@ class ReconciliationService
                 $response = $this->mainRepository->findResponse($reconciliation);
                 $resArray = $response->data;
 
-                $this->matchRecords($ledgers[0], $stat, $data['action'], $resArray, $filteredLedger, $filteredStatement);
+                $this->matchRecords($ledgers[0], $stat, $data['action'], $resArray, $filteredLedger, $filteredStatement, null);
 
                 $file1[] = $filteredStatement;
                 $file2[] = $filteredLedger;
