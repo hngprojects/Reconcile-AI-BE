@@ -21,6 +21,7 @@ class ReconciliationCompleted extends Mailable
     {
         $this->reconciliation = $reconciliation;
         $this->filePath = $filePath;
+        $this->user = $user;
     }
 
     /**
