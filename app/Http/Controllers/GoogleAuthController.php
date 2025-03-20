@@ -139,12 +139,16 @@ class GoogleAuthController extends Controller
      */
     public function fetchUser(Request $request)
     {
+        $user = $request->user();
+        $plan = $user->paymentPlan;
+
         return response()->json([
             'status_code' => 200,
             'status' => 'success',
             'message' => 'User successfully fetched',
             'data' => [
                 'user' => $request->user(),
+                'plan' => $plan ?? null,
             ]
         ]);
     }

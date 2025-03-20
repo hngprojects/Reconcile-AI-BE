@@ -42,11 +42,13 @@ class AuthServiceImplement extends ServiceApi implements AuthService
             }
 
             $user = Auth::user();
+            $plan = $user->paymentPlan;
 
             return $this->setCode(200)
                 ->setMessage("Login Success")
                 ->setData([
                     'user' => new UserResource($user),
+                    'plan' => $plan,
                     'token' => $token
                 ]);
         } catch (\Exception $e) {
@@ -88,7 +90,7 @@ class AuthServiceImplement extends ServiceApi implements AuthService
             $validated = $request->validated();
             $user = $this->mainRepository->register($validated);
 
-            $user->paymentPlan()->create([
+            $plan = $user->paymentPlan()->create([
                 'user_id' => $user->id,
                 'price' => 0,
                 'plan' => 'Basic',
@@ -100,6 +102,7 @@ class AuthServiceImplement extends ServiceApi implements AuthService
                 ->setMessage("User account registration successful")
                 ->setData([
                     'user' => new UserResource($user),
+                    'plan' => $plan,
                     'token' => $token
                 ]);
         } catch (\Exception $e) {
