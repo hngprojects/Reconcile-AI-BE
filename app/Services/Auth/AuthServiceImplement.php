@@ -155,4 +155,28 @@ class AuthServiceImplement extends ServiceApi implements AuthService
                 ->setError($e->getMessage());
         }
     }
+
+    public function checkToken()
+    {
+        try {
+            $token = JWTAuth::parseToken();
+            $user = $token->authenticate();
+            
+            return $this->setCode(200)
+                ->setMessage("Token is valid")
+                ->setData([
+                    'user' => new UserResource($user)
+                ]);
+        } catch (\Tymon\JWTAuth\Exceptions\TokenExpiredException $e) {
+            return $this->setCode(401)
+                ->setMessage("Token has expired");
+        } catch (\Tymon\JWTAuth\Exceptions\TokenInvalidException $e) {
+            return $this->setCode(401)
+                ->setMessage("Token is invalid");
+        } catch (\Exception $e) {
+            return $this->setCode(401)
+                ->setMessage("Token validation failed")
+                ->setError($e->getMessage());
+        }
+    }
 }

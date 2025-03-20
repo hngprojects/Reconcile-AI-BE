@@ -21,15 +21,22 @@ Route::prefix('v1')->group(function () {
     Route::prefix('auth')->middleware('guest')->name('auth.')->group(function () {
         Route::post('/login', [AuthController::class, 'login'])->name('login');
         Route::post('/register', [AuthController::class, 'register'])->name('register');
-        Route::post('/logout', [AuthController::class, 'logout'])->withoutMiddleware('guest')->middleware('jwt.auth')->name('logout');
         Route::post('/forgot-password', [AuthController::class, 'forgotPassword'])->name('forgot-password');
         Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('reset-password');
+        Route::get('/check-token', [AuthController::class, 'checkToken'])
+            ->middleware('jwt.auth')
+            ->name('check-token');
         // Route::post('/verify-email', [AuthController::class, 'verifyEmail'])->name('verify-email');
         // Route::post('/resend-verification-email', [AuthController::class, 'resendVerificationEmail'])->name('resend-verification-email');
 
         // google auth
         Route::get('/google', [GoogleAuthController::class, 'redirectToGoogle']);
         Route::get('/google/callback', [GoogleAuthController::class, 'handleGoogleCallback']);
+    });
+
+    Route::prefix('auth')->middleware('jwt.auth')->name('auth.')->group(function () {
+        Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+        Route::get('/check-token', [AuthController::class, 'checkToken'])->name('check-token');
     });
 
     Route::middleware('auth:api')->get('/user', [GoogleAuthController::class, 'fetchUser'])->name('user');

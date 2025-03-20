@@ -260,4 +260,19 @@ class AuthController extends Controller
     {
         return $this->authService->resetPassword($request)->toJson();
     }
+
+    /**
+    * @OA\Get(
+    *     path="/api/v1/auth/check-token",
+    *     summary="Check token validity",
+    *     tags={"Authentication"},
+    *     security={{ "bearerAuth":{} }},
+    *     @OA\Response(response=200, description="Token is valid"),
+    *     @OA\Response(response=401, description="Token is invalid or expired")
+    * )
+    */
+    public function checkToken(): JsonResponse
+    {
+        return $this->authService->checkToken()->toJson();
+    }
 }
