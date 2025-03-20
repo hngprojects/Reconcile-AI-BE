@@ -132,8 +132,9 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
     protected function callGemini(string $prompt)
     {
         $client = new \GuzzleHttp\Client();
-        $apiKey = env('GEMINI_API_KEY');
-        Log::info('Gemini API Key:', ['key' => env('GEMINI_API_KEY')]);
+        // $apiKey = env('GEMINI_API_KEY');
+        $apiKey = config('gemini.api_key');
+        Log::info('Gemini API Key:', ['key' => config('gemini.api_key')]);
 
         $url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key={$apiKey}";
 

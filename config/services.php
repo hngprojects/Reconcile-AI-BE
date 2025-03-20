@@ -46,4 +46,9 @@ return [
         'password_reset_url'=> env('FRONTEND_PASSWORD_RESET_URL'),
     ],
 
+    'ai_key' => [
+        'deepseek' => env('DEEPSEEK_API_KEY'),
+        'open_api' => env('OPENAI_API_KEY'),
+    ]
+
 ];
