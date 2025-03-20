@@ -7,7 +7,9 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
+use Illuminate\Mail\Mailables\Attachment;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Storage;
 
 class AdminFeedbackMail extends Mailable implements ShouldQueue
 {
@@ -51,6 +53,23 @@ class AdminFeedbackMail extends Mailable implements ShouldQueue
      */
     public function attachments(): array
     {
+        if (empty($this->feedback->file_path)) {
+            return [];
+        }
+
+        // Try looking directly in public disk without additional 'public/' prefix
+        if (Storage::disk('public')->exists($this->feedback->file_path)) {
+            $fullPath = Storage::disk('public')->path($this->feedback->file_path);
+            $filename = basename($this->feedback->file_path);
+            $mimeType = Storage::disk('public')->mimeType($this->feedback->file_path);
+            
+            return [
+                Attachment::fromPath($fullPath)
+                    ->as($filename)
+                    ->withMime($mimeType)
+            ];
+        }
+        
         return [];
     }
 }

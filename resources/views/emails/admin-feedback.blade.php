@@ -149,6 +149,10 @@
                 <div class="message-details">
                     <strong>Request Type:</strong> {{ $feedback->request_type }}
                 </div>
+
+                <div class="message-details">
+                    <strong>Subject:</strong> {{ $feedback->subject }}
+                </div>
                 
                 <div class="message-details">
                     <strong>Message:</strong>
