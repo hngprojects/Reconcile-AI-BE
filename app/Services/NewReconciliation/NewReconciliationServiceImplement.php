@@ -100,7 +100,7 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
         return ['data' => $data, 'headers' => $headers];
     }
 
-    protected function storeReconciliation($statements, $ledgers, $user){
+    public function storeReconciliation($statements, $ledgers, $user){
         DB::beginTransaction();
 
         $reconciliation = $this->mainRepository->store([
@@ -345,10 +345,8 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
         ];
     }
 
-    public function usingEmbeddings(array $statements, array $ledgers, User $user)
+    public function usingEmbeddings(array $statements, array $ledgers, User $user, Reconciliation $reconciliation)
     {
-        $reconciliation = $this->storeReconciliation($statements, $ledgers, $user->id);
-
         $structuredStatements = $this->structuringData($statements);
         $structuredLedgers = $this->structuringData($ledgers);
 
