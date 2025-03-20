@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ContactController;
+use App\Http\Controllers\JobApplicationController;
 use App\Http\Controllers\OutboundMarketingController;
 use App\Http\Controllers\PartnerController;
 use Illuminate\Http\Request;
@@ -61,4 +62,8 @@ Route::prefix('v1')->group(function () {
 
     // feebback api
     Route::post('/customer-feedback', [CustomerFeedbackController::class, 'store'])->name('customer.feedback');
+
+    // jobs 
+
+    Route::post('/job-application', [JobApplicationController::class, 'store']);
 });
