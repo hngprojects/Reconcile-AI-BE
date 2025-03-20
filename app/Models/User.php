@@ -73,4 +73,9 @@ class User extends Authenticatable implements JWTSubject, CanResetPasswordContra
     {
         $this->notify(new ResetPasswordNotification($token));
     }
+
+    public function paymentPlan()
+    {
+        return $this->hasOne(PaymentPlan::class);
+    }
 }
