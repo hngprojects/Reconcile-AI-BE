@@ -14,6 +14,10 @@ use App\Http\Requests\ManualReconciliationRequest;
 use App\Jobs\ProcessReconciliation;
 use App\Jobs\ProcessRecoxReconciliation;
 
+use App\Jobs\ReconcileJob;
+use App\Models\ReconciliationProject;
+use Illuminate\Support\Facades\Log;
+
 /**
  * @OA\Tag(
  *     name="Reconciliation",
@@ -158,6 +162,63 @@ class ReconciliationController extends Controller
             }
             return response()->json(['error' => $e->getMessage()], 400);
         }
+    }
+
+    public function store(Request $request): JsonResponse
+    {
+        $request->validate([
+            'statement_file' => 'required|file|mimes:csv|max:2048',
+            'ledger_file' => 'required|file|mimes:csv|max:2048',
+            'ai_option' => 'required|string',
+        ], [
+            'statement_file.mimes' => 'Statement file must be a CSV.',
+            'ledger_file.mimes' => 'Ledger file must be a CSV.',
+            'statement_file.max' => 'Statement file must not be larger than 2MB.',
+            'ledger_file.max' => 'Ledger file must not be larger than 2MB.',
+        ]);
+    
+        try {
+            $statementPath = $request->file('statement_file')->store('uploads');
+            $ledgerPath = $request->file('ledger_file')->store('uploads');
+    
+            $statementFullPath = Storage::path($statementPath);
+            $ledgerFullPath = Storage::path($ledgerPath);
+    
+            Log::info('Files stored successfully', [
+                'statement_path' => $statementFullPath,
+                'ledger_path' => $ledgerFullPath,
+            ]);
+    
+            $project = ReconciliationProject::create([
+                'user_id' => 1,
+                'status' => 'pending',
+                'progress' => 0,
+                'statement_file' => $statementPath,
+                'ledger_file' => $ledgerPath,
+                'ai_option' => $request->ai_option,
+            ]);
+    
+            ReconcileJob::dispatch($project);
+    
+            return response()->json([
+                'message' => 'Reconciliation started',
+                'project_id' => $project->id
+            ], 200);
+        } catch (\Exception $e) {
+            if (isset($statementPath, $ledgerPath)) {
+                Storage::delete([$statementPath, $ledgerPath]);
+            }
+            Log::error('Failed to store files or process job', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return response()->json(['error' => $e->getMessage()], 400);
+        }
+    }
+
+    public function show(ReconciliationProject $project)
+    {
+        return response()->json($project->load('statementRecords', 'ledgerRecords'));
     }
 
     /**

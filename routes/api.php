@@ -57,4 +57,7 @@ Route::prefix('v1')->group(function () {
     Route::post('/reconcile/{reconciliation}', [ReconciliationController::class, 'matchUnmatch'])->whereUuid('reconciliation')->name('manual-reconciliation');
     Route::post('/wait-list', [WaitListController::class, 'store'])->name('wait-list');
     Route::post('/contact', [ContactController::class, 'contact'])->name('contact');
+
+    Route::post('/test/reconcile', [ReconciliationController::class, 'store']);
+    Route::get('/test/reconcile/{project}', [ReconciliationController::class, 'show']);
 });
