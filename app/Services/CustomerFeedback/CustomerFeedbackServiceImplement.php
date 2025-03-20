@@ -39,12 +39,22 @@ class CustomerFeedbackServiceImplement extends ServiceApi implements CustomerFee
     {
         try {
             $validated = $request->validated();
+
+             // Handle file upload if present
+             $filePath = null;
+             if ($request->hasFile('file')) {
+                 $file = $request->file('file');
+                 $fileName = time() . '_' . $file->getClientOriginalName();
+                 $filePath = $file->storeAs('feedback_attachments', $fileName, 'public');
+             }
             
             // Store feedback in database
             $feedback = $this->mainRepository->store([
                 'name' => $validated['name'],
                 'email' => $validated['email'],
+                'subject' => $validated['subject'] ?? null,
                 'message' => $validated['message'] ?? null,
+                'file_path' => $filePath,
                 'request_type' => $validated['request_type'] ?? 'Feedback'
             ]);
 
@@ -58,7 +68,7 @@ class CustomerFeedbackServiceImplement extends ServiceApi implements CustomerFee
                     'id' => $feedback->id,
                     'name' => $feedback->name,
                     'email' => $feedback->email,
-                    'created_at' => $feedback->created_at
+                    'subject' => $feedback->subject
                 ]);
         } catch (Exception $e) {
             return $this->setCode(400)

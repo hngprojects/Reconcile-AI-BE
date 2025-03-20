@@ -1,17 +1,18 @@
 name: Deployment
 on:
-  workflow_run:
-    workflows: ["CI Testing"]  # 🚀 This runs ONLY after CI workflow completes
-    types:
-      - completed  # Runs when CI finishes (success or failure)
   push:
     branches:
       - main
       - dev
+  workflow_run:
+    workflows: ["CI Testing"]  # 🚀 This runs ONLY after CI workflow completes
+    types:
+      - completed  # Runs when CI finishes (success or failure)
 jobs:
   deployment:
     runs-on: reconcile
     timeout-minutes: 10
+    if: ${{ github.event_name == 'push' || github.event.workflow_run.conclusion == 'success' }}
     steps:
       # - uses: actions/checkout@v4
       - name: Deploy to the server

@@ -5,6 +5,8 @@ namespace App\Repositories\Statement;
 use LaravelEasyRepository\Implementations\Eloquent;
 use App\Models\Statement;
 use App\Models\Reconciliation;
+use Pgvector\Laravel\Vector;
+use Illuminate\Support\Facades\Log;
 
 class StatementRepositoryImplement extends Eloquent implements StatementRepository{
 
@@ -31,6 +33,7 @@ class StatementRepositoryImplement extends Eloquent implements StatementReposito
     }
 
     public function storeMany(array $statements, Reconciliation $reconciliation){
+        Log::info('Storing statements in db');
         foreach ($statements as $statement) {
             $this->model->firstOrCreate([
                 'reconciliation_id' => $reconciliation->id,
@@ -40,6 +43,7 @@ class StatementRepositoryImplement extends Eloquent implements StatementReposito
                 'date' => $statement['Date']
             ]);
         }
+        Log::info('Statements stored successfully');
         return;
     }
 
@@ -47,8 +51,12 @@ class StatementRepositoryImplement extends Eloquent implements StatementReposito
         return Statement::where('reconciliation_id', '=', $reconciliation->id)->get();
     }
 
+    public function findById(string $id){
+        return Statement::where('id', '=', $id)->first();
+    }
+
     public function addVector(Statement $statement, array $data){
-        $statement->embedding = json_encode($data);
+        $statement->embedding = new Vector($data);
         $statement->save();
 
         return $statement;
