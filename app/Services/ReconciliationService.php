@@ -395,7 +395,8 @@ class ReconciliationService
 
     protected function callOpenAI(string $prompt)
     {
-        $client = OpenAI::client(env('OPENAI_API_KEY'));
+        // $client = OpenAI::client(env('OPENAI_API_KEY'));
+        $client = OpenAI::client(config('services.ai_key.open_api'));
 
         $response = $client->chat()->create([
             'model' => 'gpt-3.5-turbo',
@@ -422,7 +423,8 @@ class ReconciliationService
     protected function callDeepSeek(string $prompt)
     {
         $client = new \GuzzleHttp\Client();
-        $apiKey = env('DEEPSEEK_API_KEY');
+        // $apiKey = env('DEEPSEEK_API_KEY');
+        $apiKey = config('services.ai_key.deepseek');
 
         $response = $client->post('https://api.deepseek.com/chat/completions', [
             'headers' => [
@@ -460,7 +462,8 @@ class ReconciliationService
     protected function callGemini(string $prompt)
     {
         $client = new \GuzzleHttp\Client();
-        $apiKey = env('GEMINI_API_KEY');
+        // $apiKey = env('GEMINI_API_KEY');
+        $apiKey = config('gemini.api_key');
 
         $url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={$apiKey}";
 
