@@ -222,6 +222,20 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
         return $response->embedding->values;
     }
 
+    protected function findMatchIndex(array $matches, $id)
+    {
+        foreach ($matches as $index => $match) {
+            foreach ($match['statements'] as $statement) {
+                Log::info('Statement: ', [$statement]);
+                if ($statement['statement']['id'] === $id) {
+                    return $index;
+                }
+            }
+        }
+
+        return false;
+    }
+
     protected function generateEmbeddings(Collection $statements, Collection $ledgers){
         $statements->map(function (Statement $statement) {
             $formattedDate = date('Y-m-d', strtotime($statement->date));
@@ -250,20 +264,76 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
 
         foreach ($matched as $match) {
             $percent = ceil($match->cosine_similarity * 100);
-            $matches[] = [
-                'statement' => (new TransactionResource($this->statementRepository->findById($match->statement_id)))->toArray(request()),
-                'ledger' => (new TransactionResource($this->ledgerRepository->findById($match->ledger_id)))->toArray(request()),
-                'score' => "{$percent}%"
-            ];
+            $statementIndex = $this->findMatchIndex($matches, $match->statement_id);
+            $ledgerIndex = $this->findMatchIndex($matches, $match->ledger_id);
+
+            if($statementIndex){
+                $matches[] = [
+                    'statements' => [
+                        [
+                            'statement' => (new TransactionResource($this->statementRepository->findById($match->statement_id)))->toArray(request())
+                        ]
+                    ],
+                    'ledgers' => [
+                        ...matches[$statementIndex]['ledgers'],
+                        [
+                            'ledger' => (new TransactionResource($this->ledgerRepository->findById($match->ledger_id)))->toArray(request()),
+                            'score' => "{$percent}%"
+                        ]
+                    ]
+                ];
+            }else if($ledgerIndex){
+                $matches[] = [
+                    'statements' => [
+                        ...$matches[$ledgerIndex]['statements'],
+                        [
+                            'statement' => (new TransactionResource($this->statementRepository->findById($match->statement_id)))->toArray(request()),
+                            'score' => "{$percent}%"
+                        ]
+                    ],
+                    'ledgers' => [
+                        [
+                            'ledger' => (new TransactionResource($this->ledgerRepository->findById($match->ledger_id)))->toArray(request())
+                        ]
+                    ]
+                ];
+            }else{
+                $matches[] = [
+                    'statements' => [
+                        [
+                            'statement' => (new TransactionResource($this->statementRepository->findById($match->statement_id)))->toArray(request()),
+                            'score' => "{$percent}%"
+                        ]
+                    ],
+                    'ledgers' => [
+                        [
+                            'ledger' => (new TransactionResource($this->ledgerRepository->findById($match->ledger_id)))->toArray(request()),
+                            'score' => "{$percent}%"
+                        ]
+                    ]
+                ];
+            }
+
             $matchedLedgerIds[] = $match->ledger_id;
             $matchedStatementIds[] = $match->statement_id;
         }
         Log::info('Matched Statements', ['data' => $matchedStatementIds]);
         Log::info('Matched Ledgers', ['data' => $matchedLedgerIds]);
-        $unmatchedStatements = $statements->whereNotIn('id', $matchedStatementIds)->map(fn($stat) => (new TransactionResource($stat))->toArray(request()));
-        $unmatchedLedgers = $ledgers->whereNotIn('id', $matchedLedgerIds)->map(fn($ledg) => (new TransactionResource($ledg))->toArray(request()));
+
+        $unmatchedStatements = $statements
+            ->whereNotIn('id', $matchedStatementIds)
+            ->map(fn($stat) => (new TransactionResource($stat))->toArray(request()))
+            ->values()
+            ->all();
+
+        $unmatchedLedgers = $ledgers
+            ->whereNotIn('id', $matchedLedgerIds)
+            ->map(fn($ledg) => (new TransactionResource($ledg))->toArray(request()))
+            ->values()
+            ->all();
 
         return [
+            'reconciliation_id' => $statements->first()->reconciliation->id,
             'matches' => $matches,
             'unmatched_ledgers' => $unmatchedLedgers,
             'unmatched_statements' => $unmatchedStatements,
@@ -305,32 +375,78 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
         ];
     }
 
-    protected function generateCSV($data){
-        $timestamp = now()->format('Y-m-d_H-i-s');
-        $exportFileName = public_path("reconciled-data-" . now()->format('Y-m-d_H-i-s') . ".csv");
+        protected function generateCSV($data){
+            $timestamp = now()->format('Y-m-d_H-i-s');
+            $exportFileName = public_path("reconciled-data-" . now()->format('Y-m-d_H-i-s') . ".csv");
 
-        $exportFile = fopen($exportFileName, 'w');
-        fputcsv($exportFile, ['Bank Statement', '', '', '', '', 'Ledger']);
-        fputcsv($exportFile, ['Date', 'Description', 'Amount', 'Status', 'Score', 'Date', 'Description', 'Amount']);
+            $exportFile = fopen($exportFileName, 'w');
+            fputcsv($exportFile, ['Bank Statement', '', '', '', '', 'Ledger', '', '']);
+            fputcsv($exportFile, ['Date', 'Description', 'Amount', 'Status', 'Score', 'Date', 'Description', 'Amount']);
 
-        foreach ($data['matches'] as $row) {
-            $rowData = [
-                ...$row['statement'],
-                'Matched',
-                $row['score']
-            ];
-            foreach ($row['ledger'] as $value) {
-                array_push($rowData, $value);
+            foreach ($data['matches'] as $match) {
+                $arr = [];
+                if (count($match['statements']) == 1) {
+                    foreach ($match['ledgers'] as $key => $ledgerMatch) {
+                        if($key == 0){
+                            $arr = [
+                                $match['statements'][0]['statement']['Date'],
+                                $match['statements'][0]['statement']['Description'],
+                                $match['statements'][0]['statement']['Amount'],
+                                'Matched',
+                                $ledgerMatch['score'],
+                                $ledgerMatch['ledger']['Date'],
+                                $ledgerMatch['ledger']['Description'],
+                                $ledgerMatch['ledger']['Amount'],
+                            ];
+                        } else {
+                            $arr = [
+                                '', '', '',
+                                'Matched',
+                                $ledgerMatch['score'],
+                                $ledgerMatch['ledger']['Date'],
+                                $ledgerMatch['ledger']['Description'],
+                                $ledgerMatch['ledger']['Amount'],
+                            ];
+                        }
+                        fputcsv($exportFile, $arr);
+                    }
+                }
+
+                if (count($match['ledgers']) == 1) {
+                    foreach ($match['statements'] as $key => $statementMatch) {
+                        Log::info('Index: ', ['key' => $key]);
+                        if($key == 0){
+                            $arr = [
+                                $match['ledgers'][0]['ledger']['Date'],
+                                $match['ledgers'][0]['ledger']['Description'],
+                                $match['ledgers'][0]['ledger']['Amount'],
+                                'Matched',
+                                $statementMatch['score'],
+                                $statementMatch['statement']['Date'],
+                                $statementMatch['statement']['Description'],
+                                $statementMatch['statement']['Amount'],
+                            ];
+                        } else {
+                            $arr = [
+                                '', '', '',
+                                'Matched',
+                                $statementMatch['score'],
+                                $statementMatch['statement']['Date'],
+                                $statementMatch['statement']['Description'],
+                                $statementMatch['statement']['Amount'],
+                            ];
+                        }
+                        fputcsv($exportFile, $arr);
+                    }
+                }
             }
-            fputcsv($exportFile, $rowData);
-        }
 
         foreach ($data['unmatched_statements'] as $row) {
-            fputcsv($exportFile, [...$row, 'Unmatched']);
+            fputcsv($exportFile, [$row['Date'], $row['Description'], $row['Amount'], 'Unmatched']);
         }
 
         foreach($data['unmatched_ledgers'] as $row){
-            $updated = ['', '', '', '','Unmatched', ...$row];
+            $updated = ['', '', '','Unmatched', '', $row['Date'], $row['Description'], $row['Amount']];
             fputcsv($exportFile, $updated);
         }
 
