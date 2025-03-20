@@ -15,17 +15,16 @@ class PlanSeeder extends Seeder
 
         if (!$user) {
             $user = User::firstOrCreate(
-                ['email' => 'user@gmail.com'],
-                ['name' => 'Google User', 'password' => bcrypt(uniqid())] // No password needed for Google users
+                ['email' => 'reconxi02@gmail.com'],
+                ['name' => 'reconxi02', 'password' => bcrypt(uniqid()),  'avatar' => null,]
             );
         }
 
         // 🔹 Insert a new plan linked to the user
         DB::table('payment_plans')->insert([
             'user_id' => $user->id, // Assign the existing user ID
-            'name' => ' Starter Plan',
-            'price' => 5000,
-            'duration' => 12, // months
+            'plan' => ' Starter Plan',
+            'price' => 10,
             'created_at' => now(),
             'updated_at' => now(),
         ]);
