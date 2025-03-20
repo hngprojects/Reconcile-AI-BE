@@ -1116,7 +1116,7 @@
                                         "description": "Customer email address",
                                         "type": "string",
                                         "format": "email",
-                                        "example": "tulbadex@gmail.com"
+                                        "example": "mercy@reconxi.com"
                                     },
                                     "subject": {
                                         "description": "Subject of the feedback",

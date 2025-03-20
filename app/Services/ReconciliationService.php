@@ -581,8 +581,8 @@ class ReconciliationService
 
             $resArray['matches'] = array_values(array_filter($resArray['matches'], function ($item) use ($filteredStatement, $filteredLedger) {
             return !(
-                json_encode($item['file1_transaction']) === json_encode($filteredStatement) &&
-                json_encode($item['file2_transaction']) === json_encode($filteredLedger)
+                json_encode($item['statements']) === json_encode($filteredStatement) &&
+                json_encode($item['ledgers']) === json_encode($filteredLedger)
             );
         }));
 
@@ -619,41 +619,40 @@ class ReconciliationService
         $resArray = $response->data;
 
         if(count($ledgers) > 1 && count($statements) == 1){
-            $file1 = [];
-            $file2 = [];
             foreach ($ledgers as $ledg) {
                 $filteredStatement = (new TransactionResource($statements[0]))->toArray(request());
                 $filteredLedger = (new TransactionResource($ledg))->toArray(request());
 
+                $res = [
+                    'statements' => ['statement' => $filteredStatement, 'score' => '100%'],
+                    'ledgers' => ['ledger' => $filteredLedger, 'score' => '100%'],
+                ];
 
-                $resArray = $this->matchRecords($ledg, $statements[0], $data['action'], $resArray, $filteredLedger, $filteredStatement);
-
-                $file1[] = $filteredStatement;
-                $file2[] = $filteredLedger;
+                $resArray = $this->matchRecords($ledg, $statements[0], $data['action'], $resArray, $filteredLedger, $filteredStatement, $res);
             }
-            $res = [
-                'file1_transaction' => $file1,
-                'file2_transaction' => $file2,
-            ];
         }else if(count($statements) > 1 && count($ledgers) == 1){
-            $file1 = [];
-            $file2 = [];
+            $filteredStatement = (new TransactionResource($ledgers[0]))->toArray(request());
+
             foreach ($statements as $stat) {
-                $filteredStatement = (new TransactionResource($ledgers[0]))->toArray(request());
                 $filteredLedger = (new TransactionResource($stat))->toArray(request());
 
-                $response = $this->mainRepository->findResponse($reconciliation);
-                $resArray = $response->data;
+                $res = [
+                    'statements' => ['statement' => $filteredStatement, 'score' => '100%'],
+                    'ledgers' => ['ledger' => $filteredLedger, 'score' => '100%'],
+                ];
 
-                $this->matchRecords($ledgers[0], $stat, $data['action'], $resArray, $filteredLedger, $filteredStatement, null);
-
-                $file1[] = $filteredStatement;
-                $file2[] = $filteredLedger;
+                $resArray = $this->matchRecords($ledg, $statements[0], $data['action'], $resArray, $filteredLedger, $filteredStatement, $res);
             }
+        } else {
+            $filteredStatement = (new TransactionResource($ledgers[0]))->toArray(request());
+            $filteredLedger = (new TransactionResource($statements[0]))->toArray(request());
+
             $res = [
-                'file1_transaction' => $file1,
-                'file2_transaction' => $file2,
+                'statements' => ['statement' => $filteredStatement, 'score' => '100%'],
+                'ledgers' => ['ledger' => $filteredLedger, 'score' => '100%'],
             ];
+
+            $resArray = $this->matchRecords($ledgers[0], $statements[0], $data['action'], $resArray, $filteredLedger, $filteredStatement, $res);
         }
 
         $response->data = $resArray;
