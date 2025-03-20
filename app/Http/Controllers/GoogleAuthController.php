@@ -76,6 +76,13 @@ class GoogleAuthController extends Controller
                 'password' => "", // Random password
             ]);
 
+            // Create a new payment plan
+            $user->paymentPlan()->create([
+                'user_id' => $user->id,
+                'price' => 0,
+                'plan' => 'Basic',
+            ]);
+
             $isNewUser = true; // User is newly created
         }
 
@@ -130,13 +137,18 @@ class GoogleAuthController extends Controller
      *     )
      * )
      */
-    public function fetchUser(Request $request){
+    public function fetchUser(Request $request)
+    {
+        $user = $request->user();
+        $plan = $user->paymentPlan;
+
         return response()->json([
             'status_code' => 200,
             'status' => 'success',
             'message' => 'User successfully fetched',
             'data' => [
                 'user' => $request->user(),
+                'plan' => $plan ?? null,
             ]
         ]);
     }

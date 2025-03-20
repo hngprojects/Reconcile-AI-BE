@@ -42,11 +42,13 @@ class AuthServiceImplement extends ServiceApi implements AuthService
             }
 
             $user = Auth::user();
+            $plan = $user->paymentPlan;
 
             return $this->setCode(200)
                 ->setMessage("Login Success")
                 ->setData([
                     'user' => new UserResource($user),
+                    'plan' => $plan,
                     'token' => $token
                 ]);
         } catch (\Exception $e) {
@@ -88,12 +90,19 @@ class AuthServiceImplement extends ServiceApi implements AuthService
             $validated = $request->validated();
             $user = $this->mainRepository->register($validated);
 
+            $plan = $user->paymentPlan()->create([
+                'user_id' => $user->id,
+                'price' => 0,
+                'plan' => 'Basic',
+            ]);
+
             $token = JWTAuth::fromUser($user);
 
             return $this->setCode(200)
                 ->setMessage("User account registration successful")
                 ->setData([
                     'user' => new UserResource($user),
+                    'plan' => $plan,
                     'token' => $token
                 ]);
         } catch (\Exception $e) {
@@ -148,7 +157,6 @@ class AuthServiceImplement extends ServiceApi implements AuthService
             }
 
             return $this->setCode(400)->setMessage("Invalid token or email.");
-
         } catch (\Exception $e) {
             return $this->setCode(400)
                 ->setMessage("Password reset Failed")

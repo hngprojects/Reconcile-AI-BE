@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ContactController;
+use App\Http\Controllers\JobApplicationController;
 use App\Http\Controllers\OutboundMarketingController;
 use App\Http\Controllers\PartnerController;
 use Illuminate\Http\Request;
@@ -10,6 +11,7 @@ use App\Http\Controllers\WaitListController;
 use App\Http\Controllers\Api\NewsLetterController;
 use App\Http\Controllers\CustomerFeedbackController;
 use App\Http\Controllers\GoogleAuthController;
+use App\Http\Controllers\PaymentPlanController;
 use App\Http\Controllers\ReconciliationController;
 use App\Http\Middleware\ThrottleUnauthenticated;
 
@@ -34,6 +36,7 @@ Route::prefix('v1')->group(function () {
     });
 
     Route::middleware('auth:api')->get('/user', [GoogleAuthController::class, 'fetchUser'])->name('user');
+    Route::middleware('auth:api')->put('payment-plan', [PaymentPlanController::class, 'update'])->name('payment-plan');
 
     Route::prefix('newsletter')->name('newsletter.')->group(function () {
         Route::get('/unsubscribe/{email}', [NewsLetterController::class, 'oneClickUnsubscribe'])->name('one-click-unsubscribe');
@@ -61,4 +64,8 @@ Route::prefix('v1')->group(function () {
 
     // feebback api
     Route::post('/customer-feedback', [CustomerFeedbackController::class, 'store'])->name('customer.feedback');
+
+    // jobs 
+
+    Route::post('/job-application', [JobApplicationController::class, 'store']);
 });
