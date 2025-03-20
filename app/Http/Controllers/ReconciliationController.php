@@ -283,13 +283,17 @@ class ReconciliationController extends Controller
      */
     public function getReconciledRecords(Request $request, Reconciliation $reconciliation)
     {
-        $records = ReconciledRecord::where('reconciliation_id', $reconciliation->id)->get();
+        $records = ReconciledRecord::where('reconciliation_id', $reconciliation->id)->first();
 
         return response()->json([
             'message' => 'Reconciled records fetched successfully',
             'status' => 'success',
             'status_code' => 200,
-            'data' => $records,
+            'data' =>
+            [
+                'reconciliation_id' => $reconciliation->id,
+                ...$records->data
+            ],
         ], 200);
     }
 
@@ -509,13 +513,16 @@ class ReconciliationController extends Controller
                 'user' => $request->user(),
             ]);
 
-            ProcessReconciliation::dispatch($statements, $ledgers, $request->user());
+            $reconciliation = $this->testService->storeReconciliation($statements, $ledgers,  $request->user()->id);
+            ProcessReconciliation::dispatch($statements, $ledgers, $request->user(), $reconciliation);
 
             return response()->json([
                 "message" => "Reconciliation initiated successfully",
                 "status" => "success",
                 "status_code" => 200,
-                'data' => [],
+                'data' => [
+                    'reconciliation_id' => $reconciliation->id
+                ],
             ], 200);
         } catch (\Exception $e) {
             Log::error('Failed to reconcile: ' . $e->getMessage(), ['trace' => $e->getTrace()]);

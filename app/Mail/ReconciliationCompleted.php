@@ -19,9 +19,9 @@ class ReconciliationCompleted extends Mailable
      */
     public function __construct($reconciliation, $filePath, $user)
     {
-        $this->reconciliation = $reconciliation;
         $this->filePath = $filePath;
         $this->user = $user;
+        $this->url = env('FRONTEND_URL', 'https://reconxi.com') . '/reconciliations/' . $reconciliation->id;
     }
 
     /**
@@ -41,7 +41,7 @@ class ReconciliationCompleted extends Mailable
     {
         return new Content(
             view: 'mail.reconciliation-completed',
-            with: ['user' => $this->user]
+            with: ['user' => $this->user, 'url' => $this->url]
         );
     }
 
@@ -52,8 +52,6 @@ class ReconciliationCompleted extends Mailable
      */
     public function attachments(): array
     {
-        return [
-            Attachment::fromPath($this->filePath)
-        ];
+        return [];
     }
 }
