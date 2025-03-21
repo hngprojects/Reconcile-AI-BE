@@ -18,12 +18,8 @@ class ManualReconciliationRequest extends FormRequest
             'ledgers' => 'required|array',
             'statements' => 'required|array',
             'action' => ['required', Rule::in(['match', 'unmatch'])],
-            'ledgers.*.Date' => 'required|string',
-            'ledgers.*.Person' => 'required|string',
-            'ledgers.*.Amount' => 'required',
-            'statements.*.Date' => 'required|string',
-            'statements.*.Person' => 'required|string',
-            'statements.*.Amount' => 'required',
+            'ledgers.*' => 'string',
+            'statements.*' => 'string',
         ];
     }
 }

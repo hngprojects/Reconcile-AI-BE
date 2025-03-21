@@ -232,17 +232,13 @@ class ReconciliationController extends Controller
      */
     public function getReconciledRecords(Request $request, Reconciliation $reconciliation)
     {
-        $records = ReconciledRecord::where('reconciliation_id', $reconciliation->id)->first();
+        $records = $this->testService->fetchResults($reconciliation);
 
         return response()->json([
             'message' => 'Reconciled records fetched successfully',
             'status' => 'success',
             'status_code' => 200,
-            'data' =>
-            [
-                'reconciliation_id' => $reconciliation->id,
-                ...$records->data
-            ],
+            'data' => $records
         ], 200);
     }
 
@@ -323,7 +319,14 @@ class ReconciliationController extends Controller
     public function matchUnmatch(ManualReconciliationRequest $request, Reconciliation $reconciliation){
         $validated = $request->validated();
 
-        return $this->reconciliationService->matchUnmatch($validated, $reconciliation);
+        $res = $this->testService->matchUnmatch($reconciliation, $validated['statements'], $validated['ledgers'], $validated['action']);
+
+        return response()->json([
+            'message' => 'Reconciliation updated successfully',
+            'status' => 'success',
+            'status_code' => 200,
+            'data' => $res
+        ], 200);
     }
 
 /**

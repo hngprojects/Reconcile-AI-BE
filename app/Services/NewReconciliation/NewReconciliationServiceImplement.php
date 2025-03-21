@@ -463,4 +463,124 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
 
         return $exportFileName;
     }
+
+    public function fetchResults(Reconciliation $reconciliation){
+        $savedStatements = $this->statementRepository->findAll($reconciliation);
+        $savedLedgers = $this->ledgerRepository->findAll($reconciliation);
+
+        $matched = $this->matchedRepository->getMatches($reconciliation->id);
+
+        $matchedStatementIds = [];
+        $matchedLedgerIds = [];
+        $matches = [];
+
+        foreach ($matched as $match) {
+            Log::info('Score: ', ['data' => $match]);
+            $percent = $match['score'];
+            $statementIndex = $this->findMatchIndex($matches, $match['statement_id']);
+            $ledgerIndex = $this->findMatchIndex($matches, $match['ledger_id']);
+
+            if($statementIndex){
+                $matches[] = [
+                    'statements' => [
+                        [
+                            'statement' => (new TransactionResource($this->statementRepository->findById($match['statement_id'])))->toArray(request())
+                        ]
+                    ],
+                    'ledgers' => [
+                        ...matches[$statementIndex]['ledgers'],
+                        [
+                            'ledger' => (new TransactionResource($this->ledgerRepository->findById($match['ledger_id'])))->toArray(request()),
+                            'score' => "{$percent}%"
+                        ]
+                    ]
+                ];
+            }else if($ledgerIndex){
+                $matches[] = [
+                    'statements' => [
+                        ...$matches[$ledgerIndex]['statements'],
+                        [
+                            'statement' => (new TransactionResource($this->statementRepository->findById($match['statement_id'])))->toArray(request()),
+                            'score' => "{$percent}%"
+                        ]
+                    ],
+                    'ledgers' => [
+                        [
+                            'ledger' => (new TransactionResource($this->ledgerRepository->findById($match['ledger_id'])))->toArray(request())
+                        ]
+                    ]
+                ];
+            }else{
+                $matches[] = [
+                    'statements' => [
+                        [
+                            'statement' => (new TransactionResource($this->statementRepository->findById($match['statement_id'])))->toArray(request()),
+                            'score' => "{$percent}%"
+                        ]
+                    ],
+                    'ledgers' => [
+                        [
+                            'ledger' => (new TransactionResource($this->ledgerRepository->findById($match['ledger_id'])))->toArray(request()),
+                            'score' => "{$percent}%"
+                        ]
+                    ]
+                ];
+            }
+
+            $matchedLedgerIds[] = $match['ledger_id'];
+            $matchedStatementIds[] = $match['statement_id'];
+        }
+        Log::info('Matched Statements', ['data' => $matchedStatementIds]);
+        Log::info('Matched Ledgers', ['data' => $matchedLedgerIds]);
+
+        $unmatchedStatements = $savedStatements
+            ->whereNotIn('id', $matchedStatementIds)
+            ->map(fn($stat) => (new TransactionResource($stat))->toArray(request()))
+            ->values()
+            ->all();
+
+        $unmatchedLedgers = $savedLedgers
+            ->whereNotIn('id', $matchedLedgerIds)
+            ->map(fn($ledg) => (new TransactionResource($ledg))->toArray(request()))
+            ->values()
+            ->all();
+
+        return [
+            'reconciliation_id' => $reconciliation->id,
+            'matches' => $matches,
+            'unmatched_ledgers' => $unmatchedLedgers,
+            'unmatched_statements' => $unmatchedStatements,
+            'summary' => [
+                'totalMatched' => count($matches),
+                'totalUnmatched' => count($unmatchedLedgers) + count($unmatchedStatements),
+                'total' => count($unmatchedLedgers) + count($unmatchedStatements) + count($matches)
+            ]
+        ];
+    }
+
+    public function matchUnmatch(Reconciliation $reconciliation, array $statements, array $ledgers, string $action){
+        if($action == 'match'){
+            if(count($statements) == 1){
+                foreach ($ledgers as $key => $ledger) {
+                    $this->matchedRepository->storeByIds($ledger, $statements[0], 100);
+                }
+            }else if(count($ledgers) == 1){
+                foreach ($statements as $key => $statement) {
+                    $this->matchedRepository->storeByIds($ledgers[0], $statement, 100);
+                }
+            }
+        }else if ($action == 'unmatch'){
+            if(count($statements) == 1){
+                foreach ($ledgers as $key => $ledger) {
+                    $this->matchedRepository->removeByIds($ledger, $statements[0]);
+                }
+            }else if(count($ledgers) == 1){
+                foreach ($statements as $key => $statement) {
+                    $this->matchedRepository->removeByIds($ledgers[0], $statement);
+                }
+            }
+        }
+
+        return $this->fetchResults($reconciliation);
+    }
 }

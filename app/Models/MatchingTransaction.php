@@ -37,13 +37,13 @@ class MatchingTransaction extends Pivot
         return $this->belongsTo(User::class);
     }
 
-    public function ledgers(): BelongsTo
+    public function ledger(): BelongsTo
     {
-        return $this->hasMany(Ledger::class);
+        return $this->belongsTo(Ledger::class);
     }
 
-    public function statements(): BelongsTo
+    public function statement(): BelongsTo
     {
-        return $this->hasMany(Statement::class);
+        return $this->belongsTo(Statement::class);
     }
 }
