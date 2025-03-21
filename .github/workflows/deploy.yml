@@ -37,7 +37,7 @@ jobs:
               # echo "Starting Laravel deployment..."
               # # Start the deployment service (using explicit sudo with NOPASSWD permission)
               # cd /var/www/html/Reconcile-AI-BE-dev
-              # sudo chown -R $USER:$USER
+              # sudo chown -R $USER:$USER 
               # git pull origin dev
               # composer install --no-interaction --prefer-dist --no-dev
               # php artisan jwt:secret
