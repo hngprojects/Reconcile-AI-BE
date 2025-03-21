@@ -171,7 +171,14 @@ class GoogleAuthController extends Controller
      */
     public function handleGoogleCallback(Request $request)
     {
-        $googleUser = Socialite::driver('google')->stateless()->user();
+        try {
+            // Try to retrieve the user from Google
+            $googleUser = Socialite::driver('google')->stateless()->user();
+        } catch (\Exception $e) {
+            // Redirect back to the frontend with an error message
+            return redirect()->to(env('FRONTEND_URL', 'https://reconxi.com') . '/login?error=google_auth_failed');
+        }
+
         $ip = $request->ip(); // Get user's IP address
 
         $isNewUser = false; // Flag to track if user is new
