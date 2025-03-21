@@ -36,7 +36,7 @@ jobs:
             else
               # echo "Starting Laravel deployment..."
               # # Start the deployment service (using explicit sudo with NOPASSWD permission)
-              # cd /var/www/html/Reconcile-AI-BE-dev
+              # cd /var/www/html/staging
               # sudo chown -R $USER:$USER 
               # git pull origin dev
               # composer install --no-interaction --prefer-dist --no-dev
@@ -49,4 +49,5 @@ jobs:
               sudo systemctl daemon-reload
               sudo systemctl restart laravel-deploy.service
             fi
+
 
