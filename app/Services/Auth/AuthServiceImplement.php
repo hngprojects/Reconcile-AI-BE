@@ -66,17 +66,56 @@ class AuthServiceImplement extends ServiceApi implements AuthService
      * @param \Illuminate\Http\Request $request
      * @return \Illuminate\Http\JsonResponse | \App\Services\Auth\AuthServiceImplement
      */
-    public function logout()
+    /* public function logout()
     {
         try {
             JWTAuth::parseToken()->invalidate();
 
             return $this->setCode(200)
                 ->setMessage("Logout Success");
-        } catch (\Exception $e) {
+        } catch (\Tymon\JWTAuth\Exceptions\JWTException $e) {
             return $this->setCode(400)
                 ->setMessage("Logout Failed")
-                ->setError($e->getMessage());
+                ->setError($this->getErrorCode($e));
+        }
+    }
+
+    private function getErrorCode($exception)
+    {
+        if ($exception instanceof \Tymon\JWTAuth\Exceptions\TokenExpiredException) {
+            return 'token expired';
+        } elseif ($exception instanceof \Tymon\JWTAuth\Exceptions\TokenInvalidException) {
+            return 'token invalid';
+        } else {
+            return 'token absent';
+        }
+    } */
+
+    public function logout()
+    {
+        try {
+            if (!JWTAuth::getToken()) {
+                return $this->setCode(400)
+                    ->setMessage("Token not provided")
+                    ->setError('token_absent');
+            }
+
+            JWTAuth::invalidate(JWTAuth::getToken());
+
+            return $this->setCode(200)
+                ->setMessage("Logout Success");
+        } catch (\Tymon\JWTAuth\Exceptions\TokenExpiredException $e) {
+            return $this->setCode(400)
+                ->setMessage("Logout Failed")
+                ->setError('token_expired');
+        } catch (\Tymon\JWTAuth\Exceptions\TokenInvalidException $e) {
+            return $this->setCode(400)
+                ->setMessage("Logout Failed")
+                ->setError('token_invalid');
+        } catch (\Tymon\JWTAuth\Exceptions\JWTException $e) {
+            return $this->setCode(400)
+                ->setMessage("Logout Failed")
+                ->setError('token_error');
         }
     }
 

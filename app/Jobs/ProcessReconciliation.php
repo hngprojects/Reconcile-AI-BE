@@ -9,6 +9,7 @@ use Illuminate\Queue\SerializesModels;
 use App\Services\NewReconciliation\NewReconciliationService;
 use Illuminate\Foundation\Bus\Dispatchable;
 use App\Models\User;
+use App\Models\Reconciliation;
 use Illuminate\Support\Facades\Log;
 
 class ProcessReconciliation implements ShouldQueue
@@ -18,20 +19,22 @@ class ProcessReconciliation implements ShouldQueue
     protected $statements;
     protected $ledgers;
     protected $user;
+    protected $reconciliation;
     public $tries = 3;
     public $timeout = 10800;
 
-    public function __construct(array $statements, array $ledgers, User $user)
+    public function __construct(array $statements, array $ledgers, User $user, Reconciliation $reconciliation)
     {
         $this->statements = $statements;
         $this->ledgers = $ledgers;
         $this->user = $user;
+        $this->reconciliation = $reconciliation;
     }
 
     public function handle(NewReconciliationService $service)
     {
         try{
-            $service->usingEmbeddings($this->statements, $this->ledgers, $this->user);
+            $service->usingEmbeddings($this->statements, $this->ledgers, $this->user, $this->reconciliation);
         }catch(Throwable $e){
             \Log::error("ProcessReconciliation Job Failed: " . $e->getMessage());
             $this->fail($e);

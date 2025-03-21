@@ -84,7 +84,7 @@
             <div class="text-content">
                 <p>Dear {{$user->name}},</p>
 
-                <p>Your reconciliation is complete and you can view the results in the CSV file attached to this email</p>
+                <p>Your reconciliation is complete and you can view the results <a href="{{$url}}">here</a></p>
 
             </div>
         </div>

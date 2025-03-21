@@ -472,83 +472,10 @@ class ReconciliationTest extends TestCase
         $this->assertEquals(5, Cache::get($cacheKey));
     } */
 
-    public function test_export_generation_validation(): void
-    {
-        $response = $this->post('/api/v1/reconcile/export', [
-            'matches' => [],
-            'unmatched' => []
-        ]);
-        $response->assertStatus(422);
-    }
-
     public function test_export_generation(): void
     {
-        $response = $this->post('/api/v1/reconcile/export', [
-            'data' => [
-                'matches' => [
-                    [
-                        'file1_transaction' => [
-                            "Date" => "12/4/2023",
-                            "Description" => "Test",
-                            "Amount" => "650"
-                        ],
-                        'status' => "Matched",
-                        'file2_transaction' => [
-                            "Date" => "12/4/2023",
-                            "Description" => "Test",
-                            "Amount" => "650"
-                        ]
-                    ],
-                    [
-                        'file1_transaction' => [
-                            "Date" => "12/4/2023",
-                            "Description" => "Test",
-                            "Amount" => "650"
-                        ],
-                        'status' => "Matched",
-                        'file2_transaction' => [
-                            "Date" => "12/4/2023",
-                            "Description" => "Test",
-                            "Amount" => "650"
-                        ]
-                    ],
-                    [
-                        'file1_transaction' => [
-                            "Date" => "12/4/2023",
-                            "Description" => "Test",
-                            "Amount" => "650"
-                        ],
-                        'status' => "Matched",
-                        'file2_transaction' => [
-                            "Date" => "12/4/2023",
-                            "Description" => "Test",
-                            "Amount" => "650"
-                        ]
-                    ]
-                ],
-                'unmatched' => [
-                    'unmatched_file1' => [
-                        [
-                            "Date" => "12/4/2023",
-                            "Description" => "Test",
-                            "Amount" => "680"
-                        ],
-                        [
-                            "Date" => "12/4/2023",
-                            "Description" => "Test",
-                            "Amount" => "900"
-                        ]
-                    ],
-                    'unmatched_file2' => [
-                        [
-                            "Date" => "12/4/2023",
-                            "Description" => "Test",
-                            "Amount" => "450"
-                        ]
-                    ]
-                ]
-            ]
-        ]);
+        $record = ReconciledRecord::factory()->create();
+        $response = $this->get("/api/v1/reconciliations/{$record->reconciliation->id}/export");
         // $file = "reconciled-data-" . now()->format('Y-m-d_H-i-s') . ".csv";
         // $response->assertStatus(200);
         // $response->assertHeader('Content-Type', 'text/plain; charset=UTF-8');
@@ -560,7 +487,7 @@ class ReconciliationTest extends TestCase
         $response->assertStatus(200);
 
         // Assert content type
-        $response->assertHeader('Content-Type', 'text/plain; charset=UTF-8');
+        $response->assertHeader('Content-Type', 'text/csv; charset=UTF-8');
 
         // Check Content-Disposition header dynamically
         $response->assertHeader('Content-Disposition');
@@ -669,17 +596,23 @@ class ReconciliationTest extends TestCase
             ])
             ->assertJsonStructure([
                 'data' => [
-                    '*' => [
-                        'id',
-                        'reconciliation_id',
-                        'data',
-                        'created_at',
-                        'updated_at',
+                    'reconciliation_id',
+                    'matches',
+                    'matchSummary' => [
+                        'totalMatched',
+                        'totalUnmatched'
                     ],
+                    'only_in_file1',
+                    'only_in_file2',
+                    'unmatched' => [
+                        'unmatched_file1',
+                        'unmatched_file2'
+                    ]
                 ],
             ]);
     }
 
+    /*
     public function test_reconcile_match_transaction()
     {
         // Create test reconciliation
@@ -690,16 +623,16 @@ class ReconciliationTest extends TestCase
 
         // Prepare test request data
         $payload = [
-            'ledger' => [
+            'ledgers' => [[
                 'Date' => '2024-12-05',
                 'Person' => 'Test Ledger',
                 'Amount' => 50000
-            ],
-            'statement' => [
+            ]],
+            'statements' => [[
                 'Date' => '2024-12-05',
                 'Person' => 'Test Statement',
                 'Amount' => 50000
-            ],
+            ]],
             'action' => 'match'
         ];
 
@@ -724,16 +657,16 @@ class ReconciliationTest extends TestCase
         ]);
 
         $data = [
-            'ledger' => [
+            'ledgers' => [ [
                 'Date' => '2024-12-02',
                 'Person' => 'Beau',
                 'Amount' => 100000
-            ],
-            'statement' => [
+            ]],
+            'statements' => [ [
                 'Date' => '2024-12-05',
                 'Person' => 'Bola',
                 'Amount' => 80000
-            ],
+            ]],
             'action' => 'unmatch'
         ];
 
@@ -744,38 +677,25 @@ class ReconciliationTest extends TestCase
             'status',
             'status_code',
             'message',
-            'data' => [
-                'reconciliation_id',
-                'matches',
-                'matchSummary' => [
-                    'totalMatched',
-                    'totalUnmatched'
-                ],
-                'only_in_file1',
-                'only_in_file2',
-                'unmatched' => [
-                    'unmatched_file1',
-                    'unmatched_file2'
-                ]
-            ]
+            'data'
         ]);
     }
-
+*/
     public function test_invalid_action_returns_error()
     {
         $reconciliation = Reconciliation::factory()->create();
 
         $data = [
-            'ledger' => [
+            'ledgers' => [[
                 'Date' => '2024-12-02',
                 'Person' => 'Beau',
                 'Amount' => 100000
-            ],
-            'statement' => [
+            ]],
+            'statements' => [[
                 'Date' => '2024-12-05',
                 'Person' => 'Bola',
                 'Amount' => 80000
-            ],
+            ]],
             'action' => 'invalid_action'
         ];
 

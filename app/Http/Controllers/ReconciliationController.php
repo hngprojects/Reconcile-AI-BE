@@ -163,81 +163,30 @@ class ReconciliationController extends Controller
 
     /**
  * @OA\Post(
- *     path="/api/v1/reconcile/export",
+ *     path="/api/v1/reconciliations/{reconciliation}/export",
  *     summary="Export reconciled data as a CSV file",
  *     description="Generates a CSV file containing matched and unmatched transactions from reconciliation.",
  *     tags={"Reconciliation"},
- *     @OA\RequestBody(
+ *     @OA\Parameter(
+ *         name="reconciliation",
+ *         in="path",
  *         required=true,
- *         @OA\JsonContent(
- *             required={"data"},
- *             @OA\Property(
- *                 property="data",
- *                 type="object",
- *                 @OA\Property(
- *                     property="matches",
- *                     type="array",
- *                     @OA\Items(
- *                         type="object",
- *                         @OA\Property(property="file1_transaction", type="object",
- *                             @OA\Property(property="Date", type="string", example="12/4/2023"),
- *                             @OA\Property(property="Description", type="string", example="Test"),
- *                             @OA\Property(property="Amount", type="number", example=650)
- *                         ),
- *                         @OA\Property(property="status", type="string", example="Matched"),
- *                         @OA\Property(property="file2_transaction", type="object",
- *                             @OA\Property(property="Date", type="string", example="12/4/2023"),
- *                             @OA\Property(property="Description", type="string", example="Test"),
- *                             @OA\Property(property="Amount", type="number", example=650)
- *                         )
- *                     )
- *                 ),
- *                 @OA\Property(
- *                     property="unmatched",
- *                     type="object",
- *                     @OA\Property(property="unmatched_file1", type="array", @OA\Items(type="object")),
- *                     @OA\Property(property="unmatched_file2", type="array", @OA\Items(type="object"))
- *                 ),
- *                 @OA\Property(property="only_in_file1", type="array", @OA\Items(type="object")),
- *                 @OA\Property(property="only_in_file2", type="array", @OA\Items(type="object"))
- *             )
- *         )
+ *         description="Reconciliation ID",
+ *         @OA\Schema(type="string")
  *     ),
  *     @OA\Response(
  *         response=200,
  *         description="CSV file generated successfully",
  *         @OA\Header(header="Content-Disposition", description="attachment; filename=reconciled-data.csv", @OA\Schema(type="string"))
  *     ),
- *     @OA\Response(response=400, description="Invalid request data"),
  *     @OA\Response(response=500, description="Server error while generating CSV file")
  * )
  */
-    public function export(Request $request){
+    public function export(Reconciliation $reconciliation){
         try {
-            $request->validate([
-                'data' => 'required|array',
-                'data.matches' => 'array',
-                'data.unmatched' => 'array',
-                'data.unmatched.unmatched_file1' => 'array',
-                'data.unmatched.unmatched_file2' => 'array',
-                'data.matches.*.file1_transaction' => 'array',
-                'data.matches.*.file2_transaction' => 'array',
-                'data.matches.*.status' => 'string',
-            ]);
-
-            return $this->reconciliationService->generateExport($request->input('data'));
+            return $this->testService->export($reconciliation);
         } catch(\Exception $e) {
-            if(get_class($e) == "Illuminate\Validation\ValidationException"){
-                 return response()->json([
-                    "message" => "Failed to generate report",
-                    "status" => "error",
-                    "status_code" => 422,
-                    'data' => [
-                        'error' => $e instanceof \Illuminate\Validation\ValidationException ? $e->errors() : $e->getMessage()
-                    ]
-                ], 422);
-            }
-             return response()->json([
+            return response()->json([
                 "message" => "Failed to generate report",
                 "status" => "error",
                 "status_code" => 500,
@@ -283,13 +232,17 @@ class ReconciliationController extends Controller
      */
     public function getReconciledRecords(Request $request, Reconciliation $reconciliation)
     {
-        $records = ReconciledRecord::where('reconciliation_id', $reconciliation->id)->get();
+        $records = ReconciledRecord::where('reconciliation_id', $reconciliation->id)->first();
 
         return response()->json([
             'message' => 'Reconciled records fetched successfully',
             'status' => 'success',
             'status_code' => 200,
-            'data' => $records,
+            'data' =>
+            [
+                'reconciliation_id' => $reconciliation->id,
+                ...$records->data
+            ],
         ], 200);
     }
 
@@ -509,13 +462,16 @@ class ReconciliationController extends Controller
                 'user' => $request->user(),
             ]);
 
-            ProcessReconciliation::dispatch($statements, $ledgers, $request->user());
+            $reconciliation = $this->testService->storeReconciliation($statements, $ledgers,  $request->user()->id);
+            ProcessReconciliation::dispatch($statements, $ledgers, $request->user(), $reconciliation);
 
             return response()->json([
                 "message" => "Reconciliation initiated successfully",
                 "status" => "success",
                 "status_code" => 200,
-                'data' => [],
+                'data' => [
+                    'reconciliation_id' => $reconciliation->id
+                ],
             ], 200);
         } catch (\Exception $e) {
             Log::error('Failed to reconcile: ' . $e->getMessage(), ['trace' => $e->getTrace()]);
