@@ -176,7 +176,7 @@ class GoogleAuthController extends Controller
             $googleUser = Socialite::driver('google')->stateless()->user();
         } catch (\Exception $e) {
             // Redirect back to the frontend with an error message
-            return redirect()->to(env('FRONTEND_URL', 'https://reconxi.com') . '/login?error=google_auth_failed');
+            return redirect()->away(env('FRONTEND_URL', 'https://reconxi.com') . '/login?error=google_auth_failed');
         }
 
         $ip = $request->ip(); // Get user's IP address
@@ -215,7 +215,7 @@ class GoogleAuthController extends Controller
             Mail::to($user->email)->queue(new WelcomeEmail($user, $getStartedUrl));
         }
 
-        return redirect()->to($getStartedUrl);
+        return redirect()->away($getStartedUrl);
     }
 
     /**
