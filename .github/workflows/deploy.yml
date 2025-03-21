@@ -4,10 +4,10 @@ on:
     branches:
       - main
       - dev
-  workflow_run:
-    workflows: ["CI Testing"]  # 🚀 This runs ONLY after CI workflow completes
-    types:
-      - completed  # Runs when CI finishes (success or failure)
+  # workflow_run:
+  #   workflows: ["CI Testing"]  # 🚀 This runs ONLY after CI workflow completes
+  #   types:
+  #     - completed  # Runs when CI finishes (success or failure)
 jobs:
   deployment:
     runs-on: reconcile
@@ -39,18 +39,18 @@ jobs:
               php artisan queue:restart
               sudo systemctl restart nginx
             else
-              # echo "Starting Laravel deployment..."
+              # echo "Starting Laravel deployment for docs..."
               # # Start the deployment service (using explicit sudo with NOPASSWD permission)
-              # cd /var/www/html/staging
+              cd /var/www/html/docs
               # sudo chown -R $USER:$USER .
-              # git fetch origin 
-              # git reset --hard HEAD 
-              # git checkout dev 
-              # git reset --hard origin/dev 
-              # git pull --rebase --no-edit
-              # composer install --no-interaction --prefer-dist --no-dev
-              # php artisan jwt:secret
-              # php artisan optimize:clear
+              git fetch origin 
+              git reset --hard HEAD 
+              git checkout dev 
+              git reset --hard origin/dev 
+              git pull --rebase --no-edit
+              composer install --no-interaction --prefer-dist --no-dev
+              php artisan jwt:secret
+              php artisan optimize:clear
               # php artisan migrate --force
               # sudo systemctl restart nginx
               echo "Starting Laravel deployment..."
