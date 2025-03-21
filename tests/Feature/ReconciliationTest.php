@@ -571,13 +571,8 @@ class ReconciliationTest extends TestCase
                         'match_score'       => 95,
                     ],
                 ],
-                'only_in_file1' => [['name' => 'Alice Brown', 'amount' => 300]],
-                'only_in_file2' => [['name' => 'Bob Martin', 'amount' => 400]],
-                'unmatched'     => [
-                    'unmatched_file1' => [['name' => 'Alice Brown', 'amount' => 300]],
-                    'unmatched_file2' => [['name' => 'Bob Martin', 'amount' => 400]],
-                ],
-                'matchSummary'  => [
+                'unmatched_statements' => [['name' => 'Alice Brown', 'amount' => 300]],
+                'unmatched_ledgers' => [['name' => 'Bob Martin', 'amount' => 400]],                'summary'  => [
                     'totalMatched'        => 1,
                     'totalUnmatchedFile1' => 1,
                     'totalUnmatchedFile2' => 1,
@@ -598,41 +593,25 @@ class ReconciliationTest extends TestCase
                 'data' => [
                     'reconciliation_id',
                     'matches',
-                    'matchSummary' => [
-                        'totalMatched',
-                        'totalUnmatched'
-                    ],
-                    'only_in_file1',
-                    'only_in_file2',
-                    'unmatched' => [
-                        'unmatched_file1',
-                        'unmatched_file2'
-                    ]
-                ],
+                    'summary'
+                ]
             ]);
     }
 
-    /*
     public function test_reconcile_match_transaction()
     {
         // Create test reconciliation
         $reconciliation = Reconciliation::factory()->createOne();
+        $statement = Statement::factory()->create();
+        $ledger = Ledger::factory()->create();
         $record = ReconciledRecord::factory()->createOne([
             'reconciliation_id' => $reconciliation->id
         ]);
 
         // Prepare test request data
         $payload = [
-            'ledgers' => [[
-                'Date' => '2024-12-05',
-                'Person' => 'Test Ledger',
-                'Amount' => 50000
-            ]],
-            'statements' => [[
-                'Date' => '2024-12-05',
-                'Person' => 'Test Statement',
-                'Amount' => 50000
-            ]],
+            'ledgers' => [$ledger->id],
+            'statements' => [$statement->id],
             'action' => 'match'
         ];
 
@@ -644,7 +623,7 @@ class ReconciliationTest extends TestCase
             ->assertJson([
                 'status' => 'success',
                 'status_code' => 200,
-                'message' => 'Successfully updated the reconciliation!',
+                'message' => 'Reconciliation updated successfully',
             ]);
     }
 
@@ -652,21 +631,15 @@ class ReconciliationTest extends TestCase
     public function test_unmatch_transactions_successfully()
     {
         $reconciliation = Reconciliation::factory()->create();
+        $statement = Statement::factory()->create();
+        $ledger = Ledger::factory()->create();
         $record = ReconciledRecord::factory()->createOne([
             'reconciliation_id' => $reconciliation->id
         ]);
 
         $data = [
-            'ledgers' => [ [
-                'Date' => '2024-12-02',
-                'Person' => 'Beau',
-                'Amount' => 100000
-            ]],
-            'statements' => [ [
-                'Date' => '2024-12-05',
-                'Person' => 'Bola',
-                'Amount' => 80000
-            ]],
+            'ledgers' => [$ledger->id],
+            'statements' => [$statement->id],
             'action' => 'unmatch'
         ];
 
@@ -680,22 +653,16 @@ class ReconciliationTest extends TestCase
             'data'
         ]);
     }
-*/
+
     public function test_invalid_action_returns_error()
     {
         $reconciliation = Reconciliation::factory()->create();
+        $statement = Statement::factory()->create();
+        $ledger = Ledger::factory()->create();
 
         $data = [
-            'ledgers' => [[
-                'Date' => '2024-12-02',
-                'Person' => 'Beau',
-                'Amount' => 100000
-            ]],
-            'statements' => [[
-                'Date' => '2024-12-05',
-                'Person' => 'Bola',
-                'Amount' => 80000
-            ]],
+            'ledgers' => [$ledger->id],
+            'statements' => [$statement->id],
             'action' => 'invalid_action'
         ];
 

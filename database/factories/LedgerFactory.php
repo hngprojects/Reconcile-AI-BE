@@ -20,7 +20,8 @@ class LedgerFactory extends Factory
             'date' => fake()->date(),
             'person' => fake()->name(),
             'other_information' => fake()->sentence(),
-            'amount' => fake()->randomNumber()
+            'amount' => fake()->randomNumber(),
+            'reconciliation_id' => \App\Models\Reconciliation::factory()
         ];
     }
 }

@@ -78,7 +78,7 @@
         </div>
 
         <div class="content">
-            <img src="https://api-dev.reconxi.com/assets/thank-you-illustration.png" alt="Thank You" width="200">
+            <img src="https://reconxi.com/reconResult.svg" alt="Your Reconciliation is Here!" width="200">
             <h2>Your Reconciliation Results are Ready</h2>
 
             <div class="text-content">

@@ -32,11 +32,47 @@ class MatchingTransactionRepositoryImplement extends Eloquent implements Matchin
         ]);
     }
 
+    public function storeByIds(string $ledger, string $statement, int $score){
+        return $this->model->create([
+            'ledger_id' => $ledger,
+            'statement_id' => $statement,
+            'score' => $score
+        ]);
+    }
+
+    public function getMatches(string $reconciliationId) {
+        return $this->model->whereHas('statement', function ($query) use ($reconciliationId) {
+                $query->where('reconciliation_id', $reconciliationId);
+            })
+            ->orWhereHas('ledger', function ($query) use ($reconciliationId) {
+                $query->where('reconciliation_id', $reconciliationId);
+            })
+            ->with(['statement', 'ledger'])
+            ->select(['matched_statements.statement_id', 'matched_statements.ledger_id', 'matched_statements.score'])->get();
+    }
+
     public function remove(Ledger $ledger, Statement $statement){
-        return $this->model->where([
+        $match = $this->model->where([
             'ledger_id' => $ledger->id,
             'statement_id' => $statement->id,
-        ])->first()->delete();
+        ])->first();
+        if($match){
+            return $match->delete();
+        }
+
+        return;
+    }
+
+    public function removeByIds(string $ledger, string $statement){
+        $match = $this->model->where([
+            'ledger_id' => $ledger,
+            'statement_id' => $statement,
+        ])->first();
+        if($match){
+            return $match->delete();
+        }
+
+        return;
     }
 
     public function matchTransactions(Reconciliation $reconciliation){
