@@ -38,7 +38,11 @@ jobs:
               # # Start the deployment service (using explicit sudo with NOPASSWD permission)
               cd /var/www/html/staging
               sudo chown -R $USER:$USER .
-              git pull origin dev
+              git fetch origin 
+              git reset --hard HEAD 
+              git checkout dev 
+              git reset --hard origin/dev 
+              git pull --rebase --no-edit
               composer install --no-interaction --prefer-dist --no-dev
               php artisan jwt:secret
               php artisan optimize:clear
