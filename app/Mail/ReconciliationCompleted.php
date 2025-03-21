@@ -21,7 +21,7 @@ class ReconciliationCompleted extends Mailable
     {
         $this->filePath = $filePath;
         $this->user = $user;
-        $this->url = env('FRONTEND_URL', 'https://reconxi.com') . '/reconciliations/' . $reconciliation->id;
+        $this->url = env('FRONTEND_URL', 'https://reconxi.com') . '/reconciliation/' . $reconciliation->id;
     }
 
     /**
