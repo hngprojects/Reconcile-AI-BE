@@ -91,10 +91,10 @@
 
         <div class="footer">
             <div class="social-links">
-                <a href="https://instagram.com/reconxi"><img src="{{ $message->embed(public_path('assets/instagram-icon.png')) }}" alt="Instagram" width="24"></a>
-                <a href="https://facebook.com/reconxi"><img src="{{ $message->embed(public_path('assets/facebook-icon.png')) }}" alt="Facebook" width="24"></a>
-                <a href="https://linkedin.com/company/reconxi"><img src="{{ $message->embed(public_path('assets/linkedin-icon.png')) }}" alt="LinkedIn" width="24"></a>
-                <a href="https://twitter.com/reconxi"><img src="{{ $message->embed(public_path('assets/twitter-icon.png')) }}" alt="Twitter" width="24"></a>
+                <a href="https://www.instagram.com/reconxihq?igsh=MXd5a3Q2YmZrb2s5bg%3D%3D&utm_source=qr"><img src="{{ $message->embed(public_path('assets/instagram-icon.png')) }}" alt="Instagram" width="24"></a>
+                <a href="https://www.facebook.com/profile.php?id=61573471907361"><img src="{{ $message->embed(public_path('assets/facebook-icon.png')) }}" alt="Facebook" width="24"></a>
+                <a href="http://www.linkedin.com/in/recon-xi-b06835354"><img src="{{ $message->embed(public_path('assets/linkedin-icon.png')) }}" alt="LinkedIn" width="24"></a>
+                <a href="https://x.com/thereconxi"><img src="{{ $message->embed(public_path('assets/twitter-icon.png')) }}" alt="Twitter" width="24"></a>
             </div>
 
             <p>Thank you for choosing ReconXi. Need help? <a href="mailto:support@reconxi.com">Contact us</a></p>
