@@ -75,12 +75,14 @@ class OutboundMarketingController extends Controller
         [$isValid, $validationResult] = $this->marketingService->validateInput($request->all());
 
         if (!$isValid) {
+            $statusCode = ($validationResult === 'The email address is already in use.') ? 409 : 400;
+
             return response()->json([
                 'status' => 'error',
-                'status_code' => 400,
-                'message' => 'Validation failed.',
-                'errors' => $validationResult
-            ], 400);
+                'status_code' => $statusCode,
+                'message' => $validationResult,
+                'errors' => $statusCode === 400 ? $validationResult : null
+            ], $statusCode);
         }
 
         [$success, $result] = $this->marketingService->createOutboundMarketing($validationResult);
