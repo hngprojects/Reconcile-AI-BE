@@ -74,11 +74,11 @@
 <body>
     <div class="container">
         <div class="header">
-            <img src="https://api-dev.reconxi.com/assets/logo.png" alt="ReconXi Logo" height="40">
+            <img src="{{ $message->embed(public_path('assets/logo.png')) }}" alt="ReconXi Logo" height="40">
         </div>
 
         <div class="content">
-            <img src="https://reconxi.com/reconResult.svg" alt="Your Reconciliation is Here!" width="200">
+            <img src="{{ $message->embed(public_path('assets/reconResult.svg')) }}" alt="Your Reconciliation is Here!" width="200">
             <h2>Your Reconciliation Results are Ready</h2>
 
             <div class="text-content">
@@ -91,10 +91,10 @@
 
         <div class="footer">
             <div class="social-links">
-                <a href="https://instagram.com/reconxi"><img src="https://api-dev.reconxi.com/assets/instagram-icon.png" alt="Instagram" width="24"></a>
-                <a href="https://facebook.com/reconxi"><img src="https://api-dev.reconxi.com/assets/facebook-icon.png" alt="Facebook" width="24"></a>
-                <a href="https://linkedin.com/company/reconxi"><img src="https://api-dev.reconxi.com/assets/linkedin-icon.png" alt="LinkedIn" width="24"></a>
-                <a href="https://twitter.com/reconxi"><img src="https://api-dev.reconxi.com/assets/twitter-icon.png" alt="Twitter" width="24"></a>
+                <a href="https://instagram.com/reconxi"><img src="{{ $message->embed(public_path('assets/instagram-icon.png')) }}" alt="Instagram" width="24"></a>
+                <a href="https://facebook.com/reconxi"><img src="{{ $message->embed(public_path('assets/facebook-icon.png')) }}" alt="Facebook" width="24"></a>
+                <a href="https://linkedin.com/company/reconxi"><img src="{{ $message->embed(public_path('assets/linkedin-icon.png')) }}" alt="LinkedIn" width="24"></a>
+                <a href="https://twitter.com/reconxi"><img src="{{ $message->embed(public_path('assets/twitter-icon.png')) }}" alt="Twitter" width="24"></a>
             </div>
 
             <p>Thank you for choosing ReconXi. Need help? <a href="mailto:support@reconxi.com">Contact us</a></p>
