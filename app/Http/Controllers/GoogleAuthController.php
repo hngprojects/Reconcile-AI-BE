@@ -9,9 +9,121 @@ use App\Models\User;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\WelcomeEmail;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Hash;
 
 class GoogleAuthController extends Controller
 {
+    /**
+     * Authenticate using Google.
+     */
+    public function loginGoogle(Request $request)
+    {
+        // Validate the incoming request
+        $validator = Validator::make($request->all(), [
+            'id_token' => 'required|string',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status_code' => 422,
+                'message' => $validator->errors()
+            ], 422);
+        }
+
+        $isNewUser = false;
+
+        // Extract Google user data from the request
+        $idToken = $request->id_token;
+
+        $response = Http::get("https://www.googleapis.com/oauth2/v3/tokeninfo?id_token={$idToken}");
+        if($response->successful()) {
+            $payload = $response->json();
+            if (isset($payload['sub']) && isset($payload['email'])) {
+                $email = $payload['email'];
+                $firstName = $payload['given_name'] ?? null;
+                $lastName = $payload['family_name'] ?? null;
+                $avatarUrl = $payload['picture'] ?? null;
+
+                // Create or update user
+                $user = User::where('email', $email)->first();
+                if (!$user) {
+
+                    // Hash::make(Str::random(12))
+
+                    $user = User::create([
+                        'name' => $firstName . ' ' . $lastName,
+                        'email' => $email,
+                        'avatar' => $avatarUrl,
+                        'password' => "", // Random password
+                    ]);
+        
+                    // Create a new payment plan
+                    $user->paymentPlan()->create([
+                        'user_id' => $user->id,
+                        'price' => 0,
+                        'plan' => 'Basic',
+                    ]);
+
+                    $isNewUser = true;
+                }
+
+                $token = JWTAuth::fromUser($user);
+
+                $getStartedUrl = env('FRONTEND_URL', 'https://reconxi.com') . '/file-upload?token=' . $token;
+
+                if ($isNewUser) {
+                    Mail::to($user->email)->queue(new WelcomeEmail($user, $getStartedUrl));
+                }
+
+                return response()->json([
+                    'status_code' => 200,
+                    'message' => 'User Created Successfully',
+                    'access_token' => $token,
+                    'data' => [
+                        'user' => [
+                            'id' => $user->id,
+                            'email' => $user->email,
+                            'name' => $user->name,
+                            'avatar' => $avatarUrl,
+                        ]
+                    ]
+                ]);
+            } else {
+                return response()->json([
+                    'status_code' => 401,
+                    'message' => 'Invalid Token Payload'
+                ], 401);
+            }
+        } else {
+            return response()->json([
+                'status_code' => 401,
+                'message' => 'Invalid Token: ' . $response->body()
+            ], 401);
+        }
+    }
+
+    public function refresh()
+    {
+        dd(request());
+        /* try {
+            // Attempt to refresh the token
+            $newToken = JWTAuth::parseToken()->refresh();
+
+            // Return the new token
+            return response()->json([
+                'status' => 'success',
+                'token' => $newToken,
+            ], 200);
+        } catch (JWTException $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Could not refresh token',
+            ], 500);
+        } */
+    }
+
     /**
      * @OA\Get(
      *     path="/api/v1/auth/google",
