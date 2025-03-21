@@ -560,6 +560,28 @@
                 }
             }
         },
+        "/api/v1/auth/check-token": {
+            "get": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Check token validity",
+                "operationId": "756425a205772cebda484834a066b645",
+                "responses": {
+                    "200": {
+                        "description": "Token is valid"
+                    },
+                    "401": {
+                        "description": "Token is invalid or expired"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/api/v1/newsletter/subscribe": {
             "post": {
                 "tags": [

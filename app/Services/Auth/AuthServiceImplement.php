@@ -4,6 +4,8 @@ namespace App\Services\Auth;
 
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Log;
+use Tymon\JWTAuth\Exceptions\JWTException;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use App\Http\Resources\UserResource;
 use Illuminate\Support\Facades\Auth;
@@ -161,6 +163,28 @@ class AuthServiceImplement extends ServiceApi implements AuthService
             return $this->setCode(400)
                 ->setMessage("Password reset Failed")
                 ->setError($e->getMessage());
+        }
+    }
+
+    /**
+     * Handles the token validation process for the application.
+     */
+
+    public function checkToken()
+    {
+        try {
+            $token = JWTAuth::parseToken();
+            $user = $token->authenticate();
+
+            if ($user) {
+                return response()->json(['message' => 'Token is valid', 'user' => $user]);
+            }
+        } catch (\Tymon\JWTAuth\Exceptions\TokenExpiredException $e) {
+            return response()->json(['error' => 'Token expired'], 401);
+        } catch (\Tymon\JWTAuth\Exceptions\TokenInvalidException $e) {
+            return response()->json(['error' => 'Token invalid'], 401);
+        } catch (\Tymon\JWTAuth\Exceptions\JWTException $e) {
+            return response()->json(['error' => 'Token absent'], 401);
         }
     }
 }
