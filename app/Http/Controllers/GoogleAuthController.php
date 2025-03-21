@@ -140,6 +140,7 @@ class GoogleAuthController extends Controller
     public function fetchUser(Request $request)
     {
         $user = $request->user();
+        // dd($user);
         $plan = $user->paymentPlan;
 
         return response()->json([

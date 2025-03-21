@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers\Api;
 
 use App\Http\Requests\Auth\AuthResetPassword;
@@ -259,5 +260,20 @@ class AuthController extends Controller
     public function resetPassword(AuthResetPassword $request): JsonResponse
     {
         return $this->authService->resetPassword($request)->toJson();
+    }
+
+    /**
+     * @OA\Get(
+     *     path="/api/v1/auth/check-token",
+     *     summary="Check token validity",
+     *     tags={"Authentication"},
+     *     security={{ "bearerAuth":{} }},
+     *     @OA\Response(response=200, description="Token is valid"),
+     *     @OA\Response(response=401, description="Token is invalid or expired")
+     * )
+     */
+    public function checkToken(): JsonResponse
+    {
+        return $this->authService->checkToken()->toJson();
     }
 }

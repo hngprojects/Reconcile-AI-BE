@@ -27,6 +27,10 @@ Route::prefix('v1')->group(function () {
         Route::post('/logout', [AuthController::class, 'logout'])->withoutMiddleware('guest')->middleware('jwt.auth')->name('logout');
         Route::post('/forgot-password', [AuthController::class, 'forgotPassword'])->name('forgot-password');
         Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('reset-password');
+        Route::get('/check-token', [AuthController::class, 'checkToken'])
+            ->middleware('jwt.auth')
+            ->name('check-token');
+
         // Route::post('/verify-email', [AuthController::class, 'verifyEmail'])->name('verify-email');
         // Route::post('/resend-verification-email', [AuthController::class, 'resendVerificationEmail'])->name('resend-verification-email');
 
