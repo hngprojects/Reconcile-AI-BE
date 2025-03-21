@@ -21,6 +21,7 @@ use Illuminate\Support\Facades\Log;
 use App\Mail\ReconciliationCompleted;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Sleep;
+use Illuminate\Support\Facades\Response;
 
 class NewReconciliationServiceImplement extends ServiceApi implements NewReconciliationService{
 
@@ -182,7 +183,7 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
         foreach ($files as $file) {
             $data = $this->loadComplexCsv($file);
 
-            $chunks = array_chunk($data, 15);
+            $chunks = array_chunk($data, 5);
 
             $prompt = "Please structure the attached JSON object into a JSON object with the following properties: Date, Person, Amount and Other Information. The JSON object could be a school ledger, an invoice ledger, a company ledger, a hospital ledger or a bank statement. Please keep this in mind as you go through the dataset. The person property can be derived from properties like Student Name, Invoice Detail, Narration, Summary, Remarks or any other synonyms that are used in a ledger or bank statement. Please ensure you derive a name and add it to the Person property. If it's not available, provide a short summary of the provided data or the unique identifier such as invoice ID and transaction codes. The person property should never be an empty string. The amount can be derived from the debit, credit, amount, total, or anything that fits this criteria. Ensure the value for the amount that has been paid only so put into consideration any synonyms that may highlight this. Any other information should be added to the 'Other Information' property. Intelligently map through all the properties in the JSON and extract all the relevant information for this data structure. Please exclude any rows that have no data. Use the relevant columns to extract this data and ensure the amount is always an absolute value and it should not have any symbols. Return all the data present in the provided JSON in JSON format. Please don't truncate the result.";
 
@@ -374,71 +375,80 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
         ];
     }
 
-        protected function generateCSV($data){
-            $timestamp = now()->format('Y-m-d_H-i-s');
-            $exportFileName = public_path("reconciled-data-" . now()->format('Y-m-d_H-i-s') . ".csv");
+    public function export(Reconciliation $reconciliation){
+        $record = $this->mainRepository->findResponse($reconciliation);
 
-            $exportFile = fopen($exportFileName, 'w');
-            fputcsv($exportFile, ['Bank Statement', '', '', '', '', 'Ledger', '', '']);
-            fputcsv($exportFile, ['Date', 'Description', 'Amount', 'Status', 'Score', 'Date', 'Description', 'Amount']);
+        $file = $this->generateCSV($record->data);
 
-            foreach ($data['matches'] as $match) {
-                $arr = [];
-                if (count($match['statements']) == 1) {
-                    foreach ($match['ledgers'] as $key => $ledgerMatch) {
-                        if($key == 0){
-                            $arr = [
-                                $match['statements'][0]['statement']['Date'],
-                                $match['statements'][0]['statement']['Description'],
-                                $match['statements'][0]['statement']['Amount'],
-                                'Matched',
-                                $ledgerMatch['score'],
-                                $ledgerMatch['ledger']['Date'],
-                                $ledgerMatch['ledger']['Description'],
-                                $ledgerMatch['ledger']['Amount'],
-                            ];
-                        } else {
-                            $arr = [
-                                '', '', '',
-                                'Matched',
-                                $ledgerMatch['score'],
-                                $ledgerMatch['ledger']['Date'],
-                                $ledgerMatch['ledger']['Description'],
-                                $ledgerMatch['ledger']['Amount'],
-                            ];
-                        }
-                        fputcsv($exportFile, $arr);
+        return Response::download($file)->deleteFileAfterSend(true);
+
+    }
+
+    protected function generateCSV($data){
+        $timestamp = now()->format('Y-m-d_H-i-s');
+        $exportFileName = public_path("reconciled-data-" . now()->format('Y-m-d_H-i-s') . ".csv");
+
+        $exportFile = fopen($exportFileName, 'w');
+        fputcsv($exportFile, ['Bank Statement', '', '', '', '', 'Ledger', '', '']);
+        fputcsv($exportFile, ['Date', 'Description', 'Amount', 'Status', 'Score', 'Date', 'Description', 'Amount']);
+
+        foreach ($data['matches'] as $match) {
+            $arr = [];
+            if (count($match['statements']) == 1) {
+                foreach ($match['ledgers'] as $key => $ledgerMatch) {
+                    if($key == 0){
+                        $arr = [
+                            $match['statements'][0]['statement']['Date'],
+                            $match['statements'][0]['statement']['Description'],
+                            $match['statements'][0]['statement']['Amount'],
+                            'Matched',
+                            $ledgerMatch['score'],
+                            $ledgerMatch['ledger']['Date'],
+                            $ledgerMatch['ledger']['Description'],
+                            $ledgerMatch['ledger']['Amount'],
+                        ];
+                    } else {
+                        $arr = [
+                            '', '', '',
+                            'Matched',
+                            $ledgerMatch['score'],
+                            $ledgerMatch['ledger']['Date'],
+                            $ledgerMatch['ledger']['Description'],
+                            $ledgerMatch['ledger']['Amount'],
+                        ];
                     }
-                }
-
-                if (count($match['ledgers']) == 1) {
-                    foreach ($match['statements'] as $key => $statementMatch) {
-                        Log::info('Index: ', ['key' => $key]);
-                        if($key == 0){
-                            $arr = [
-                                $match['ledgers'][0]['ledger']['Date'],
-                                $match['ledgers'][0]['ledger']['Description'],
-                                $match['ledgers'][0]['ledger']['Amount'],
-                                'Matched',
-                                $statementMatch['score'],
-                                $statementMatch['statement']['Date'],
-                                $statementMatch['statement']['Description'],
-                                $statementMatch['statement']['Amount'],
-                            ];
-                        } else {
-                            $arr = [
-                                '', '', '',
-                                'Matched',
-                                $statementMatch['score'],
-                                $statementMatch['statement']['Date'],
-                                $statementMatch['statement']['Description'],
-                                $statementMatch['statement']['Amount'],
-                            ];
-                        }
-                        fputcsv($exportFile, $arr);
-                    }
+                    fputcsv($exportFile, $arr);
                 }
             }
+
+            if (count($match['ledgers']) == 1) {
+                foreach ($match['statements'] as $key => $statementMatch) {
+                    Log::info('Index: ', ['key' => $key]);
+                    if($key == 0){
+                        $arr = [
+                            $match['ledgers'][0]['ledger']['Date'],
+                            $match['ledgers'][0]['ledger']['Description'],
+                            $match['ledgers'][0]['ledger']['Amount'],
+                            'Matched',
+                            $statementMatch['score'],
+                            $statementMatch['statement']['Date'],
+                            $statementMatch['statement']['Description'],
+                            $statementMatch['statement']['Amount'],
+                        ];
+                    } else {
+                        $arr = [
+                            '', '', '',
+                            'Matched',
+                            $statementMatch['score'],
+                            $statementMatch['statement']['Date'],
+                            $statementMatch['statement']['Description'],
+                            $statementMatch['statement']['Amount'],
+                        ];
+                    }
+                    fputcsv($exportFile, $arr);
+                }
+            }
+        }
 
         foreach ($data['unmatched_statements'] as $row) {
             fputcsv($exportFile, [$row['Date'], $row['Description'], $row['Amount'], 'Unmatched']);
