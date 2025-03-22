@@ -12,6 +12,7 @@ use App\Mail\WelcomeEmail;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 
 class GoogleAuthController extends Controller
 {
@@ -24,6 +25,8 @@ class GoogleAuthController extends Controller
         $validator = Validator::make($request->all(), [
             'id_token' => 'required|string',
         ]);
+
+        Log::info('Token: ', $request->all());
 
         if ($validator->fails()) {
             return response()->json([
@@ -38,6 +41,7 @@ class GoogleAuthController extends Controller
         $idToken = $request->id_token;
 
         $response = Http::get("https://www.googleapis.com/oauth2/v3/tokeninfo?id_token={$idToken}");
+        Log::info('Response', ['data' => $response]);
         if($response->successful()) {
             $payload = $response->json();
             if (isset($payload['sub']) && isset($payload['email'])) {
@@ -58,7 +62,7 @@ class GoogleAuthController extends Controller
                         'avatar' => $avatarUrl,
                         'password' => "", // Random password
                     ]);
-        
+
                     // Create a new payment plan
                     $user->paymentPlan()->create([
                         'user_id' => $user->id,
@@ -77,6 +81,8 @@ class GoogleAuthController extends Controller
                     Mail::to($user->email)->queue(new WelcomeEmail($user, $getStartedUrl));
                 }
 
+                $plan = $user->paymentPlan;
+
                 return response()->json([
                     'status_code' => 200,
                     'message' => 'User Created Successfully',
@@ -87,7 +93,8 @@ class GoogleAuthController extends Controller
                             'email' => $user->email,
                             'name' => $user->name,
                             'avatar' => $avatarUrl,
-                        ]
+                        ],
+                        'plan' => $plan
                     ]
                 ]);
             } else {
