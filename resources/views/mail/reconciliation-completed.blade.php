@@ -78,7 +78,7 @@
         </div>
 
         <div class="content">
-            <img src="{{ $message->embed(public_path('assets/reconResult.svg')) }}" alt="Your Reconciliation is Here!" width="200">
+            <img src="{{ $message->embed(public_path('assets/reconResult.png')) }}" alt="Your Reconciliation is Here!" width="200">
             <h2>Your Reconciliation Results are Ready</h2>
 
             <div class="text-content">
