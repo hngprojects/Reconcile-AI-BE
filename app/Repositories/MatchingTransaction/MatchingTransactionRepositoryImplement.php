@@ -77,7 +77,7 @@ class MatchingTransactionRepositoryImplement extends Eloquent implements Matchin
 
     public function matchTransactions(Reconciliation $reconciliation){
         $matches = DB::select("
-                SELECT DISTINCT ON (s.id)
+                SELECT DISTINCT ON (s.id, l.id)
                     s.id AS statement_id,
                     l.id AS ledger_id,
                     1 - (s.embedding <=> l.embedding) AS cosine_similarity
@@ -87,16 +87,17 @@ class MatchingTransactionRepositoryImplement extends Eloquent implements Matchin
                     ledgers l ON s.reconciliation_id = l.reconciliation_id
                 WHERE
                     s.reconciliation_id = ?
-                    AND 1 - (s.embedding <=> l.embedding) > 0.85
+                    AND 1 - (s.embedding <=> l.embedding) > 0.82
                 ORDER BY
                     s.id, cosine_similarity DESC
             ", [$reconciliation->id]);
 
         foreach ($matches as $match) {
+            Log::info('Score: ', ['score' => $match->cosine_similarity]);
            $this->model->create([
                 'ledger_id' => $match->ledger_id,
                 'statement_id' => $match->statement_id,
-                'score' => $match->cosine_similarity
+                'score' => (int) $match->cosine_similarity
             ]);
         }
 
