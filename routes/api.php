@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\NewsLetterController;
 use App\Http\Controllers\CustomerFeedbackController;
 use App\Http\Controllers\GoogleAuthController;
 use App\Http\Controllers\PaymentPlanController;
+use App\Http\Controllers\PlanController;
 use App\Http\Controllers\ReconciliationController;
 use App\Http\Middleware\ThrottleUnauthenticated;
 
@@ -38,6 +39,8 @@ Route::prefix('v1')->group(function () {
         // google auth
         Route::get('/google', [GoogleAuthController::class, 'redirectToGoogle']);
         Route::get('/google/callback', [GoogleAuthController::class, 'handleGoogleCallback']);
+        Route::post('/google-login', [GoogleAuthController::class, 'loginGoogle']);
+        Route::post('/refresh', [GoogleAuthController::class, 'refresh']);
     });
 
     Route::middleware('auth:api')->get('/user', [GoogleAuthController::class, 'fetchUser'])->name('user');
@@ -54,6 +57,12 @@ Route::prefix('v1')->group(function () {
         Route::post('/unsubscribe', [NewsLetterController::class, 'unsubscribe'])->name('unsubscribe');
     });
 
+    Route::prefix('plans')->group(function () {
+        Route::post('/', [PlanController::class, 'store'])->name('create-plan');      // Create a plan
+        Route::get('/{id}', [PlanController::class, 'show'])->name('show-plan');    // Get a plan by ID
+        Route::patch('/{id}', [PlanController::class, 'update'])->name('update-plan');  // Update a plan
+        Route::delete('/{id}', [PlanController::class, 'destroy'])->name('delete-plan'); // Delete a plan
+    });
 
     // outbound marketing api
     Route::post('/outbound-marketing', [OutboundMarketingController::class, 'store']);
@@ -61,7 +70,7 @@ Route::prefix('v1')->group(function () {
     // partners
     Route::post('/partners', [PartnerController::class, 'submit'])->name('partners');
     Route::post('/reconcile', [ReconciliationController::class, 'reconcile'])->name('reconcile')->middleware(ThrottleUnauthenticated::class);
-    Route::get('/reconciliations/{reconciliation}', [ReconciliationController::class, 'getReconciledRecords'])->whereUuid('reconciliation')->name('reconciled-records');
+    Route::middleware('auth:api')->get('/reconciliations/{reconciliation}', [ReconciliationController::class, 'getReconciledRecords'])->whereUuid('reconciliation')->name('reconciled-records');
     Route::get('/reconciliations/{reconciliation}/export', [ReconciliationController::class, 'export'])->name('export');
     Route::middleware('auth:api')->post('/reconcile-embeddings', [ReconciliationController::class, 'testEmbeddings'])->name('embeddings');
     Route::post('/reconcile/{reconciliation}', [ReconciliationController::class, 'matchUnmatch'])->whereUuid('reconciliation')->name('manual-reconciliation');

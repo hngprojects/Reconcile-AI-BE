@@ -232,17 +232,26 @@ class ReconciliationController extends Controller
      */
     public function getReconciledRecords(Request $request, Reconciliation $reconciliation)
     {
-        $records = ReconciledRecord::where('reconciliation_id', $reconciliation->id)->first();
+        $user = $request->user();
+
+        if($reconciliation->user->id != $user->id){
+            return response()->json([
+                'message' => 'Failed to authenticate',
+                'status' => 'error',
+                'status_code' => 401,
+                'data' => [
+                    'error' => 'Please contact the owner to view this'
+                ]
+            ], 401);
+        }
+
+        $records = $this->testService->fetchResults($reconciliation, $user);
 
         return response()->json([
             'message' => 'Reconciled records fetched successfully',
             'status' => 'success',
             'status_code' => 200,
-            'data' =>
-            [
-                'reconciliation_id' => $reconciliation->id,
-                ...$records->data
-            ],
+            'data' => $records
         ], 200);
     }
 
@@ -323,7 +332,14 @@ class ReconciliationController extends Controller
     public function matchUnmatch(ManualReconciliationRequest $request, Reconciliation $reconciliation){
         $validated = $request->validated();
 
-        return $this->reconciliationService->matchUnmatch($validated, $reconciliation);
+        $res = $this->testService->matchUnmatch($reconciliation, $validated['statements'], $validated['ledgers'], $validated['action']);
+
+        return response()->json([
+            'message' => 'Reconciliation updated successfully',
+            'status' => 'success',
+            'status_code' => 200,
+            'data' => $res
+        ], 200);
     }
 
 /**
