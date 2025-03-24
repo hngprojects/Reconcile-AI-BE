@@ -30,7 +30,7 @@ jobs:
           sshpass -p "${{ secrets.SSH_PASSWORD }}" ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_SERVER }} << 'EOF'
           
           # Navigate to project directory
-          cd /home/Reconcile/runner-be
+          cd /var/www/html/runner-be
 
           # Fetch latest changes
           git fetch --all
