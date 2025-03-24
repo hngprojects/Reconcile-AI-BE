@@ -18,7 +18,7 @@ class PlanSeeder extends Seeder
                 'id' => Str::uuid(),
                 'name' => 'Basic Plan',
                 'description' => 'Free trial for 7 days with 5 reconciliations.',
-                'plan_length' => 7,
+                'plan_length' => 30,
                 'plan' => 'Basic',
                 'reconciliations_per_month' => 5,
                 'amount' => 0.00, // Free plan
