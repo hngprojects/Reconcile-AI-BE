@@ -13,11 +13,69 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use Tymon\JWTAuth\Exceptions\JWTException;
+use Tymon\JWTAuth\Exceptions\TokenExpiredException;
+use Tymon\JWTAuth\Exceptions\TokenInvalidException;
+use Tymon\JWTAuth\Exceptions\TokenBlacklistedException;
+use Illuminate\Http\JsonResponse;
 
 class GoogleAuthController extends Controller
 {
     /**
      * Authenticate using Google.
+     */
+    /**
+     * @OA\Post(
+     *     path="/api/v1/auth/google-login",
+     *     summary="Authenticate using Google",
+     *     description="Logs in or registers a user using Google OAuth and returns an access token.",
+     *     tags={"Authentication"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"id_token"},
+     *             @OA\Property(property="id_token", type="string", example="eyJhbGciOiJSUzI1NiIsImtpZ...")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="User successfully authenticated",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status_code", type="integer", example=200),
+     *             @OA\Property(property="message", type="string", example="User Created Successfully"),
+     *             @OA\Property(property="access_token", type="string", example="eyJhbGciOiJIUzI1NiIsIn..."),
+     *             @OA\Property(property="data", type="object",
+     *                 @OA\Property(property="user", type="object",
+     *                     @OA\Property(property="id", type="integer", example=1),
+     *                     @OA\Property(property="email", type="string", example="user@example.com"),
+     *                     @OA\Property(property="name", type="string", example="John Doe"),
+     *                     @OA\Property(property="avatar", type="string", example="https://example.com/avatar.jpg")
+     *                 ),
+     *                 @OA\Property(property="plan", type="object",
+     *                     @OA\Property(property="user_id", type="integer", example=1),
+     *                     @OA\Property(property="price", type="integer", example=0),
+     *                     @OA\Property(property="plan", type="string", example="Basic")
+     *                 )
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Invalid Token",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status_code", type="integer", example=401),
+     *             @OA\Property(property="message", type="string", example="Invalid Token Payload")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Validation Error",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status_code", type="integer", example=422),
+     *             @OA\Property(property="message", type="object")
+     *         )
+     *     )
+     * )
      */
     public function loginGoogle(Request $request)
     {
@@ -25,8 +83,6 @@ class GoogleAuthController extends Controller
         $validator = Validator::make($request->all(), [
             'id_token' => 'required|string',
         ]);
-
-        Log::info('Token: ', $request->all());
 
         if ($validator->fails()) {
             return response()->json([
@@ -111,24 +167,89 @@ class GoogleAuthController extends Controller
         }
     }
 
-    public function refresh()
+    /**
+     * Refresh the JWT token.
+     */
+    /**
+     * @OA\Post(
+     *     path="/api/v1/auth/refresh",
+     *     summary="Refresh JWT Token",
+     *     description="Refreshes the user's JWT token if the current token is valid.",
+     *     tags={"Authentication"},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Token refreshed successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status_code", type="integer", example=200),
+     *             @OA\Property(property="status", type="string", example="success"),
+     *             @OA\Property(property="access_token", type="string", example="eyJhbGciOiJIUzI1NiIsIn...")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Token is invalid or expired",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status_code", type="integer", example=401),
+     *             @OA\Property(property="status", type="string", example="error"),
+     *             @OA\Property(property="message", type="string", example="Token has expired and cannot be refreshed")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="Token is blacklisted",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status_code", type="integer", example=403),
+     *             @OA\Property(property="status", type="string", example="error"),
+     *             @OA\Property(property="message", type="string", example="Token has been blacklisted")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Internal server error",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status_code", type="integer", example=500),
+     *             @OA\Property(property="status", type="string", example="error"),
+     *             @OA\Property(property="message", type="string", example="Could not refresh token")
+     *         )
+     *     )
+     * )
+     */
+    public function refresh(): JsonResponse
     {
-        dd(request());
-        /* try {
+        try {
             // Attempt to refresh the token
             $newToken = JWTAuth::parseToken()->refresh();
 
-            // Return the new token
             return response()->json([
+                'status_code' => 200,
                 'status' => 'success',
-                'token' => $newToken,
+                'access_token' => $newToken,
             ], 200);
+        } catch (TokenExpiredException $e) {
+            return response()->json([
+                'status_code' => 401,
+                'status' => 'error',
+                'message' => 'Token has expired and cannot be refreshed',
+            ], 401);
+        } catch (TokenInvalidException $e) {
+            return response()->json([
+                'status_code' => 401,
+                'status' => 'error',
+                'message' => 'Invalid token',
+            ], 401);
+        } catch (TokenBlacklistedException $e) {
+            return response()->json([
+                'status_code' => 403,
+                'status' => 'error',
+                'message' => 'Token has been blacklisted',
+            ], 403);
         } catch (JWTException $e) {
             return response()->json([
+                'status_code' => 500,
                 'status' => 'error',
                 'message' => 'Could not refresh token',
             ], 500);
-        } */
+        }
     }
 
     /**

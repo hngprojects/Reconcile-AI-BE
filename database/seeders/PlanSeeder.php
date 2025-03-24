@@ -2,71 +2,52 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Support\Facades\DB;
-use App\Models\User;
+use Illuminate\Database\Seeder;
+use App\Models\Plan;
+use Illuminate\Support\Str;
 
-// First user: reconxi02@gmail.com
-$user = User::where('email', 'reconxi02@gmail.com')->first();
+class PlanSeeder extends Seeder
+{
+    /**
+     * Run the database seeds.
+     */
+    public function run(): void
+    {
+        $plans = [
+            [
+                'id' => Str::uuid(),
+                'name' => 'Basic Plan',
+                'description' => 'Free trial for 7 days with 5 reconciliations.',
+                'plan_length' => 7,
+                'plan' => 'Basic',
+                'reconciliations_per_month' => 5,
+                'amount' => 0.00, // Free plan
+                // 'expiration_days' => 7,
+            ],
+            [
+                'id' => Str::uuid(),
+                'name' => 'Starter Plan',
+                'description' => 'Starter plan with 10 reconciliations per month.',
+                'plan_length' => 30,
+                'plan' => 'Starter',
+                'reconciliations_per_month' => 20,
+                'amount' => 10.00, // $10.00 per month
+                // 'expiration_days' => null,
+            ],
+            [
+                'id' => Str::uuid(),
+                'name' => 'Business Plan',
+                'description' => 'Business plan with unlimited reconciliations.',
+                'plan_length' => 30,
+                'plan' => 'Business',
+                'reconciliations_per_month' => -1,
+                'amount' => 25.00, // $25.00 per month
+                // 'expiration_days' => null,
+            ],
+        ];        
 
-if (!$user) {
-    $user = User::firstOrCreate(
-        ['email' => 'reconxi02@gmail.com'],
-        ['name' => 'reconxi02', 'password' => bcrypt(uniqid()), 'avatar' => null]
-    );
-}
-
-// 🔹 Check if the user already has a plan
-$existingPlan = DB::table('payment_plans')->where('user_id', $user->id)->first();
-
-if ($existingPlan) {
-    // 🔹 Update the existing plan
-    DB::table('payment_plans')
-        ->where('user_id', $user->id)
-        ->update([
-            'plan' => 'Starter Plan', // Change to the new plan name
-            'price' => 10, // Update the price if needed
-            'updated_at' => now(),
-        ]);
-} else {
-    // 🔹 Insert a new plan if the user doesn't have one
-    DB::table('payment_plans')->insert([
-        'user_id' => $user->id,
-        'plan' => 'Starter Plan',
-        'price' => 10,
-        'created_at' => now(),
-        'updated_at' => now(),
-    ]);
-}
-
-// Second user: mark@hotels.ng
-$markUser = User::where('email', 'mark@hotels.ng')->first();
-
-if (!$markUser) {
-    $markUser = User::firstOrCreate(
-        ['email' => 'mark@hotels.ng'],
-        ['name' => 'Mark', 'password' => bcrypt(uniqid()), 'avatar' => null]
-    );
-}
-
-// 🔹 Check if the user already has a plan
-$existingMarkPlan = DB::table('payment_plans')->where('user_id', $markUser->id)->first();
-
-if ($existingMarkPlan) {
-    // 🔹 Update the existing plan
-    DB::table('payment_plans')
-        ->where('user_id', $markUser->id)
-        ->update([
-            'plan' => 'Starter Plan', // Change to the new plan name
-            'price' => 10, // Update the price if needed
-            'updated_at' => now(),
-        ]);
-} else {
-    // 🔹 Insert a new plan if the user doesn't have one
-    DB::table('payment_plans')->insert([
-        'user_id' => $markUser->id,
-        'plan' => 'Starter Plan',
-        'price' => 10,
-        'created_at' => now(),
-        'updated_at' => now(),
-    ]);
+        foreach ($plans as $plan) {
+            Plan::updateOrCreate(['plan' => $plan['plan']], $plan);
+        }
+    }
 }
