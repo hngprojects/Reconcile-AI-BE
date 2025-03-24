@@ -127,4 +127,74 @@ class UserController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * @OA\Delete(
+     *     path="/api/v1/user",
+     *     summary="Delete user account",
+     *     description="Deletes the authenticated user's account permanently with all associated data",
+     *     tags={"User"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Account deleted successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="string", example="success"),
+     *             @OA\Property(property="status_code", type="integer", example=200),
+     *             @OA\Property(property="message", type="string", example="Your account has been deleted successfully"),
+     *             @OA\Property(property="data", type="null", example=null)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthorized",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="string", example="error"),
+     *             @OA\Property(property="message", type="string", example="Unauthenticated")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Server error",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="string", example="error"),
+     *             @OA\Property(property="status_code", type="integer", example=500),
+     *             @OA\Property(property="message", type="string", example="An error occurred while deleting your account"),
+     *             @OA\Property(property="data", type="null", example=null)
+     *         )
+     *     )
+     * )
+     */
+    public function deleteAccount(Request $request)
+    {
+        try {
+            $user = Auth::user();
+
+            // Delete user's avatar if exists
+            if ($user->avatar) {
+                Storage::disk('public')->delete($user->avatar);
+            }
+
+
+
+            $user->delete();
+
+            auth()->logout();
+
+            return response()->json([
+                'status' => 'success',
+                'status_code' => 200,
+                'message' => 'Your account has been deleted successfully',
+                'data' => null
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'status_code' => 500,
+                'message' => 'An error occurred while deleting your account',
+                'data' => null,
+                'error' => env('APP_DEBUG') ? $e->getMessage() : null
+            ], 500);
+        }
+    }
 }
