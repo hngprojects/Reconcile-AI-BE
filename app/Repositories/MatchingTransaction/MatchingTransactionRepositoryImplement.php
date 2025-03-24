@@ -77,7 +77,7 @@ class MatchingTransactionRepositoryImplement extends Eloquent implements Matchin
 
     public function matchTransactions(Reconciliation $reconciliation){
         $matches = DB::select("
-                SELECT DISTINCT ON (s.id, l.id)
+                SELECT DISTINCT ON (s.id)
                     s.id AS statement_id,
                     l.id AS ledger_id,
                     1 - (s.embedding <=> l.embedding) AS cosine_similarity
