@@ -1,18 +1,18 @@
 name: Deployment
 on:
-  pull_request:
-    branches: [main, dev, staging] # Runs for same-repo PRs
-    types: [opened, synchronize]
   push:
     branches:
       - main
       - dev
-      - staging
-
+  # workflow_run:
+  #   workflows: ["CI Testing"]  # 🚀 This runs ONLY after CI workflow completes
+  #   types:
+  #     - completed  # Runs when CI finishes (success or failure)
 jobs:
   deployment:
     runs-on: reconcile
     timeout-minutes: 10
+    if: ${{ github.event_name == 'push' || github.event.workflow_run.conclusion == 'success' }}
     steps:
       # - uses: actions/checkout@v4
       - name: Deploy to the server
@@ -25,29 +25,38 @@ jobs:
           script: |
             if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
               echo "Starting Laravel deployment for production..."
-              cd /var/www/html/Reconcile-AI-BE-main
-              git pull origin main
+              cd /var/www/html/BE-main
+              sudo chown -R $USER:$USER
+              git fetch origin 
+              git reset --hard HEAD 
+              git checkout main 
+              git reset --hard origin/main 
+              git pull --rebase --no-edit
               composer install --no-interaction --prefer-dist --no-dev
               php artisan jwt:secret
               php artisan optimize:clear
               php artisan migrate --force
-              sudo systemctl restart nginx
-            elif [[ "${{ github.ref }}" == "refs/heads/staging" ]]; then
-              echo "Starting Laravel deployment for development..."
-              cd /var/www/html/staging-new
-              git fetch origin 
-              git reset --hard HEAD 
-              git checkout staging 
-              git reset --hard origin/staging 
-              git pull --rebase --no-edit
-              composer install --no-interaction --prefer-dist
-              php artisan optimize:clear
-              php artisan migrate --force
-              # Restart the staging service
+              php artisan queue:restart
               sudo systemctl restart nginx
             else
+              # echo "Starting Laravel deployment..."
+              # # Start the deployment service (using explicit sudo with NOPASSWD permission)
+              # cd /var/www/html/staging
+              # sudo chown -R $USER:$USER .
+              # git fetch origin 
+              # git reset --hard HEAD 
+              # git checkout dev 
+              # git reset --hard origin/dev 
+              # git pull --rebase --no-edit
+              # composer install --no-interaction --prefer-dist --no-dev
+              # php artisan jwt:secret
+              # php artisan optimize:clear
+              # php artisan migrate --force
+              # sudo systemctl restart nginx
               echo "Starting Laravel deployment..."
               # Start the deployment service (using explicit sudo with NOPASSWD permission)
               sudo systemctl daemon-reload
               sudo systemctl restart laravel-deploy.service
             fi
+
+
