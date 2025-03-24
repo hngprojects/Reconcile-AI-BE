@@ -232,7 +232,20 @@ class ReconciliationController extends Controller
      */
     public function getReconciledRecords(Request $request, Reconciliation $reconciliation)
     {
-        $records = $this->testService->fetchResults($reconciliation);
+        $user = $request->user();
+
+        if($reconciliation->user->id != $user->id){
+            return response()->json([
+                'message' => 'Failed to authenticate',
+                'status' => 'error',
+                'status_code' => 401,
+                'data' => [
+                    'error' => 'Please contact the owner to view this'
+                ]
+            ], 401);
+        }
+
+        $records = $this->testService->fetchResults($reconciliation, $user);
 
         return response()->json([
             'message' => 'Reconciled records fetched successfully',
