@@ -59,7 +59,7 @@ Route::prefix('v1')->group(function () {
     // partners
     Route::post('/partners', [PartnerController::class, 'submit'])->name('partners');
     Route::post('/reconcile', [ReconciliationController::class, 'reconcile'])->name('reconcile')->middleware(ThrottleUnauthenticated::class);
-    Route::get('/reconciliations/{reconciliation}', [ReconciliationController::class, 'getReconciledRecords'])->whereUuid('reconciliation')->name('reconciled-records');
+    Route::middleware('auth:api')->get('/reconciliations/{reconciliation}', [ReconciliationController::class, 'getReconciledRecords'])->whereUuid('reconciliation')->name('reconciled-records');
     Route::get('/reconciliations/{reconciliation}/export', [ReconciliationController::class, 'export'])->name('export');
     Route::middleware('auth:api')->post('/reconcile-embeddings', [ReconciliationController::class, 'testEmbeddings'])->name('embeddings');
     Route::post('/reconcile/{reconciliation}', [ReconciliationController::class, 'matchUnmatch'])->whereUuid('reconciliation')->name('manual-reconciliation');

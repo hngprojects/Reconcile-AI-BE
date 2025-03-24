@@ -557,9 +557,9 @@ class ReconciliationTest extends TestCase
 
     public function test_fetching_reconciled_records_for_logged_in_users(): void
     {
-        $reconcile = Reconciliation::factory()->createOne();
         $user = User::factory()->createOne();
         $this->actingAs($user);
+        $reconcile = Reconciliation::factory()->createOne([ 'user_id' => $user->id ]);
 
         ReconciledRecord::factory()->create([
             'reconciliation_id' => $reconcile->id,
