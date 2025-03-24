@@ -39,9 +39,9 @@ jobs:
               php artisan queue:restart
               sudo systemctl restart nginx
             else
-              # echo "Starting Laravel deployment for docs..."
+              # echo "Starting Laravel deployment for staging..."
               # # Start the deployment service (using explicit sudo with NOPASSWD permission)
-              cd /var/www/html/docs
+              cd /var/www/html/staging
               # sudo chown -R $USER:$USER .
               git fetch origin 
               git reset --hard HEAD 
@@ -51,12 +51,16 @@ jobs:
               composer install --no-interaction --prefer-dist --no-dev
               php artisan jwt:secret
               php artisan optimize:clear
-              # php artisan migrate --force
-              # sudo systemctl restart nginx
+              php artisan migrate --force
+              sudo systemctl restart nginx
               echo "Starting Laravel deployment..."
               # Start the deployment service (using explicit sudo with NOPASSWD permission)
-              sudo systemctl daemon-reload
-              sudo systemctl restart laravel-deploy.service
+              # sudo systemctl daemon-reload
+              # sudo systemctl restart laravel-deploy.service
+              echo "Starting Laravel Job..."
+              sudo supervisorctl reread
+              sudo supervisorctl update
+              sudo supervisorctl restart laravel-queue-dev:*
             fi
 
 

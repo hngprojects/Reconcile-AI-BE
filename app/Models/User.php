@@ -40,7 +40,10 @@ class User extends Authenticatable implements JWTSubject, CanResetPasswordContra
         'name',
         'email',
         'password',
-        'avatar'
+        'avatar',
+        'country',
+        'city'
+
     ];
 
     /**

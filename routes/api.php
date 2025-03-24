@@ -4,6 +4,7 @@ use App\Http\Controllers\ContactController;
 use App\Http\Controllers\JobApplicationController;
 use App\Http\Controllers\OutboundMarketingController;
 use App\Http\Controllers\PartnerController;
+use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
@@ -56,6 +57,11 @@ Route::prefix('v1')->group(function () {
         // Route::get('payment-plan/history', [PaymentPlanController::class, 'history'])->name('payment-plan.history');
     });
 
+    // Route::middleware('auth:api')->put('payment-plan', [PaymentPlanController::class, 'update'])->name('payment-plan');
+    Route::middleware('auth:api')->group(function () {
+        Route::post('/profile/update', [UserController::class, 'updateProfile']);
+        Route::delete('/user', [UserController::class, 'deleteAccount'])->name('user.delete');
+    });
     Route::prefix('newsletter')->name('newsletter.')->group(function () {
         Route::get('/unsubscribe/{email}', [NewsLetterController::class, 'oneClickUnsubscribe'])->name('one-click-unsubscribe');
         Route::get('/resubscribe/{email}', [NewsLetterController::class, 'oneClickResubscribe'])->name('resubscribe');
