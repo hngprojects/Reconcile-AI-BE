@@ -2474,109 +2474,25 @@
                 }
             }
         },
-        "/api/v1/reconcile/export": {
+        "/api/v1/reconciliations/{reconciliation}/export": {
             "post": {
                 "tags": [
                     "Reconciliation"
                 ],
                 "summary": "Export reconciled data as a CSV file",
                 "description": "Generates a CSV file containing matched and unmatched transactions from reconciliation.",
-                "operationId": "49b2f5c943d6ed0e9a4e16e930cfddfc",
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "required": [
-                                    "data"
-                                ],
-                                "properties": {
-                                    "data": {
-                                        "properties": {
-                                            "matches": {
-                                                "type": "array",
-                                                "items": {
-                                                    "properties": {
-                                                        "file1_transaction": {
-                                                            "properties": {
-                                                                "Date": {
-                                                                    "type": "string",
-                                                                    "example": "12/4/2023"
-                                                                },
-                                                                "Description": {
-                                                                    "type": "string",
-                                                                    "example": "Test"
-                                                                },
-                                                                "Amount": {
-                                                                    "type": "number",
-                                                                    "example": 650
-                                                                }
-                                                            },
-                                                            "type": "object"
-                                                        },
-                                                        "status": {
-                                                            "type": "string",
-                                                            "example": "Matched"
-                                                        },
-                                                        "file2_transaction": {
-                                                            "properties": {
-                                                                "Date": {
-                                                                    "type": "string",
-                                                                    "example": "12/4/2023"
-                                                                },
-                                                                "Description": {
-                                                                    "type": "string",
-                                                                    "example": "Test"
-                                                                },
-                                                                "Amount": {
-                                                                    "type": "number",
-                                                                    "example": 650
-                                                                }
-                                                            },
-                                                            "type": "object"
-                                                        }
-                                                    },
-                                                    "type": "object"
-                                                }
-                                            },
-                                            "unmatched": {
-                                                "properties": {
-                                                    "unmatched_file1": {
-                                                        "type": "array",
-                                                        "items": {
-                                                            "type": "object"
-                                                        }
-                                                    },
-                                                    "unmatched_file2": {
-                                                        "type": "array",
-                                                        "items": {
-                                                            "type": "object"
-                                                        }
-                                                    }
-                                                },
-                                                "type": "object"
-                                            },
-                                            "only_in_file1": {
-                                                "type": "array",
-                                                "items": {
-                                                    "type": "object"
-                                                }
-                                            },
-                                            "only_in_file2": {
-                                                "type": "array",
-                                                "items": {
-                                                    "type": "object"
-                                                }
-                                            }
-                                        },
-                                        "type": "object"
-                                    }
-                                },
-                                "type": "object"
-                            }
+                "operationId": "07922d063e1c02d8f98dda6bf0ac25b4",
+                "parameters": [
+                    {
+                        "name": "reconciliation",
+                        "in": "path",
+                        "description": "Reconciliation ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
                         }
                     }
-                },
+                ],
                 "responses": {
                     "200": {
                         "description": "CSV file generated successfully",
@@ -2588,9 +2504,6 @@
                                 }
                             }
                         }
-                    },
-                    "400": {
-                        "description": "Invalid request data"
                     },
                     "500": {
                         "description": "Server error while generating CSV file"
@@ -2960,6 +2873,196 @@
                                         "error": {
                                             "type": "string",
                                             "example": "The bank_statements field is required"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/profile/update": {
+            "post": {
+                "tags": [
+                    "User"
+                ],
+                "summary": "Update user profile",
+                "description": "Updates the authenticated user's profile information including country, city, and avatar",
+                "operationId": "006dbcde275036cbe65b0f07db20a1a7",
+                "requestBody": {
+                    "required": false,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "properties": {
+                                    "country": {
+                                        "description": "User's country",
+                                        "type": "string",
+                                        "example": "United States"
+                                    },
+                                    "city": {
+                                        "description": "User's city",
+                                        "type": "string",
+                                        "example": "New York"
+                                    },
+                                    "avatar": {
+                                        "description": "User's profile picture (JPEG, PNG, JPG, GIF up to 2MB)",
+                                        "type": "string",
+                                        "format": "binary"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Profile updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "example": "success"
+                                        },
+                                        "status_code": {
+                                            "type": "integer",
+                                            "example": 200
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Profile updated successfully"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "string",
+                                                    "format": "uuid",
+                                                    "example": "550e8400-e29b-41d4-a716-446655440000"
+                                                },
+                                                "name": {
+                                                    "type": "string",
+                                                    "example": "John Doe"
+                                                },
+                                                "email": {
+                                                    "type": "string",
+                                                    "example": "john@example.com"
+                                                },
+                                                "country": {
+                                                    "type": "string",
+                                                    "example": "United States"
+                                                },
+                                                "city": {
+                                                    "type": "string",
+                                                    "example": "New York"
+                                                },
+                                                "avatar": {
+                                                    "type": "string",
+                                                    "example": "avatars/user123.jpg"
+                                                },
+                                                "created_at": {
+                                                    "type": "string",
+                                                    "format": "date-time"
+                                                },
+                                                "updated_at": {
+                                                    "type": "string",
+                                                    "format": "date-time"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Validation error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "example": "error"
+                                        },
+                                        "status_code": {
+                                            "type": "integer",
+                                            "example": 400
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Validation failed"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "avatar": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string",
+                                                        "example": "The avatar must be an image."
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "example": "error"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Unauthenticated"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "example": "error"
+                                        },
+                                        "status_code": {
+                                            "type": "integer",
+                                            "example": 500
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "An error occurred while updating profile"
+                                        },
+                                        "data": {
+                                            "type": "null",
+                                            "example": null
                                         }
                                     },
                                     "type": "object"
