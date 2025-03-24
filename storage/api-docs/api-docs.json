@@ -1669,6 +1669,97 @@
                         "bearerAuth": []
                     }
                 ]
+            },
+            "delete": {
+                "tags": [
+                    "User"
+                ],
+                "summary": "Delete user account",
+                "description": "Deletes the authenticated user's account permanently with all associated data",
+                "operationId": "e6234ce9137c2a03c6eecabd94d3a1fd",
+                "responses": {
+                    "200": {
+                        "description": "Account deleted successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "example": "success"
+                                        },
+                                        "status_code": {
+                                            "type": "integer",
+                                            "example": 200
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Your account has been deleted successfully"
+                                        },
+                                        "data": {
+                                            "type": "null",
+                                            "example": null
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "example": "error"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Unauthenticated"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "example": "error"
+                                        },
+                                        "status_code": {
+                                            "type": "integer",
+                                            "example": 500
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "An error occurred while deleting your account"
+                                        },
+                                        "data": {
+                                            "type": "null",
+                                            "example": null
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
             }
         },
         "/api/v1": {
@@ -2596,192 +2687,6 @@
                 ]
             }
         },
-        "/api/v1/plans": {
-            "post": {
-                "tags": [
-                    "Plans"
-                ],
-                "summary": "Create a new plan",
-                "operationId": "df01f7d64e9211ac837f6abc69b74641",
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "required": [
-                                    "name",
-                                    "plan_length",
-                                    "plan",
-                                    "amount",
-                                    "reconciliations_per_month"
-                                ],
-                                "properties": {
-                                    "name": {
-                                        "type": "string",
-                                        "example": "Starter Plan"
-                                    },
-                                    "description": {
-                                        "type": "string",
-                                        "example": "Basic starter plan"
-                                    },
-                                    "plan_length": {
-                                        "type": "integer",
-                                        "example": 30
-                                    },
-                                    "plan": {
-                                        "type": "string",
-                                        "example": "starter"
-                                    },
-                                    "amount": {
-                                        "type": "number",
-                                        "format": "decimal",
-                                        "example": 10
-                                    },
-                                    "reconciliations_per_month": {
-                                        "type": "integer",
-                                        "example": 10
-                                    }
-                                },
-                                "type": "object"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "201": {
-                        "description": "Plan created successfully"
-                    },
-                    "400": {
-                        "description": "Invalid input"
-                    }
-                }
-            }
-        },
-        "/api/v1/plans/{id}": {
-            "get": {
-                "tags": [
-                    "Plans"
-                ],
-                "summary": "Get plan by ID",
-                "operationId": "81bdb829243855c803d720685531b86e",
-                "parameters": [
-                    {
-                        "name": "id",
-                        "in": "path",
-                        "description": "Plan ID",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Plan retrieved successfully"
-                    },
-                    "404": {
-                        "description": "Plan not found"
-                    }
-                }
-            },
-            "delete": {
-                "tags": [
-                    "Plans"
-                ],
-                "summary": "Delete a plan",
-                "description": "Deletes an existing plan",
-                "operationId": "aaa4836cae092e2a99e9e95e3bb79c56",
-                "parameters": [
-                    {
-                        "name": "id",
-                        "in": "path",
-                        "description": "The ID of the plan to delete",
-                        "required": true,
-                        "schema": {
-                            "type": "string",
-                            "format": "uuid"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Plan deleted successfully"
-                    },
-                    "404": {
-                        "description": "Plan not found"
-                    }
-                }
-            },
-            "patch": {
-                "tags": [
-                    "Plans"
-                ],
-                "summary": "Partially update a plan",
-                "description": "Updates an existing plan's details. Only the provided fields will be updated.",
-                "operationId": "f1d965252758639470a1e2f2046e9e8c",
-                "parameters": [
-                    {
-                        "name": "id",
-                        "in": "path",
-                        "description": "The ID of the plan to update",
-                        "required": true,
-                        "schema": {
-                            "type": "string",
-                            "format": "uuid"
-                        }
-                    }
-                ],
-                "requestBody": {
-                    "required": false,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "properties": {
-                                    "name": {
-                                        "type": "string",
-                                        "example": "Starter Plan"
-                                    },
-                                    "description": {
-                                        "type": "string",
-                                        "example": "Updated description",
-                                        "nullable": true
-                                    },
-                                    "plan_length": {
-                                        "type": "integer",
-                                        "example": 30
-                                    },
-                                    "plan": {
-                                        "type": "string",
-                                        "example": "Starter"
-                                    },
-                                    "amount": {
-                                        "type": "number",
-                                        "format": "float",
-                                        "example": 10
-                                    },
-                                    "reconciliations_per_month": {
-                                        "type": "integer",
-                                        "example": 10
-                                    }
-                                },
-                                "type": "object"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "Plan updated successfully"
-                    },
-                    "404": {
-                        "description": "Plan not found"
-                    },
-                    "422": {
-                        "description": "Validation error"
-                    }
-                }
-            }
-        },
         "/api/v1/reconcile": {
             "post": {
                 "tags": [
@@ -3592,10 +3497,6 @@
         }
     },
     "tags": [
-        {
-            "name": "Plans",
-            "description": "API Endpoints for managing Plans"
-        },
         {
             "name": "Reconciliation",
             "description": "API Endpoints for file reconciliation"
