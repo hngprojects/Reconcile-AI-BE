@@ -41,19 +41,19 @@ jobs:
 
             elif [[ "${{ github.ref }}" == "refs/heads/dev" ]]; then
               echo "🚀 Deploying to STAGING..."
-              # cd /var/www/html/staging
+              cd /var/www/html/staging
               
               echo "🚀 Starting Processor..."
-              sudo bash /usr/local/bin/staging_be_processor.sh
+              bash /usr/local/bin/staging_be_processor.sh
               echo "✅ Staging Processor started successfully."
 
             elif [[ "${{ github.ref }}" == "refs/heads/staging" ]]; then
               echo "🚀 Deploying to STAGING (NEW)..."
-              # cd /var/www/html/staging-new
+              cd /var/www/html/staging-new
               
               echo "🚀 Starting New Staging Processor..."
 
-              sudo bash /usr/local/bin/stagingnew_be_processor.sh
+              bash /usr/local/bin/stagingnew_be_processor.sh
               echo "✅ New Staging Processor started successfully."
 
             else
