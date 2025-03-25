@@ -434,8 +434,7 @@ class GoogleAuthController extends Controller
             'message' => 'User successfully fetched',
             'data' => [
                 'user' => $user,
-                'plan' => $paymentPlan,
-                'userPlan' => $paymentPlan ? $paymentPlan->plan()->first() : null
+                'plan' => $paymentPlan
             ]
         ]);
     }
