@@ -16,6 +16,7 @@ use App\Http\Controllers\GoogleAuthController;
 use App\Http\Controllers\PaymentPlanController;
 use App\Http\Controllers\PlanController;
 use App\Http\Controllers\ReconciliationController;
+use App\Http\Middleware\CheckReconciliationLimit;
 use App\Http\Middleware\ThrottleUnauthenticated;
 
 Route::prefix('v1')->group(function () {
@@ -80,7 +81,8 @@ Route::prefix('v1')->group(function () {
 
     // partners
     Route::post('/partners', [PartnerController::class, 'submit'])->name('partners');
-    Route::post('/reconcile', [ReconciliationController::class, 'reconcile'])->name('reconcile')->middleware(ThrottleUnauthenticated::class);
+    Route::post('/reconcile', [ReconciliationController::class, 'reconcile'])->name('reconcile')->middleware([ThrottleUnauthenticated::class, CheckReconciliationLimit::class]); //[ThrottleUnauthenticated::class, CheckReconciliationLimit::class], ThrottleUnauthenticated::class
+    // Route::post('/reconcile', [ReconciliationController::class, 'reconcile'])->name('reconcile')->middleware(ThrottleUnauthenticated::class);
     Route::middleware('auth:api')->get('/reconciliations/{reconciliation}', [ReconciliationController::class, 'getReconciledRecords'])->whereUuid('reconciliation')->name('reconciled-records');
     Route::middleware('auth:api')->get('/reconciliations', [ReconciliationController::class, 'listUserReconciliations'])->name('list');
     Route::get('/reconciliations/{reconciliation}/export', [ReconciliationController::class, 'export'])->name('export');

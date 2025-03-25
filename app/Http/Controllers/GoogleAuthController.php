@@ -9,6 +9,7 @@ use App\Models\User;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\WelcomeEmail;
+use App\Models\Plan;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Hash;
@@ -119,11 +120,29 @@ class GoogleAuthController extends Controller
                         'password' => "", // Random password
                     ]);
 
+                    // Get the Basic plan
+                    $basicPlan = Plan::where('plan', 'Basic')->first();
+
+                    if (!$basicPlan) {
+                        // Create Basic plan if it doesn't exist
+                        $basicPlan = Plan::create([
+                            'name' => 'Basic Plan',
+                            'plan' => 'Basic',
+                            'description' => 'Free trial for 7 days with 5 reconciliations.',
+                            'plan_length' => 30,
+                            'reconciliations_per_month' => 5,
+                            'amount' => 0.00,
+                        ]);
+                    }
+
                     // Create a new payment plan
                     $user->paymentPlan()->create([
-                        'user_id' => $user->id,
-                        'price' => 0,
-                        'plan' => 'Basic',
+                        'user_id'       => $user->id,
+                        'plan_id'       => $basicPlan->id,
+                        'price'         => 0,
+                        'plan'          => 'Basic',
+                        'start_date'    => now(),
+                        'expire_date'   => now()->addDays($basicPlan->plan_length),
                     ]);
 
                     $isNewUser = true;

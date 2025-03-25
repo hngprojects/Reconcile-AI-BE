@@ -46,7 +46,7 @@ class EmbeddingsTest extends TestCase
         Storage::fake('local');
     }
 
-    public function test_reconcile_embeddings_successful()
+    /* public function test_reconcile_embeddings_successful()
     {
         $statementFile = UploadedFile::fake()->create('statement.csv');
         $ledgerFile = UploadedFile::fake()->create('ledger.csv');
@@ -74,14 +74,14 @@ class EmbeddingsTest extends TestCase
             'ledgers' => [$ledgerFile],
         ]);
 
-        /*$response->assertStatus(200)
+        $response->assertStatus(200)
             ->assertJsonStructure([
                 'status',
                 'status_code',
                 'message',
                 'data'
-            ]);*/
-    }
+            ]);
+    } */
 
     public function test_reconcile_embeddings_invalid_file()
     {

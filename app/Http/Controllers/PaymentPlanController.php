@@ -240,17 +240,16 @@ class PaymentPlanController extends Controller
         return DB::transaction(function () use ($request) {
             $user = Auth::user();
 
-            // Find the current active plan
+            // Find the user's current active plan
             $currentPlan = $user->paymentPlan()
-                ->where('expire_date', '>', now())
                 ->latest('expire_date')
                 ->first();
 
-            if (!$currentPlan) {
+            if (!$currentPlan || !$currentPlan->is_active) {
                 return response()->json([
                     "status" => false,
-                    "message" => "No active payment plan found to update.",
-                ], 404);
+                    "message" => "No active payment plan found or the plan has not expired yet.",
+                ], 400);
             }
 
             // Find the new plan
@@ -262,7 +261,7 @@ class PaymentPlanController extends Controller
                 ], 400);
             }
 
-            // Validate price
+            // Ensure the price matches the plan amount
             if ($request->price != $newPlan->amount) {
                 return response()->json([
                     "status" => false,
@@ -271,22 +270,38 @@ class PaymentPlanController extends Controller
                 ], 400);
             }
 
-            // Check plan renewal conditions
-            $daysRemaining = now()->diffInDays($currentPlan->expire_date);
-            if ($daysRemaining > 5) {
+            // Prevent re-subscribing to the "Basic" plan if already on "Basic"
+            if ($currentPlan->plan === 'Basic' && $newPlan->plan === 'Basic') {
                 return response()->json([
                     "status" => false,
-                    "message" => "Cannot update plan until it's close to expiration.",
+                    "message" => "You are already on the Basic plan and cannot subscribe to it again.",
                 ], 400);
             }
 
-            // Update the current plan
+            // Determine the start date
+            if ($currentPlan->plan === 'Basic') {
+                // Allow immediate upgrade from Basic
+                $startDate = now();
+            } else {
+                // Otherwise, ensure the plan has expired before updating
+                if ($currentPlan->is_active) {
+                    return response()->json([
+                        "status" => false,
+                        "message" => "Cannot update plan until the current one expires.",
+                    ], 400);
+                }
+                $startDate = now();
+            }
+
+            // Update the plan details
             $currentPlan->update([
                 'plan_id' => $newPlan->id,
                 'plan' => $newPlan->plan,
                 'price' => $newPlan->amount,
-                'expire_date' => now()->addDays($newPlan->plan_length),
-                'reconciliations_used' => 0
+                'start_date' => $startDate,
+                'expire_date' => $startDate->copy()->addDays($newPlan->plan_length),
+                'reconciliations_used' => 0,
+                'is_active' => true, // Reactivating the plan after renewal
             ]);
             BillingTransaction::create([
                 'user_id' => $user->id,
