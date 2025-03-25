@@ -260,6 +260,7 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
 
         Log::info('Structured: ', ['data' => $structured]);
         return $structured;
+        }
     }
 
     protected function savingData(array $statements, array $ledgers, Reconciliation $reconciliation){
@@ -294,14 +295,18 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
     protected function generateEmbeddings(Collection $statements, Collection $ledgers){
         $statements->map(function (Statement $statement) {
             $formattedDate = date('Y-m-d', strtotime($statement->date));
-            $combinedText = "Person's name: {$statement->person}, Amount: {$statement->amount} Date: {$formattedDate}, Other Relevant Information: {$ledger->other_information}";
+            $formattedAmount = number_format($statement->amount, 2, '.', ',');
+
+            $combinedText = "Person's name: {$statement->person}, Amount: {$formattedAmount} Date: {$formattedDate}, Other Relevant Information: {$ledger->other_information}";
             $embedding = $this->getEmbedding($combinedText);
             $this->statementRepository->addVector($statement, $embedding);
         });
 
         $ledgers->map(function (Ledger $ledger) {
             $formattedDate = date('Y-m-d', strtotime($ledger->date));
-            $combinedText = "Person's name: {$ledger->person}, Amount: {$ledger->amount}, Date: {$formattedDate}, Other Relevant Information: {$ledger->other_information}";
+            $formattedAmount = number_format($ledger->amount, 2, '.', ',');
+
+            $combinedText = "Person's name: {$ledger->person}, Amount: {$formattedAmount}, Date: {$formattedDate}, Other Relevant Information: {$ledger->other_information}";
             $embedding = $this->getEmbedding($combinedText);
             $this->ledgerRepository->addVector($ledger, $embedding);
         });
