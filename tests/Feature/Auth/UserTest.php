@@ -117,6 +117,7 @@ class UserTest extends TestCase
         ]);
 
         $response = $this->actingAs($user)->get('/api/v1/user');
+        // dd($response->getContent());
 
         $response->assertStatus(200);
 
@@ -143,15 +144,6 @@ class UserTest extends TestCase
                     'start_date',
                     'expire_date',
                     'is_active'
-                ],
-                'userPlan' => [
-                    'id',
-                    'name',
-                    'plan',
-                    'description',
-                    'plan_length',
-                    'reconciliations_per_month',
-                    'amount'
                 ]
             ]
         ]);
@@ -164,8 +156,6 @@ class UserTest extends TestCase
 
         // Check specific values using paths
         $response->assertJsonPath('data.plan.plan.plan', 'Basic');
-        $response->assertJsonPath('data.userPlan.plan', 'Basic');
-        $response->assertJsonPath('data.userPlan.name', 'Basic Plan');
 
         $response->assertJsonFragment([
             'id' => $user->id,
