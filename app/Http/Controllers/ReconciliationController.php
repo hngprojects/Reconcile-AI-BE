@@ -356,7 +356,7 @@ class ReconciliationController extends Controller
  *             @OA\Schema(
  *                 required={"bank_statements", "ledgers"},
  *                 @OA\Property(
- *                     property="bank_statements",
+ *                     property="bank_statements[]",
  *                     type="array",
  *                     @OA\Items(
  *                         type="string",
@@ -365,7 +365,7 @@ class ReconciliationController extends Controller
  *                     description="Array of Bank Statement CSV files"
  *                 ),
  *                 @OA\Property(
- *                     property="ledgers",
+ *                     property="ledgers[]",
  *                     type="array",
  *                     @OA\Items(
  *                         type="string",
