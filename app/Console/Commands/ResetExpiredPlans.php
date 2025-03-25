@@ -29,7 +29,7 @@ class ResetExpiredPlans extends Command
     public function handle()
     {
         $now = now();
-        $basicPlan = Plan::where('name', 'Basic')->first();
+        $basicPlan = Plan::where('plan', 'Basic')->first();
 
         if (!$basicPlan) {
             $this->error('Basic plan not found.');
