@@ -171,90 +171,90 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
         }
 
     protected function structuringData($file){
-        $fileData = $this->loadComplexCsv($file);
-        $data = $fileData['data'];
-        $headers = json_encode($fileData['headers']);
+            $fileData = $this->loadComplexCsv($file);
+            $data = $fileData['data'];
+            $headers = json_encode($fileData['headers']);
 
-        $descriptions = [];
-        $structured = [];
+            $descriptions = [];
+            $structured = [];
 
-        Log::info('CSV Headers: ', ['data' => $headers]);
+            Log::info('CSV Headers: ', ['data' => $headers]);
 
-        $prompt1 = "Which of these headers: {$headers} are best suited for the date and amount? The amount should be from a property that contains the amount that has been paid. Also which of the headers is most likely to contain the person's name or can be a unique identifier for the row. The unique identifier could be a student id, transaction id, reference id or any other synonyms that fit this criteria. Return your response in this format: { date_extracted_from: header, amount_extracted_from: header, name_likely_from: header }";
+            $prompt1 = "Which of these headers: {$headers} are best suited for the date and amount? The amount should be from a property that contains the amount that has been paid. Also which of the headers is most likely to contain the person's name or can be a unique identifier for the row. The unique identifier could be a student id, transaction id, reference id or any other synonyms that fit this criteria. Return your response in this format: { date_extracted_from: header, amount_extracted_from: header, name_likely_from: header }";
 
-        $response = $this->callGemini("$prompt1. Please return only a valid JSON object");
+            $response = $this->callGemini("$prompt1. Please return only a valid JSON object");
 
-        $cleanResponse = str_replace(["```json", "```"], "", $response);
+            $cleanResponse = str_replace(["```json", "```"], "", $response);
 
-        $decodedResponse = json_decode($cleanResponse, true);
+            $decodedResponse = json_decode($cleanResponse, true);
 
-        $dateHeader = array_key_exists('date_extracted_from', $decodedResponse) ? $decodedResponse['date_extracted_from'] : null;
-        $amountHeader = array_key_exists('amount_extracted_from', $decodedResponse) ? $decodedResponse['amount_extracted_from'] : null;
-        $nameHeader = array_key_exists('name_likely_from', $decodedResponse) ? $decodedResponse['name_likely_from'] : null;
+            $dateHeader = array_key_exists('date_extracted_from', $decodedResponse) ? $decodedResponse['date_extracted_from'] : null;
+            $amountHeader = array_key_exists('amount_extracted_from', $decodedResponse) ? $decodedResponse['amount_extracted_from'] : null;
+            $nameHeader = array_key_exists('name_likely_from', $decodedResponse) ? $decodedResponse['name_likely_from'] : null;
 
-        Log::info('Headers results', ['data' => $decodedResponse]);
+            Log::info('Headers results', ['data' => $decodedResponse]);
 
-        $excludeHeaders = [$dateHeader, $nameHeader, $amountHeader];
-        Log::info('Excluded: ', ['data' => $excludeHeaders]);
+            $excludeHeaders = [$dateHeader, $nameHeader, $amountHeader];
+            Log::info('Excluded: ', ['data' => $excludeHeaders]);
 
-        $otherHeaders = array_filter(json_decode($headers), function ($header) use ($excludeHeaders) {
-            return !in_array(strtolower(trim($header)), array_map('strtolower', $excludeHeaders));
-        });
+            $otherHeaders = array_filter(json_decode($headers), function ($header) use ($excludeHeaders) {
+                return !in_array(strtolower(trim($header)), array_map('strtolower', $excludeHeaders));
+            });
 
 
-        foreach ($data as $key) {
-            if(str_contains(strtolower($nameHeader), 'name')) {
-                $otherInfo = $this->getOtherData($key, $otherHeaders);
-                $structured[] = [
-                    'Person' => $key[$nameHeader],
-                    'Date' => $dateHeader ? $key[$dateHeader] : null,
-                    'Amount' => $key[$amountHeader],
-                    'Other Information' => $otherInfo
-                ];
-            }else {
-                $descriptions[] = $key[$nameHeader];
-            }
-        }
-
-        Log::info('Structured: ', ['data' => $structured]);
-
-        if(!empty($descriptions)){
-            $chunks = array_chunk($descriptions, 40);
-            $names = [];
-            $chunkIndex = 0;
-
-            foreach ($chunks as $chunk) {
-                $chunk = json_encode($chunk);
-                $prompt2 = "Please extract the names from this JSON object: {$chunk}. Return a JSON object in the same order only in your response";
-
-                $res = $this->callGemini("$prompt2. Please return only a valid JSON object");
-
-                $cleanRes = str_replace(["```json", "```"], "", $res);
-
-                $decodedRes = json_decode($cleanRes, true);
-
-                Log::info('Headers results', ['data' => $decodedResponse]);
-                if (json_last_error() === JSON_ERROR_NONE && is_array($decodedRes)) {
-                    foreach ($decodedRes as $key => $value) {
-                        Log::info('key', ['data' => $key]);
-                        Log::info('key', ['data' => $data]);
-                        $otherInfo = $this->getOtherData($data[$key], $otherHeaders);
-                        $structured[] = [
-                            'Person' => $value,
-                            'Date' => $dateHeader ? $data[$key][$dateHeader] : null,
-                            'Amount' => $data[$key][$amountHeader],
-                            'Other Information' => $otherInfo
-                        ];
-                    }
-                } else {
-                    Log::error('Failed to decode Gemini response for data2: ' . json_last_error_msg());
+            foreach ($data as $key) {
+                if(str_contains(strtolower($nameHeader), 'name')) {
+                    $otherInfo = $this->getOtherData($key, $otherHeaders);
+                    $structured[] = [
+                        'Person' => $key[$nameHeader],
+                        'Date' => $dateHeader ? $key[$dateHeader] : null,
+                        'Amount' => $key[$amountHeader],
+                        'Other Information' => $otherInfo
+                    ];
+                }else {
+                    $descriptions[] = $key[$nameHeader];
                 }
-                Sleep::for(5)->second();
             }
-        }
 
-        Log::info('Structured: ', ['data' => $structured]);
-        return $structured;
+            Log::info('Structured: ', ['data' => $structured]);
+
+            if(!empty($descriptions)){
+                $chunks = array_chunk($descriptions, 40);
+                $names = [];
+                $chunkIndex = 0;
+
+                foreach ($chunks as $chunk) {
+                    $chunk = json_encode($chunk);
+                    $prompt2 = "Please extract the names from this JSON object: {$chunk}. Return a JSON object in the same order only in your response";
+
+                    $res = $this->callGemini("$prompt2. Please return only a valid JSON object");
+
+                    $cleanRes = str_replace(["```json", "```"], "", $res);
+
+                    $decodedRes = json_decode($cleanRes, true);
+
+                    Log::info('Headers results', ['data' => $decodedResponse]);
+                    if (json_last_error() === JSON_ERROR_NONE && is_array($decodedRes)) {
+                        foreach ($decodedRes as $key => $value) {
+                            Log::info('key', ['data' => $key]);
+                            Log::info('key', ['data' => $data]);
+                            $otherInfo = $this->getOtherData($data[$key], $otherHeaders);
+                            $structured[] = [
+                                'Person' => $value,
+                                'Date' => $dateHeader ? $data[$key][$dateHeader] : null,
+                                'Amount' => $data[$key][$amountHeader],
+                                'Other Information' => $otherInfo
+                            ];
+                        }
+                    } else {
+                        Log::error('Failed to decode Gemini response for data2: ' . json_last_error_msg());
+                    }
+                    Sleep::for(5)->second();
+                }
+            }
+
+            Log::info('Structured: ', ['data' => $structured]);
+            return $structured;
     }
 
     protected function savingData(array $statements, array $ledgers, Reconciliation $reconciliation){
