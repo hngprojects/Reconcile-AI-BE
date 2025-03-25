@@ -40,7 +40,7 @@ class FixUserPlans extends Command
                     continue;
                 }
 
-                $paymentPlan = $paymentPlan->plan()->first();
+                $activePayment = $paymentPlan->plan()->first();
 
                 if ($paymentPlan->plan_id === $basicPlan->id) {
                     // Basic Plan: Set start_date as registration date
@@ -50,7 +50,7 @@ class FixUserPlans extends Command
                 } else {
                     // Other plans: Set start_date as current date
                     $paymentPlan->start_date = now();
-                    $paymentPlan->expire_date = now()->addDays($paymentPlan->plan_length);
+                    $paymentPlan->expire_date = now()->addDays($activePayment->plan_length);
                     Log::info("Updated Non-Basic Plan for user {$user->id}: start_date={$paymentPlan->start_date}, expire_date={$paymentPlan->expire_date}");
                 }
 
