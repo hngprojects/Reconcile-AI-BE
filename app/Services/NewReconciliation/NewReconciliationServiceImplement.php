@@ -488,7 +488,7 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
                         ]
                     ],
                     'ledgers' => [
-                        ...matches[$statementIndex]['ledgers'],
+                        ...$matches[$statementIndex]['ledgers'],
                         [
                             'ledger' => (new TransactionResource($this->ledgerRepository->findById($match['ledger_id'])))->toArray(request()),
                             'score' => "{$percent}%"

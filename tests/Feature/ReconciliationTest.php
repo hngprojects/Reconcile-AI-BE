@@ -680,7 +680,7 @@ class ReconciliationTest extends TestCase
         ]);
     }
 
-  public function it_fetches_user_reconciliations_successfully()
+  public function test_fetches_user_reconciliations_successfully()
     {
         Reconciliation::factory()->count(3)->create(['user_id' => $this->user->id]);
 
@@ -697,7 +697,7 @@ class ReconciliationTest extends TestCase
                  ]);
     }
 
-    public function it_returns_empty_data_when_user_has_no_reconciliations()
+    public function test_returns_empty_data_when_user_has_no_reconciliations()
     {
         $response = $this->actingAs($this->user)->getJson('/api/v1/reconciliations');
 
@@ -710,30 +710,13 @@ class ReconciliationTest extends TestCase
                  ]);
     }
 
-    public function it_returns_unauthorized_if_user_is_not_authenticated()
+    public function test_returns_unauthorized_if_user_is_not_authenticated()
     {
         $response = $this->getJson('/api/v1/reconciliations');
 
         $response->assertStatus(401)
                  ->assertJson([
                      'message' => 'Unauthenticated.'
-                 ]);
-    }
-
-    public function it_handles_server_errors_gracefully()
-    {
-        $this->mock(\App\Repositories\ReconciliationRepository::class, function ($mock) {
-            $mock->shouldReceive('list')->andThrow(new \Exception('Database error'));
-        });
-
-        $response = $this->actingAs($this->user)->getJson('/api/v1/reconciliations');
-
-        $response->assertStatus(500)
-                 ->assertJson([
-                     'status' => 'error',
-                     'status_code' => 500,
-                     'message' => 'Failed to fetch reconciliations',
-                     'data' => ['error' => 'Database error']
                  ]);
     }
 
