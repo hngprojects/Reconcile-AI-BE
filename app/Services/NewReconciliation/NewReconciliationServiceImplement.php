@@ -180,7 +180,7 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
 
         Log::info('CSV Headers: ', ['data' => $headers]);
 
-        $prompt1 = "Which of these headers: {$headers} are best suited for the date and amount? The amount should be from a property that contains the amount that has been paid. Also which of the headers is most likely to contain the person's name or can be a unique identifier for the row. Return your response in this format: { date_extracted_from: header, amount_extracted_from: header, name_likely_from: header }";
+        $prompt1 = "Which of these headers: {$headers} are best suited for the date and amount? The amount should be from a property that contains the amount that has been paid. Also which of the headers is most likely to contain the person's name or can be a unique identifier for the row. The unique identifier could be a student id, transaction id, reference id or any other synonyms that fit this criteria. Return your response in this format: { date_extracted_from: header, amount_extracted_from: header, name_likely_from: header }";
 
         $response = $this->callGemini("$prompt1. Please return only a valid JSON object");
 
