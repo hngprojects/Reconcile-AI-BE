@@ -293,7 +293,7 @@ class PaymentPlanController extends Controller
                 'description' => 'Monthly Subscription',
                 'status' => 'Successful',
                 'plan' => $currentPlan->plan,
-                'amount' => $currentPlan->amount
+                'amount' => $currentPlan->price
             ]);
 
             return response()->json([
