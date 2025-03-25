@@ -9,8 +9,7 @@ class WaitList extends Model
 {
     use HasFactory;
 
-    protected $table = 'waitlists'; // Specify the actual table name
-
+    protected $table = 'waitlists';
     protected $fillable = [
         'email',
     ];
