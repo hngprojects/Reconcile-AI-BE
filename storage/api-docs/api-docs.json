@@ -3429,6 +3429,69 @@
                 ]
             }
         },
+        "/api/v1/reconciliations": {
+            "get": {
+                "tags": [
+                    "Reconciliation"
+                ],
+                "summary": "Get reconciliations",
+                "description": "Fetch reconciliations for the logged-in user",
+                "operationId": "1fb9ac5ce601c63e275abe07c764d59d",
+                "responses": {
+                    "200": {
+                        "description": "Reconciliations fetched successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Reconciled records fetched successfully"
+                                        },
+                                        "status": {
+                                            "type": "string",
+                                            "example": "success"
+                                        },
+                                        "status_code": {
+                                            "type": "integer",
+                                            "example": 200
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Unauthorized"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/api/v1/profile/update": {
             "post": {
                 "tags": [

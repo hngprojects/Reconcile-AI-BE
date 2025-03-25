@@ -29,6 +29,7 @@ class ReconciliationTest extends TestCase
     {
         parent::setUp();
         Storage::fake('local');
+        $this->user = User::factory()->create();
     }
 
     public function test_reconcile_with_gemini_returns_successful_response(): void
@@ -677,6 +678,46 @@ class ReconciliationTest extends TestCase
                 ]
             ]
         ]);
+    }
+
+  public function test_fetches_user_reconciliations_successfully()
+    {
+        Reconciliation::factory()->count(3)->create(['user_id' => $this->user->id]);
+
+        $response = $this->actingAs($this->user)->getJson('/api/v1/reconciliations');
+
+        $response->assertStatus(200)
+                 ->assertJsonStructure([
+                     'status_code',
+                     'status',
+                     'message',
+                     'data' => [
+                         '*' => ['id', 'title', 'status', 'date']
+                     ]
+                 ]);
+    }
+
+    public function test_returns_empty_data_when_user_has_no_reconciliations()
+    {
+        $response = $this->actingAs($this->user)->getJson('/api/v1/reconciliations');
+
+        $response->assertStatus(200)
+                 ->assertJson([
+                     'status_code' => 200,
+                     'status' => 'success',
+                     'message' => "User's reconciliations fetched successfuly!",
+                     'data' => []
+                 ]);
+    }
+
+    public function test_returns_unauthorized_if_user_is_not_authenticated()
+    {
+        $response = $this->getJson('/api/v1/reconciliations');
+
+        $response->assertStatus(401)
+                 ->assertJson([
+                     'message' => 'Unauthenticated.'
+                 ]);
     }
 
     protected function tearDown(): void

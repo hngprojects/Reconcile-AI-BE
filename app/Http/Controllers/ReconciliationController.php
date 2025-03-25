@@ -502,6 +502,36 @@ class ReconciliationController extends Controller
         }
     }
 
+    /**
+     * @OA\Get(
+     *     path="/api/v1/reconciliations",
+     *     summary="Get reconciliations",
+     *     description="Fetch reconciliations for the logged-in user",
+     *     tags={"Reconciliation"},
+     *     security={{ "bearerAuth":{} }},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Reconciliations fetched successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Reconciled records fetched successfully"),
+     *             @OA\Property(property="status", type="string", example="success"),
+     *             @OA\Property(property="status_code", type="integer", example=200),
+     *             @OA\Property(property="data", type="array", @OA\Items(type="object"))
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthorized",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="error", type="string", example="Unauthorized")
+     *         )
+     *     )
+     * )
+     */
+    public function listUserReconciliations(Request $request){
+        return $this->testService->fetchUserReconciliations($request->user());
+    }
+
 
     private function isValidFileFormat(string $filePath): bool
     {

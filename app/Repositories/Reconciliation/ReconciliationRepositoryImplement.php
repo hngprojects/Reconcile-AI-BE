@@ -7,6 +7,7 @@ use App\Models\Reconciliation;
 use App\Models\User;
 use App\Models\ReconciledRecord;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Log;
 
 class ReconciliationRepositoryImplement extends Eloquent implements ReconciliationRepository{
 
@@ -34,7 +35,23 @@ class ReconciliationRepositoryImplement extends Eloquent implements Reconciliati
     }
 
     public function list(User $user){
-        return $this->model->where('user_id', '=', $user->id)->get();
+        return $this->model
+                    ->where('user_id', '=', $user->id)
+                    ->get()
+                    ->sortBy('created_at')
+                    ->map(function ($rec, $index){
+                        $result = $this->findResponse($rec);
+                        $date = new \DateTime($rec->created_at);
+                        $titleDate = $date->format('Ymd');
+                        $id = str_pad(($index+1), 3, '0', STR_PAD_LEFT);
+
+                        return [
+                            'id' => $rec->id,
+                            'title' => "RCL-{$titleDate}-{$id}",
+                            'status' => $result ? 'Completed' : 'Pending',
+                            'date' => $date->format('Y-m-d')
+                        ];
+                    });
     }
 
     public function storeResponse(array $data)

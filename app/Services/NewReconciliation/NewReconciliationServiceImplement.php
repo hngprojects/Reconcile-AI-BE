@@ -241,7 +241,7 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
     protected function generateEmbeddings(Collection $statements, Collection $ledgers){
         $statements->map(function (Statement $statement) {
             $formattedDate = date('Y-m-d', strtotime($statement->date));
-            $combinedText = "Person's name: {$statement->person}, Amount: {$statement->amount} Date: {$formattedDate}, Other Relevant Information: {$ledger->other_information}";
+            $combinedText = "Person's name: {$statement->person}, Amount: {$statement->amount} Date: {$formattedDate}, Other Relevant Information: {$statement->other_information}";
             $embedding = $this->getEmbedding($combinedText);
             $this->statementRepository->addVector($statement, $embedding);
         });
@@ -488,7 +488,7 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
                         ]
                     ],
                     'ledgers' => [
-                        ...matches[$statementIndex]['ledgers'],
+                        ...$matches[$statementIndex]['ledgers'],
                         [
                             'ledger' => (new TransactionResource($this->ledgerRepository->findById($match['ledger_id'])))->toArray(request()),
                             'score' => "{$percent}%"
@@ -582,5 +582,27 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
         }
 
         return $this->fetchResults($reconciliation);
+    }
+
+    public function fetchUserReconciliations(User $user){
+        try {
+        $reconciliations = $this->mainRepository->list($user);
+
+        return [
+            'status_code' => 200,
+            'status' => 'success',
+            'message' => "User's reconciliations fetched successfuly!",
+            'data' => $reconciliations
+        ];
+        } catch(\Exception $e) {
+            return response()->json([
+                "message" => "Failed to fetch reconciliations",
+                "status" => "error",
+                "status_code" => 500,
+                'data' => [
+                    'error' => $e->getMessage()
+                ]
+            ], 500);
+        }
     }
 }
