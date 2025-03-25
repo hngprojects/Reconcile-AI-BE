@@ -2313,26 +2313,17 @@
                                                     "type": "integer",
                                                     "example": 1
                                                 },
-                                                "user_id": {
-                                                    "type": "integer",
-                                                    "example": 1
-                                                },
-                                                "price": {
-                                                    "type": "number",
-                                                    "format": "float",
-                                                    "example": 19.99
-                                                },
                                                 "plan": {
                                                     "type": "string",
                                                     "example": "Premium"
                                                 },
-                                                "created_at": {
-                                                    "type": "string",
-                                                    "format": "date-time"
+                                                "days_remaining": {
+                                                    "type": "integer",
+                                                    "example": 30
                                                 },
-                                                "updated_at": {
-                                                    "type": "string",
-                                                    "format": "date-time"
+                                                "is_expired": {
+                                                    "type": "boolean",
+                                                    "example": false
                                                 }
                                             },
                                             "type": "object"
@@ -2343,15 +2334,19 @@
                             }
                         }
                     },
-                    "401": {
-                        "description": "Unauthenticated",
+                    "404": {
+                        "description": "No active payment plan found",
                         "content": {
                             "application/json": {
                                 "schema": {
                                     "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
                                         "message": {
                                             "type": "string",
-                                            "example": "Unauthenticated"
+                                            "example": "No active payment plan found"
                                         }
                                     },
                                     "type": "object"
@@ -2371,7 +2366,7 @@
                     "Payment Plans"
                 ],
                 "summary": "Update user's payment plan",
-                "description": "Updates the authenticated user's payment plan details",
+                "description": "Updates the authenticated user's payment plan",
                 "operationId": "435432f4c261e62f00f131abf61d9aae",
                 "requestBody": {
                     "required": true,
@@ -2384,13 +2379,13 @@
                                 ],
                                 "properties": {
                                     "price": {
-                                        "description": "New price of the payment plan",
+                                        "description": "New plan price",
                                         "type": "number",
                                         "format": "float",
                                         "example": 29.99
                                     },
                                     "plan": {
-                                        "description": "New name of the payment plan",
+                                        "description": "New plan name",
                                         "type": "string",
                                         "example": "Enterprise"
                                     }
@@ -2421,24 +2416,15 @@
                                                     "type": "integer",
                                                     "example": 1
                                                 },
-                                                "user_id": {
-                                                    "type": "integer",
-                                                    "example": 1
-                                                },
-                                                "price": {
-                                                    "type": "number",
-                                                    "format": "float",
-                                                    "example": 29.99
-                                                },
                                                 "plan": {
                                                     "type": "string",
                                                     "example": "Enterprise"
                                                 },
-                                                "created_at": {
+                                                "start_date": {
                                                     "type": "string",
                                                     "format": "date-time"
                                                 },
-                                                "updated_at": {
+                                                "expire_date": {
                                                     "type": "string",
                                                     "format": "date-time"
                                                 }
@@ -2451,8 +2437,8 @@
                             }
                         }
                     },
-                    "404": {
-                        "description": "No payment plan found",
+                    "400": {
+                        "description": "Bad request",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -2463,55 +2449,10 @@
                                         },
                                         "message": {
                                             "type": "string",
-                                            "example": "No payment plan found to update."
+                                            "example": "Cannot update plan until close to expiration."
                                         },
                                         "data": {
-                                            "type": "null",
-                                            "example": null
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    },
-                    "422": {
-                        "description": "Validation error",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "message": {
-                                            "type": "string",
-                                            "example": "The given data was invalid."
-                                        },
-                                        "errors": {
-                                            "properties": {
-                                                "price": {
-                                                    "type": "array",
-                                                    "items": {
-                                                        "type": "string",
-                                                        "example": "The price field is required."
-                                                    }
-                                                }
-                                            },
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthenticated",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Unauthenticated"
+                                            "type": "null"
                                         }
                                     },
                                     "type": "object"
@@ -2581,24 +2522,15 @@
                                                     "type": "integer",
                                                     "example": 1
                                                 },
-                                                "user_id": {
-                                                    "type": "integer",
-                                                    "example": 1
-                                                },
-                                                "price": {
-                                                    "type": "number",
-                                                    "format": "float",
-                                                    "example": 19.99
-                                                },
                                                 "plan": {
                                                     "type": "string",
                                                     "example": "Premium"
                                                 },
-                                                "created_at": {
+                                                "start_date": {
                                                     "type": "string",
                                                     "format": "date-time"
                                                 },
-                                                "updated_at": {
+                                                "expire_date": {
                                                     "type": "string",
                                                     "format": "date-time"
                                                 }
@@ -2612,7 +2544,7 @@
                         }
                     },
                     "400": {
-                        "description": "User already has a payment plan",
+                        "description": "Bad request",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -2623,55 +2555,10 @@
                                         },
                                         "message": {
                                             "type": "string",
-                                            "example": "You already have a payment plan."
+                                            "example": "Cannot subscribe until current plan is close to expiration."
                                         },
                                         "data": {
-                                            "type": "null",
-                                            "example": null
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    },
-                    "422": {
-                        "description": "Validation error",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "message": {
-                                            "type": "string",
-                                            "example": "The given data was invalid."
-                                        },
-                                        "errors": {
-                                            "properties": {
-                                                "price": {
-                                                    "type": "array",
-                                                    "items": {
-                                                        "type": "string",
-                                                        "example": "The price field is required."
-                                                    }
-                                                }
-                                            },
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthenticated",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Unauthenticated"
+                                            "type": "null"
                                         }
                                     },
                                     "type": "object"
@@ -2685,6 +2572,192 @@
                         "bearerAuth": []
                     }
                 ]
+            }
+        },
+        "/api/v1/plans": {
+            "post": {
+                "tags": [
+                    "Plans"
+                ],
+                "summary": "Create a new plan",
+                "operationId": "df01f7d64e9211ac837f6abc69b74641",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "plan_length",
+                                    "plan",
+                                    "amount",
+                                    "reconciliations_per_month"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Starter Plan"
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "example": "Basic starter plan"
+                                    },
+                                    "plan_length": {
+                                        "type": "integer",
+                                        "example": 30
+                                    },
+                                    "plan": {
+                                        "type": "string",
+                                        "example": "starter"
+                                    },
+                                    "amount": {
+                                        "type": "number",
+                                        "format": "decimal",
+                                        "example": 10
+                                    },
+                                    "reconciliations_per_month": {
+                                        "type": "integer",
+                                        "example": 10
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Plan created successfully"
+                    },
+                    "400": {
+                        "description": "Invalid input"
+                    }
+                }
+            }
+        },
+        "/api/v1/plans/{id}": {
+            "get": {
+                "tags": [
+                    "Plans"
+                ],
+                "summary": "Get plan by ID",
+                "operationId": "81bdb829243855c803d720685531b86e",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Plan ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Plan retrieved successfully"
+                    },
+                    "404": {
+                        "description": "Plan not found"
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Plans"
+                ],
+                "summary": "Delete a plan",
+                "description": "Deletes an existing plan",
+                "operationId": "aaa4836cae092e2a99e9e95e3bb79c56",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "The ID of the plan to delete",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Plan deleted successfully"
+                    },
+                    "404": {
+                        "description": "Plan not found"
+                    }
+                }
+            },
+            "patch": {
+                "tags": [
+                    "Plans"
+                ],
+                "summary": "Partially update a plan",
+                "description": "Updates an existing plan's details. Only the provided fields will be updated.",
+                "operationId": "f1d965252758639470a1e2f2046e9e8c",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "The ID of the plan to update",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": false,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Starter Plan"
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "example": "Updated description",
+                                        "nullable": true
+                                    },
+                                    "plan_length": {
+                                        "type": "integer",
+                                        "example": 30
+                                    },
+                                    "plan": {
+                                        "type": "string",
+                                        "example": "Starter"
+                                    },
+                                    "amount": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 10
+                                    },
+                                    "reconciliations_per_month": {
+                                        "type": "integer",
+                                        "example": 10
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Plan updated successfully"
+                    },
+                    "404": {
+                        "description": "Plan not found"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
             }
         },
         "/api/v1/reconcile": {
@@ -3224,6 +3297,69 @@
                 ]
             }
         },
+        "/api/v1/reconciliations": {
+            "get": {
+                "tags": [
+                    "Reconciliation"
+                ],
+                "summary": "Get reconciliations",
+                "description": "Fetch reconciliations for the logged-in user",
+                "operationId": "1fb9ac5ce601c63e275abe07c764d59d",
+                "responses": {
+                    "200": {
+                        "description": "Reconciliations fetched successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Reconciled records fetched successfully"
+                                        },
+                                        "status": {
+                                            "type": "string",
+                                            "example": "success"
+                                        },
+                                        "status_code": {
+                                            "type": "integer",
+                                            "example": 200
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Unauthorized"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/api/v1/profile/update": {
             "post": {
                 "tags": [
@@ -3497,6 +3633,10 @@
         }
     },
     "tags": [
+        {
+            "name": "Plans",
+            "description": "API Endpoints for managing Plans"
+        },
         {
             "name": "Reconciliation",
             "description": "API Endpoints for file reconciliation"
