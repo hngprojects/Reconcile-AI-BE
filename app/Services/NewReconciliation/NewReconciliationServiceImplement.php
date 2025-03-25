@@ -583,4 +583,26 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
 
         return $this->fetchResults($reconciliation);
     }
+
+    public function fetchUserReconciliations(User $user){
+        try {
+        $reconciliations = $this->mainRepository->list($user);
+
+        return [
+            'status_code' => 200,
+            'status' => 'success',
+            'message' => "User's reconciliations fetched successfuly!",
+            'data' => $reconciliations
+        ];
+        } catch(\Exception $e) {
+            return response()->json([
+                "message" => "Failed to fetch reconciliations",
+                "status" => "error",
+                "status_code" => 500,
+                'data' => [
+                    'error' => $e->getMessage()
+                ]
+            ], 500);
+        }
+    }
 }

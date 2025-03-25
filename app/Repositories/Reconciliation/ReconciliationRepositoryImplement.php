@@ -34,7 +34,23 @@ class ReconciliationRepositoryImplement extends Eloquent implements Reconciliati
     }
 
     public function list(User $user){
-        return $this->model->where('user_id', '=', $user->id)->get();
+        return $this->model
+                    ->where('user_id', '=', $user->id)
+                    ->get()
+                    ->sortBy('created_at')
+                    ->map(function ($rec, $index){
+                        $result = $this->findResponse($rec);
+                        $date = new DateTime($rec->created_at);
+                        $titleDate = $date->format('Ymd');
+                        $id = str_pad($index, 3, '0', STR_PAD_LEFT);
+
+                        return [
+                            'id' => $rec->id,
+                            'title' => "RCL-{$titleDate}-{$id}",
+                            'status' => $result ? 'Completed' : 'Pending',
+                            'date' => $date->format('Y-m-d')
+                        ];
+                    });
     }
 
     public function storeResponse(array $data)
