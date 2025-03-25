@@ -18,7 +18,7 @@ class FixUserPlans extends Command
         $this->info("Checking user plans...");
         Log::info("Starting FixUserPlans command...");
 
-        $basicPlan = Plan::where('name', 'Basic')->first();
+        $basicPlan = Plan::where('plan', 'Basic')->first();
         if (!$basicPlan) {
             $this->error("Basic plan not found. Please make sure it exists.");
             Log::error("Basic plan not found. FixUserPlans command stopped.");
