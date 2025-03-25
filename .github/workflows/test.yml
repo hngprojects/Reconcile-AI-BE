@@ -6,13 +6,15 @@ on:
     types: [opened, synchronize]
   push:
     branches:
-      - '**'
-
+      - main
+      - dev
+      - staging
 
 jobs:
-  test:
+  deployment:
     runs-on: reconcile
     timeout-minutes: 10
+
 
     steps:
       - name: Checkout Repository
@@ -22,38 +24,23 @@ jobs:
           persist-credentials: false
 
 
-      - name: Run Tests Remotely
+
+      - name: Run Tests on Remotely
         run: |
           sshpass -p "${{ secrets.SSH_PASSWORD }}" ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_SERVER }} << 'EOF'
           
           # Navigate to project directory
           cd /var/www/html/runner-be
 
-          # Fetch all branches from remote
+          # Fetch latest changes
           git fetch --all
 
-          # Store the branch name
-          BRANCH_NAME="${{ github.head_ref || github.ref_name }}"
+          # Checkout the branch from the PR
+          git checkout ${{ github.head_ref }}
 
-          # Debug: Print the detected branch
-          echo "Detected branch: $BRANCH_NAME"
-
-          # Ensure the branch exists remotely before checking out
-          if git show-ref --verify --quiet refs/remotes/origin/$BRANCH_NAME; then
-              # If branch exists locally, switch to it
-              if git show-ref --verify --quiet refs/heads/$BRANCH_NAME; then
-                  git checkout $BRANCH_NAME
-              else
-                  git checkout -b $BRANCH_NAME origin/$BRANCH_NAME
-              fi
-
-              # Reset and pull latest changes
-              git reset --hard origin/$BRANCH_NAME
-              git pull origin $BRANCH_NAME
-          else
-              echo "❌ ERROR: Branch '$BRANCH_NAME' not found on remote. Exiting."
-              exit 1
-          fi
+          # Reset and pull the latest code from the branch
+          git reset --hard origin/${{ github.head_ref }}
+          git pull origin ${{ github.head_ref }}
 
           # Install dependencies
           composer install --no-progress --prefer-dist --no-interaction

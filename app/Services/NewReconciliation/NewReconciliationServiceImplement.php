@@ -23,21 +23,22 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Sleep;
 use Illuminate\Support\Facades\Response;
 
-class NewReconciliationServiceImplement extends ServiceApi implements NewReconciliationService{
+class NewReconciliationServiceImplement extends ServiceApi implements NewReconciliationService
+{
 
     /**
      * set title message api for CRUD
      * @param string $title
      */
-     protected string $title = "";
-     /**
+    protected string $title = "";
+    /**
      * uncomment this to override the default message
      * protected string $create_message = "";
      * protected string $update_message = "";
      * protected string $delete_message = "";
      */
 
-     /**
+    /**
      * don't change $this->mainRepository variable name
      * because used in extends service class
      */
@@ -53,8 +54,7 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
         LedgerRepository $ledgerRepository,
         StatementRepository $statementRepository,
         MatchingTransactionRepository $matchedRepository
-    )
-    {
+    ) {
         $this->mainRepository = $mainRepository;
         $this->fileRepository = $fileRepository;
         $this->ledgerRepository = $ledgerRepository;
@@ -101,7 +101,8 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
         return ['data' => $data, 'headers' => $headers];
     }
 
-    public function storeReconciliation($statements, $ledgers, $user){
+    public function storeReconciliation($statements, $ledgers, $user)
+    {
         DB::beginTransaction();
 
         $reconciliation = $this->mainRepository->store([
@@ -158,25 +159,26 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
             $body = json_decode($response->getBody()->getContents(), true);
 
             return $body['candidates'][0]['content']['parts'][0]['text'] ?? json_encode($body);
-
         } catch (\Exception $e) {
             Log::error("Gemini API Error: " . $e->getMessage());
             return ['error' => $e->getMessage()];
         }
     }
 
-    protected function getOtherData($d, $otherHeaders) {
-            $res = [];
-            foreach ($otherHeaders as $key) {
-                if(array_key_exists($key, $d)){
-                    $res[$key] = $d[$key];
-                }
+    protected function getOtherData($d, $otherHeaders)
+    {
+        $res = [];
+        foreach ($otherHeaders as $key) {
+            if (array_key_exists($key, $d)) {
+                $res[$key] = $d[$key];
             }
-
-            return $res;
         }
 
-    protected function structuringData($file){
+        return $res;
+    }
+
+    protected function structuringData($file)
+    {
         $fileData = $this->loadComplexCsv($file);
         $data = $fileData['data'];
         $headers = json_encode($fileData['headers']);
@@ -209,7 +211,7 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
 
 
         foreach ($data as $key) {
-            if(str_contains(strtolower($nameHeader), 'name')) {
+            if (str_contains(strtolower($nameHeader), 'name')) {
                 $otherInfo = $this->getOtherData($key, $otherHeaders);
                 $structured[] = [
                     'Person' => $key[$nameHeader],
@@ -217,53 +219,54 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
                     'Amount' => $key[$amountHeader],
                     'Other Information' => $otherInfo
                 ];
-            }else {
+            } else {
                 $descriptions[] = $key[$nameHeader];
             }
 
-        Log::info('Structured: ', ['data' => $structured]);
+            Log::info('Structured: ', ['data' => $structured]);
 
-        if(!empty($descriptions)){
-            $chunks = array_chunk($descriptions, 40);
-            $names = [];
-            $chunkIndex = 0;
+            if (!empty($descriptions)) {
+                $chunks = array_chunk($descriptions, 40);
+                $names = [];
+                $chunkIndex = 0;
 
-            foreach ($chunks as $chunk) {
-                $chunk = json_encode($chunk);
-                $prompt2 = "Please extract the names from this JSON object: {$chunk}. Return a JSON object in the same order only in your response";
+                foreach ($chunks as $chunk) {
+                    $chunk = json_encode($chunk);
+                    $prompt2 = "Please extract the names from this JSON object: {$chunk}. Return a JSON object in the same order only in your response";
 
-                $res = $this->callGemini("$prompt2. Please return only a valid JSON object");
+                    $res = $this->callGemini("$prompt2. Please return only a valid JSON object");
 
-                $cleanRes = str_replace(["```json", "```"], "", $res);
+                    $cleanRes = str_replace(["```json", "```"], "", $res);
 
-                $decodedRes = json_decode($cleanRes, true);
+                    $decodedRes = json_decode($cleanRes, true);
 
-                Log::info('Headers results', ['data' => $decodedResponse]);
-                if (json_last_error() === JSON_ERROR_NONE && is_array($decodedRes)) {
-                    foreach ($decodedRes as $key => $value) {
-                        Log::info('key', ['data' => $key]);
-                        Log::info('key', ['data' => $data]);
-                        $otherInfo = $this->getOtherData($data[$key], $otherHeaders);
-                        $structured[] = [
-                            'Person' => $value,
-                            'Date' => $dateHeader ? $data[$key][$dateHeader] : null,
-                            'Amount' => $data[$key][$amountHeader],
-                            'Other Information' => $otherInfo
-                        ];
+                    Log::info('Headers results', ['data' => $decodedResponse]);
+                    if (json_last_error() === JSON_ERROR_NONE && is_array($decodedRes)) {
+                        foreach ($decodedRes as $key => $value) {
+                            Log::info('key', ['data' => $key]);
+                            Log::info('key', ['data' => $data]);
+                            $otherInfo = $this->getOtherData($data[$key], $otherHeaders);
+                            $structured[] = [
+                                'Person' => $value,
+                                'Date' => $dateHeader ? $data[$key][$dateHeader] : null,
+                                'Amount' => $data[$key][$amountHeader],
+                                'Other Information' => $otherInfo
+                            ];
+                        }
+                    } else {
+                        Log::error('Failed to decode Gemini response for data2: ' . json_last_error_msg());
                     }
-                } else {
-                    Log::error('Failed to decode Gemini response for data2: ' . json_last_error_msg());
+                    Sleep::for(5)->second();
                 }
-                Sleep::for(5)->second();
             }
-        }
 
-        Log::info('Structured: ', ['data' => $structured]);
-        return $structured;
+            Log::info('Structured: ', ['data' => $structured]);
+            return $structured;
         }
     }
 
-    protected function savingData(array $statements, array $ledgers, Reconciliation $reconciliation){
+    protected function savingData(array $statements, array $ledgers, Reconciliation $reconciliation)
+    {
         DB::beginTransaction();
 
         $this->statementRepository->storeMany($statements, $reconciliation);
@@ -272,7 +275,8 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
         DB::commit();
     }
 
-    protected function getEmbedding(string $text){
+    protected function getEmbedding(string $text)
+    {
         $response = Gemini::embeddingModel()->embedContent($text);
 
         return $response->embedding->values;
@@ -292,12 +296,13 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
         return false;
     }
 
-    protected function generateEmbeddings(Collection $statements, Collection $ledgers){
+    protected function generateEmbeddings(Collection $statements, Collection $ledgers)
+    {
         $statements->map(function (Statement $statement) {
             $formattedDate = date('Y-m-d', strtotime($statement->date));
             $formattedAmount = number_format($statement->amount, 2, '.', ',');
 
-            $combinedText = "Person's name: {$statement->person}, Amount: {$formattedAmount} Date: {$formattedDate}, Other Relevant Information: {$ledger->other_information}";
+            $combinedText = "Person's name: {$statement->person}, Amount: {$formattedAmount} Date: {$formattedDate}, Other Relevant Information: {$statement->other_information}";
             $embedding = $this->getEmbedding($combinedText);
             $this->statementRepository->addVector($statement, $embedding);
         });
@@ -327,7 +332,7 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
             $statementIndex = $this->findMatchIndex($matches, $match->statement_id);
             $ledgerIndex = $this->findMatchIndex($matches, $match->ledger_id);
 
-            if($statementIndex){
+            if ($statementIndex) {
                 $matches[] = [
                     'statements' => [
                         [
@@ -342,7 +347,7 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
                         ]
                     ]
                 ];
-            }else if($ledgerIndex){
+            } else if ($ledgerIndex) {
                 $matches[] = [
                     'statements' => [
                         ...$matches[$ledgerIndex]['statements'],
@@ -357,7 +362,7 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
                         ]
                     ]
                 ];
-            }else{
+            } else {
                 $matches[] = [
                     'statements' => [
                         [
@@ -433,16 +438,17 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
         ];
     }
 
-    public function export(Reconciliation $reconciliation){
+    public function export(Reconciliation $reconciliation)
+    {
         $record = $this->mainRepository->findResponse($reconciliation);
 
         $file = $this->generateCSV($record->data);
 
         return Response::download($file)->deleteFileAfterSend(true);
-
     }
 
-    protected function generateCSV($data){
+    protected function generateCSV($data)
+    {
         $timestamp = now()->format('Y-m-d_H-i-s');
         $exportFileName = public_path("reconciled-data-" . now()->format('Y-m-d_H-i-s') . ".csv");
 
@@ -454,7 +460,7 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
             $arr = [];
             if (count($match['statements']) == 1) {
                 foreach ($match['ledgers'] as $key => $ledgerMatch) {
-                    if($key == 0){
+                    if ($key == 0) {
                         $arr = [
                             $match['statements'][0]['statement']['Date'],
                             $match['statements'][0]['statement']['Description'],
@@ -467,7 +473,9 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
                         ];
                     } else {
                         $arr = [
-                            '', '', '',
+                            '',
+                            '',
+                            '',
                             'Matched',
                             $ledgerMatch['score'],
                             $ledgerMatch['ledger']['Date'],
@@ -482,7 +490,7 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
             if (count($match['ledgers']) == 1) {
                 foreach ($match['statements'] as $key => $statementMatch) {
                     Log::info('Index: ', ['key' => $key]);
-                    if($key == 0){
+                    if ($key == 0) {
                         $arr = [
                             $match['ledgers'][0]['ledger']['Date'],
                             $match['ledgers'][0]['ledger']['Description'],
@@ -495,7 +503,9 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
                         ];
                     } else {
                         $arr = [
-                            '', '', '',
+                            '',
+                            '',
+                            '',
                             'Matched',
                             $statementMatch['score'],
                             $statementMatch['statement']['Date'],
@@ -512,8 +522,8 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
             fputcsv($exportFile, [$row['Date'], $row['Description'], $row['Amount'], 'Unmatched']);
         }
 
-        foreach($data['unmatched_ledgers'] as $row){
-            $updated = ['', '', '','Unmatched', '', $row['Date'], $row['Description'], $row['Amount']];
+        foreach ($data['unmatched_ledgers'] as $row) {
+            $updated = ['', '', '', 'Unmatched', '', $row['Date'], $row['Description'], $row['Amount']];
             fputcsv($exportFile, $updated);
         }
 
@@ -522,7 +532,8 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
         return $exportFileName;
     }
 
-    public function fetchResults(Reconciliation $reconciliation){
+    public function fetchResults(Reconciliation $reconciliation)
+    {
         $savedStatements = $this->statementRepository->findAll($reconciliation);
         $savedLedgers = $this->ledgerRepository->findAll($reconciliation);
 
@@ -538,7 +549,7 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
             $statementIndex = $this->findMatchIndex($matches, $match['statement_id']);
             $ledgerIndex = $this->findMatchIndex($matches, $match['ledger_id']);
 
-            if($statementIndex){
+            if ($statementIndex) {
                 $matches[] = [
                     'statements' => [
                         [
@@ -546,14 +557,14 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
                         ]
                     ],
                     'ledgers' => [
-                        ...matches[$statementIndex]['ledgers'],
+                        ...$matches[$statementIndex]['ledgers'],
                         [
                             'ledger' => (new TransactionResource($this->ledgerRepository->findById($match['ledger_id'])))->toArray(request()),
                             'score' => "{$percent}%"
                         ]
                     ]
                 ];
-            }else if($ledgerIndex){
+            } else if ($ledgerIndex) {
                 $matches[] = [
                     'statements' => [
                         ...$matches[$ledgerIndex]['statements'],
@@ -568,7 +579,7 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
                         ]
                     ]
                 ];
-            }else{
+            } else {
                 $matches[] = [
                     'statements' => [
                         [
@@ -616,23 +627,24 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
         ];
     }
 
-    public function matchUnmatch(Reconciliation $reconciliation, array $statements, array $ledgers, string $action){
-        if($action == 'match'){
-            if(count($statements) == 1){
+    public function matchUnmatch(Reconciliation $reconciliation, array $statements, array $ledgers, string $action)
+    {
+        if ($action == 'match') {
+            if (count($statements) == 1) {
                 foreach ($ledgers as $key => $ledger) {
                     $this->matchedRepository->storeByIds($ledger, $statements[0], 100);
                 }
-            }else if(count($ledgers) == 1){
+            } else if (count($ledgers) == 1) {
                 foreach ($statements as $key => $statement) {
                     $this->matchedRepository->storeByIds($ledgers[0], $statement, 100);
                 }
             }
-        }else if ($action == 'unmatch'){
-            if(count($statements) == 1){
+        } else if ($action == 'unmatch') {
+            if (count($statements) == 1) {
                 foreach ($ledgers as $key => $ledger) {
                     $this->matchedRepository->removeByIds($ledger, $statements[0]);
                 }
-            }else if(count($ledgers) == 1){
+            } else if (count($ledgers) == 1) {
                 foreach ($statements as $key => $statement) {
                     $this->matchedRepository->removeByIds($ledgers[0], $statement);
                 }
@@ -640,5 +652,28 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
         }
 
         return $this->fetchResults($reconciliation);
+    }
+
+    public function fetchUserReconciliations(User $user)
+    {
+        try {
+            $reconciliations = $this->mainRepository->list($user);
+
+            return [
+                'status_code' => 200,
+                'status' => 'success',
+                'message' => "User's reconciliations fetched successfuly!",
+                'data' => $reconciliations
+            ];
+        } catch (\Exception $e) {
+            return response()->json([
+                "message" => "Failed to fetch reconciliations",
+                "status" => "error",
+                "status_code" => 500,
+                'data' => [
+                    'error' => $e->getMessage()
+                ]
+            ], 500);
+        }
     }
 }

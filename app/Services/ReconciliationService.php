@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Services;
 
 use Maatwebsite\Excel\Facades\Excel;
@@ -34,8 +35,7 @@ class ReconciliationService
         LedgerRepository $ledgerRepository,
         StatementRepository $statementRepository,
         MatchingTransactionRepository $matchedRepository
-    )
-    {
+    ) {
         $this->mainRepository = $mainRepository;
         $this->fileRepository = $fileRepository;
         $this->ledgerRepository = $ledgerRepository;
@@ -272,7 +272,7 @@ class ReconciliationService
             throw new \Exception("Empty Excel file.");
         }
         $headers = array_shift($array);
-        return array_map(fn ($row) => array_combine($headers, $row), $array);
+        return array_map(fn($row) => array_combine($headers, $row), $array);
     }
 
     protected function generatePrompt(array $data1, array $data2): string
@@ -354,7 +354,7 @@ class ReconciliationService
         Return a JSON with 'matches' as an array, 'only_in_file1' as an array, 'only_in_file2' as an array, 'duplicates' as an array, 'unmatched' as an array, and 'matchSummary' as an array.";
     }
 
-    protected function processAIResponse(string $response, array $data1=[], array $data2=[])
+    protected function processAIResponse(string $response, array $data1 = [], array $data2 = [])
     {
         $cleanResponse = trim(str_replace(["```json", "```"], "", $response));
 
@@ -486,14 +486,14 @@ class ReconciliationService
             $body = json_decode($response->getBody()->getContents(), true);
 
             return $body['candidates'][0]['content']['parts'][0]['text'] ?? json_encode($body);
-
         } catch (\Exception $e) {
             Log::error("Gemini API Error: " . $e->getMessage());
             return ['error' => $e->getMessage()];
         }
     }
 
-    public function generateExport(array $data){
+    public function generateExport(array $data)
+    {
         $timestamp = now()->format('Y-m-d_H-i-s');
         $exportFileName = public_path("reconciled-data-" . now()->format('Y-m-d_H-i-s') . ".csv");
 
@@ -516,7 +516,7 @@ class ReconciliationService
             fputcsv($exportFile, [...$row, 'Unmatched']);
         }
 
-        foreach($data['unmatched']['unmatched_file2'] as $row){
+        foreach ($data['unmatched']['unmatched_file2'] as $row) {
             $updated = ['', '', '', 'Unmatched', ...$row];
             fputcsv($exportFile, $updated);
         }
@@ -526,8 +526,8 @@ class ReconciliationService
         return Response::download($exportFileName)->deleteFileAfterSend(true);
     }
 
-     public function store(array $data): Reconciliation
-     {
+    public function store(array $data): Reconciliation
+    {
         $statement = $this->fileRepository->store([
             'user_id' => $data['user'],
             'file_name' => $data['statement'],
@@ -545,13 +545,15 @@ class ReconciliationService
             'option' => $data['ai']
         ]);
 
-        $files = $reconciliation->files()->attach([[
-            'id' => Str::uuid(),
-            'file_id' => $statement->id
-        ], [
-            'id' => Str::uuid(),
-            'file_id' => $ledger->id
-        ]
+        $files = $reconciliation->files()->attach([
+            [
+                'id' => Str::uuid(),
+                'file_id' => $statement->id
+            ],
+            [
+                'id' => Str::uuid(),
+                'file_id' => $ledger->id
+            ]
         ]);
 
         $record = $this->mainRepository->storeResponse([
@@ -560,9 +562,10 @@ class ReconciliationService
         ]);
 
         return $reconciliation;
-     }
+    }
 
-    protected function removeUnmatched(string $type, array $res, array $value) {
+    protected function removeUnmatched(string $type, array $res, array $value)
+    {
         $res['unmatched_' . $type] = array_values(array_filter($res['unmatched_' . $type], function ($item) use ($value) {
             return $item !== $value; // Direct array comparison
         }));
@@ -570,12 +573,14 @@ class ReconciliationService
         return $res;
     }
 
-    protected function addUnmatched(string $type, array $res, array $value){
+    protected function addUnmatched(string $type, array $res, array $value)
+    {
         $res['unmatched_' . $type][] = $value;
         return $res;
     }
 
-    protected function addMatched(array $res, array $statement, array $ledger) {
+    protected function addMatched(array $res, array $statement, array $ledger)
+    {
         $found = false;
 
         foreach ($res['matches'] as &$data) {
@@ -604,7 +609,8 @@ class ReconciliationService
         return $res;
     }
 
-    protected function removeMatch(array $res, array $statement, array $ledger) {
+    protected function removeMatch(array $res, array $statement, array $ledger)
+    {
         Log::info('Input res:', ['res' => $res]);
 
         foreach ($res['matches'] as $key => &$match) {
@@ -648,14 +654,14 @@ class ReconciliationService
         return $res;
     }
 
-    protected function matchRecords($ledger, $statement, $action, $resArray, $filteredLedger, $filteredStatement){
-        if($action == 'match'){
+    protected function matchRecords($ledger, $statement, $action, $resArray, $filteredLedger, $filteredStatement)
+    {
+        if ($action == 'match') {
             $newMatch = $this->matchedRepository->store($ledger, $statement, 100);
             $resArray = $this->addMatched($resArray, $filteredStatement, $filteredLedger);
             $resArray = $this->removeUnmatched('statements', $resArray, $filteredStatement);
             $resArray = $this->removeUnmatched('ledgers', $resArray, $filteredLedger);
-
-        }else if($action == 'unmatch'){
+        } else if ($action == 'unmatch') {
             $newMatch = $this->matchedRepository->remove($ledger, $statement, 100);
             $resArray = $this->removeMatch($resArray, $filteredStatement, $filteredLedger);
             Log::info('Matches: ', $resArray['matches']);
@@ -668,7 +674,8 @@ class ReconciliationService
         return $resArray;
     }
 
-    public function matchUnmatch(array $data, Reconciliation $reconciliation) {
+    public function matchUnmatch(array $data, Reconciliation $reconciliation)
+    {
         $ledgers = [];
         $statements = [];
 

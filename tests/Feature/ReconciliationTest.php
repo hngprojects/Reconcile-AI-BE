@@ -29,6 +29,7 @@ class ReconciliationTest extends TestCase
     {
         parent::setUp();
         Storage::fake('local');
+        $this->user = User::factory()->create();
     }
 
     public function test_reconcile_with_gemini_returns_successful_response(): void
@@ -59,9 +60,9 @@ class ReconciliationTest extends TestCase
             ]);
 
         $mockService->shouldReceive('store')
-                    ->once()
-                    ->with(Mockery::type('array'))
-                    ->andReturn(new Reconciliation(['id' => Str::uuid()]));
+            ->once()
+            ->with(Mockery::type('array'))
+            ->andReturn(new Reconciliation(['id' => Str::uuid()]));
 
         $this->app->instance(ReconciliationService::class, $mockService);
 
@@ -123,9 +124,9 @@ class ReconciliationTest extends TestCase
 
 
         $mockService->shouldReceive('store')
-                    ->once()
-                    ->with(Mockery::type('array'))
-                    ->andReturn(new Reconciliation(['id' => Str::uuid()]));
+            ->once()
+            ->with(Mockery::type('array'))
+            ->andReturn(new Reconciliation(['id' => Str::uuid()]));
         $this->app->instance(ReconciliationService::class, $mockService);
 
         $file1 = UploadedFile::fake()->create('file1.csv', 100);
@@ -184,9 +185,9 @@ class ReconciliationTest extends TestCase
 
 
         $mockService->shouldReceive('store')
-                    ->once()
-                    ->with(Mockery::type('array'))
-                    ->andReturn(new Reconciliation(['id' => Str::uuid()]));
+            ->once()
+            ->with(Mockery::type('array'))
+            ->andReturn(new Reconciliation(['id' => Str::uuid()]));
         $this->app->instance(ReconciliationService::class, $mockService);
 
         $file1 = UploadedFile::fake()->create('file1.csv', 100);
@@ -237,9 +238,9 @@ class ReconciliationTest extends TestCase
 
 
         $mockService->shouldReceive('store')
-                    ->once()
-                    ->with(Mockery::type('array'))
-                    ->andReturn(new Reconciliation(['id' => Str::uuid()]));
+            ->once()
+            ->with(Mockery::type('array'))
+            ->andReturn(new Reconciliation(['id' => Str::uuid()]));
         $this->app->instance(ReconciliationService::class, $mockService);
 
         $file1 = UploadedFile::fake()->create('file1.csv', 100);
@@ -300,9 +301,9 @@ class ReconciliationTest extends TestCase
 
 
         $mockService->shouldReceive('store')
-                    ->once()
-                    ->with(Mockery::type('array'))
-                    ->andReturn(new Reconciliation(['id' => Str::uuid()]));
+            ->once()
+            ->with(Mockery::type('array'))
+            ->andReturn(new Reconciliation(['id' => Str::uuid()]));
         $this->app->instance(ReconciliationService::class, $mockService);
 
         $file1 = UploadedFile::fake()->create('file1.csv', 100);
@@ -533,9 +534,9 @@ class ReconciliationTest extends TestCase
             ]);
 
         $mockService->shouldReceive('store')
-                    ->once()
-                    ->with(Mockery::type('array'))
-                    ->andReturn(new Reconciliation(['id' => Str::uuid()]));
+            ->once()
+            ->with(Mockery::type('array'))
+            ->andReturn(new Reconciliation(['id' => Str::uuid()]));
         $this->app->instance(ReconciliationService::class, $mockService);
 
         $file1 = UploadedFile::fake()->create('file1.csv', 100);
@@ -559,7 +560,7 @@ class ReconciliationTest extends TestCase
     {
         $user = User::factory()->createOne();
         $this->actingAs($user);
-        $reconcile = Reconciliation::factory()->createOne([ 'user_id' => $user->id ]);
+        $reconcile = Reconciliation::factory()->createOne(['user_id' => $user->id]);
 
         ReconciledRecord::factory()->create([
             'reconciliation_id' => $reconcile->id,
@@ -572,7 +573,8 @@ class ReconciliationTest extends TestCase
                     ],
                 ],
                 'unmatched_statements' => [['name' => 'Alice Brown', 'amount' => 300]],
-                'unmatched_ledgers' => [['name' => 'Bob Martin', 'amount' => 400]],                'summary'  => [
+                'unmatched_ledgers' => [['name' => 'Bob Martin', 'amount' => 400]],
+                'summary'  => [
                     'totalMatched'        => 1,
                     'totalUnmatchedFile1' => 1,
                     'totalUnmatchedFile2' => 1,
@@ -672,11 +674,51 @@ class ReconciliationTest extends TestCase
         $response->assertJson([
             "message" => "The selected action is invalid.",
             "errors" => [
-                "action"=> [
+                "action" => [
                     "The selected action is invalid."
                 ]
             ]
         ]);
+    }
+
+    public function test_fetches_user_reconciliations_successfully()
+    {
+        Reconciliation::factory()->count(3)->create(['user_id' => $this->user->id]);
+
+        $response = $this->actingAs($this->user)->getJson('/api/v1/reconciliations');
+
+        $response->assertStatus(200)
+            ->assertJsonStructure([
+                'status_code',
+                'status',
+                'message',
+                'data' => [
+                    '*' => ['id', 'title', 'status', 'date']
+                ]
+            ]);
+    }
+
+    public function test_returns_empty_data_when_user_has_no_reconciliations()
+    {
+        $response = $this->actingAs($this->user)->getJson('/api/v1/reconciliations');
+
+        $response->assertStatus(200)
+            ->assertJson([
+                'status_code' => 200,
+                'status' => 'success',
+                'message' => "User's reconciliations fetched successfuly!",
+                'data' => []
+            ]);
+    }
+
+    public function test_returns_unauthorized_if_user_is_not_authenticated()
+    {
+        $response = $this->getJson('/api/v1/reconciliations');
+
+        $response->assertStatus(401)
+            ->assertJson([
+                'message' => 'Unauthenticated.'
+            ]);
     }
 
     protected function tearDown(): void

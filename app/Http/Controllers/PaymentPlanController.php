@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\BillingTransaction;
 use App\Models\Plan;
 use App\Models\PaymentPlan;
 use Illuminate\Http\Request;
@@ -169,6 +170,13 @@ class PaymentPlanController extends Controller
                 'is_active' => true,
                 'reconciliations_used' => 0
             ]);
+            BillingTransaction::create([
+                'user_id' => $user->id,
+                'description' => 'Monthly Subscription',
+                'status' => 'Successful',
+                'plan' => $plan->plan,
+                'amount' => $plan->amount
+            ]);
 
             return response()->json([
                 "status" => true,
@@ -279,6 +287,13 @@ class PaymentPlanController extends Controller
                 'price' => $newPlan->amount,
                 'expire_date' => now()->addDays($newPlan->plan_length),
                 'reconciliations_used' => 0
+            ]);
+            BillingTransaction::create([
+                'user_id' => $user->id,
+                'description' => 'Monthly Subscription',
+                'status' => 'Successful',
+                'plan' => $currentPlan->plan,
+                'amount' => $currentPlan->price
             ]);
 
             return response()->json([

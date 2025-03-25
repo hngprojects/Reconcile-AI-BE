@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\BillingTransactionController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\JobApplicationController;
 use App\Http\Controllers\OutboundMarketingController;
@@ -44,9 +45,11 @@ Route::prefix('v1')->group(function () {
     });
 
     Route::middleware('auth:api')->get('/user', [GoogleAuthController::class, 'fetchUser'])->name('user');
-    // Route::middleware('auth:api')->put('payment-plan', [PaymentPlanController::class, 'update'])->name('payment-plan');
+
 
     Route::middleware('auth:api')->group(function () {
+        Route::post('/profile/update', [UserController::class, 'updateProfile']);
+        Route::delete('/user', [UserController::class, 'deleteAccount'])->name('user.delete');
         // Get current payment plan
         Route::get('payment-plan', [PaymentPlanController::class, 'show'])->name('payment-plan.show');
         // Create new payment plan
@@ -54,13 +57,7 @@ Route::prefix('v1')->group(function () {
         // Update payment plan
         Route::put('payment-plan', [PaymentPlanController::class, 'update'])->name('payment-plan.update');
         // Optional: Payment history route if you implement it later
-        // Route::get('payment-plan/history', [PaymentPlanController::class, 'history'])->name('payment-plan.history');
-    });
-
-    // Route::middleware('auth:api')->put('payment-plan', [PaymentPlanController::class, 'update'])->name('payment-plan');
-    Route::middleware('auth:api')->group(function () {
-        Route::post('/profile/update', [UserController::class, 'updateProfile']);
-        Route::delete('/user', [UserController::class, 'deleteAccount'])->name('user.delete');
+        Route::get('payment-plan/history', [BillingTransactionController::class, 'history'])->name('payment-plan.history');
     });
     Route::prefix('newsletter')->name('newsletter.')->group(function () {
         Route::get('/unsubscribe/{email}', [NewsLetterController::class, 'oneClickUnsubscribe'])->name('one-click-unsubscribe');
@@ -85,6 +82,7 @@ Route::prefix('v1')->group(function () {
     Route::post('/partners', [PartnerController::class, 'submit'])->name('partners');
     Route::post('/reconcile', [ReconciliationController::class, 'reconcile'])->name('reconcile')->middleware(ThrottleUnauthenticated::class);
     Route::middleware('auth:api')->get('/reconciliations/{reconciliation}', [ReconciliationController::class, 'getReconciledRecords'])->whereUuid('reconciliation')->name('reconciled-records');
+    Route::middleware('auth:api')->get('/reconciliations', [ReconciliationController::class, 'listUserReconciliations'])->name('list');
     Route::get('/reconciliations/{reconciliation}/export', [ReconciliationController::class, 'export'])->name('export');
     Route::middleware('auth:api')->post('/reconcile-embeddings', [ReconciliationController::class, 'testEmbeddings'])->name('embeddings');
     Route::post('/reconcile/{reconciliation}', [ReconciliationController::class, 'matchUnmatch'])->whereUuid('reconciliation')->name('manual-reconciliation');
