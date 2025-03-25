@@ -181,7 +181,7 @@ class CheckReconciliationLimitTest extends TestCase
     #[Test]
     public function it_denies_access_if_user_has_no_active_plan()
     {
-        $paymentPlan = PaymentPlan::factory()->create([
+        PaymentPlan::factory()->create([
             'user_id' => $this->user->id,
             'plan_id' => $this->planStarter->id,
             'start_date' => now(),
