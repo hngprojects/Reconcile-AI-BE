@@ -17,10 +17,11 @@ class ReconciliationCompleted extends Mailable
     /**
      * Create a new message instance.
      */
-    public function __construct($reconciliation, $filePath)
+    public function __construct($reconciliation, $filePath, $user)
     {
-        $this->reconciliation = $reconciliation;
         $this->filePath = $filePath;
+        $this->user = $user;
+        $this->url = env('FRONTEND_URL', 'https://reconxi.com') . '/reconciliation/' . $reconciliation->id;
     }
 
     /**
@@ -40,6 +41,7 @@ class ReconciliationCompleted extends Mailable
     {
         return new Content(
             view: 'mail.reconciliation-completed',
+            with: ['user' => $this->user, 'url' => $this->url]
         );
     }
 
@@ -50,8 +52,6 @@ class ReconciliationCompleted extends Mailable
      */
     public function attachments(): array
     {
-        return [
-            Attachment::fromPath($this->filePath)
-        ];
+        return [];
     }
 }

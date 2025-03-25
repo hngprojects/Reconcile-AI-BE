@@ -1,50 +1,66 @@
-name: Testing
+name: CI Testing
 
 on:
   pull_request:
     branches: [main, dev] # Runs for same-repo PRs
     types: [opened, synchronize]
+  push:
+    branches:
+      - '**'
+
 
 jobs:
   test:
-    # runs-on: reconcile
-    runs-on: ubuntu-latest
+    runs-on: reconcile
     timeout-minutes: 10
-
-    services:
-      postgres:
-        image: postgres:16
-        env:
-          POSTGRES_DB: test_db
-          POSTGRES_USER: test_user
-          POSTGRES_PASSWORD: test_pass
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd="pg_isready -U test_user -d test_db"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=5
 
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.sha }} # Checkout the fork's branch
+          ref: ${{ github.event.pull_request.head.sha }} # Checkout the PR branch
           persist-credentials: false
 
-      - name: Set up PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: "8.2"
-          extensions: mbstring, xml, ctype, json, pdo, bcmath, pgsql, pdo_pgsql, zip, apcu
 
-      - name: Install Laravel dependencies
+      - name: Run Tests Remotely
         run: |
+          sshpass -p "${{ secrets.SSH_PASSWORD }}" ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_SERVER }} << 'EOF'
+          
+          # Navigate to project directory
+          cd /var/www/html/runner-be
+
+          # Fetch all branches from remote
+          git fetch --all
+
+          # Store the branch name
+          BRANCH_NAME="${{ github.head_ref || github.ref_name }}"
+
+          # Debug: Print the detected branch
+          echo "Detected branch: $BRANCH_NAME"
+
+          # Ensure the branch exists remotely before checking out
+          if git show-ref --verify --quiet refs/remotes/origin/$BRANCH_NAME; then
+              # If branch exists locally, switch to it
+              if git show-ref --verify --quiet refs/heads/$BRANCH_NAME; then
+                  git checkout $BRANCH_NAME
+              else
+                  git checkout -b $BRANCH_NAME origin/$BRANCH_NAME
+              fi
+
+              # Reset and pull latest changes
+              git reset --hard origin/$BRANCH_NAME
+              git pull origin $BRANCH_NAME
+          else
+              echo "❌ ERROR: Branch '$BRANCH_NAME' not found on remote. Exiting."
+              exit 1
+          fi
+
+          # Install dependencies
           composer install --no-progress --prefer-dist --no-interaction
 
-      - name: Set environment variables for CI
-        run: |
+          # Set environment variables
+
+          rm .env
           cp .env.example .env
           php artisan key:generate
           php artisan jwt:secret
@@ -55,9 +71,14 @@ jobs:
           echo "DB_DATABASE=test_db" >> .env
           echo "DB_USERNAME=test_user" >> .env
           echo "DB_PASSWORD=test_pass" >> .env
+          
+          #dropping all tables
+          php artisan migrate:fresh
 
-      - name: Run Database Migrations
-        run: php artisan migrate --force
+          # Run migrations
+          # php artisan migrate --force
 
-      - name: Run Laravel tests
-        run: php artisan test
+          # Run Laravel tests
+          php artisan test
+
+          EOF

@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Services;
 
 use App\Mail\OutboundMarketingMail;
@@ -14,11 +13,15 @@ class OutboundMarketingService
         $validator = Validator::make($data, [
             'full_name' => 'required|string|max:255',
             'business_name' => 'required|string|max:255',
-            'email' => 'required|email|max:255',
+            'email' => 'required|email|max:255|unique:news_letters,email',
             'phone_number' => 'required|string',
         ]);
 
         if ($validator->fails()) {
+            // Check if the email error exists and return a 409 Conflict message
+            if ($validator->errors()->has('email')) {
+                return [false, 'The email address is already in use.'];
+            }
             return [false, $validator->errors()];
         }
 
@@ -33,7 +36,7 @@ class OutboundMarketingService
 
             return [true, $marketing];
         } catch (\Exception $e) {
-            return [false, 'Failed to create marketing campaign'];
+            return [false, $e->getMessage()]; // Return actual exception message for debugging
         }
     }
 }

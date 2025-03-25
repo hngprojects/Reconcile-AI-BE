@@ -4,8 +4,12 @@ namespace App\Services\NewReconciliation;
 
 use LaravelEasyRepository\BaseService;
 use App\Models\User;
+use App\Models\Reconciliation;
 
 interface NewReconciliationService extends BaseService{
 
-    public function usingEmbeddings(string $statement, string $ledger, User $user);
+    public function usingEmbeddings(array $statements, array $ledgers, User $user, Reconciliation $reconciliation);
+    public function storeReconciliation($statements, $ledgers, $user);
+    public function matchUnmatch(Reconciliation $reconciliation, array $statements, array $ledgers, string $action);
+    public function fetchResults(Reconciliation $reconciliation);
 }

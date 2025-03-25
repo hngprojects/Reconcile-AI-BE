@@ -395,7 +395,8 @@ class ReconciliationService
 
     protected function callOpenAI(string $prompt)
     {
-        $client = OpenAI::client(env('OPENAI_API_KEY'));
+        // $client = OpenAI::client(env('OPENAI_API_KEY'));
+        $client = OpenAI::client(config('services.ai_key.open_api'));
 
         $response = $client->chat()->create([
             'model' => 'gpt-3.5-turbo',
@@ -422,7 +423,8 @@ class ReconciliationService
     protected function callDeepSeek(string $prompt)
     {
         $client = new \GuzzleHttp\Client();
-        $apiKey = env('DEEPSEEK_API_KEY');
+        // $apiKey = env('DEEPSEEK_API_KEY');
+        $apiKey = config('services.ai_key.deepseek');
 
         $response = $client->post('https://api.deepseek.com/chat/completions', [
             'headers' => [
@@ -460,7 +462,8 @@ class ReconciliationService
     protected function callGemini(string $prompt)
     {
         $client = new \GuzzleHttp\Client();
-        $apiKey = env('GEMINI_API_KEY');
+        // $apiKey = env('GEMINI_API_KEY');
+        $apiKey = config('gemini.api_key');
 
         $url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={$apiKey}";
 
@@ -559,77 +562,151 @@ class ReconciliationService
         return $reconciliation;
      }
 
-    public function matchUnmatch(array $data, Reconciliation $reconciliation){
-        $ledger = $this->ledgerRepository->store([
-            'reconciliation_id' => $reconciliation->id,
-            ...$data['ledger']
-        ]);
+    protected function removeUnmatched(string $type, array $res, array $value) {
+        $res['unmatched_' . $type] = array_values(array_filter($res['unmatched_' . $type], function ($item) use ($value) {
+            return $item !== $value; // Direct array comparison
+        }));
 
-        $statement = $this->statementRepository->store([
-            'reconciliation_id' => $reconciliation->id,
-            ...$data['statement']
-        ]);
+        return $res;
+    }
 
-        $filteredStatement = (new TransactionResource($statement))->toArray(request());
-        $filteredLedger = (new TransactionResource($ledger))->toArray(request());
+    protected function addUnmatched(string $type, array $res, array $value){
+        $res['unmatched_' . $type][] = $value;
+        return $res;
+    }
+
+    protected function addMatched(array $res, array $statement, array $ledger) {
+        $found = false;
+
+        foreach ($res['matches'] as &$data) {
+            $statements = collect($data['statements']);
+            $ledgers = collect($data['ledgers']);
+
+            $matchingStatement = $statements->firstWhere('statement.id', $statement['id']);
+            $matchingLedger = $ledgers->firstWhere('ledger.id', $ledger['id']);
+
+            if ($matchingStatement) {
+                $data['ledgers'][] = ['ledger' => $ledger, 'score' => '100%'];
+                $found = true;
+            } elseif ($matchingLedger) {
+                $data['statements'][] = ['statement' => $statement, 'score' => '100%'];
+                $found = true;
+            }
+        }
+
+        if (!$found) {
+            $res['matches'][] = [
+                'statements' => [['statement' => $statement, 'score' => '100%']],
+                'ledgers' => [['ledger' => $ledger, 'score' => '100%']]
+            ];
+        }
+
+        return $res;
+    }
+
+    protected function removeMatch(array $res, array $statement, array $ledger) {
+        Log::info('Input res:', ['res' => $res]);
+
+        foreach ($res['matches'] as $key => &$match) {
+            $statements = collect($match['statements']);
+            $ledgers = collect($match['ledgers']);
+
+            // Check if the statement and ledger exist in this match
+            $matchingStatement = $statements->firstWhere('statement.id', $statement['id']);
+            $matchingLedger = $ledgers->firstWhere('ledger.id', $ledger['id']);
+
+            if ($matchingStatement && $matchingLedger) {
+                Log::info('Found matching statement and ledger:', [
+                    'statement' => $matchingStatement,
+                    'ledger' => $matchingLedger,
+                ]);
+
+                // Remove the matching statement and ledger
+                $match['statements'] = $statements->filter(function ($item) use ($statement) {
+                    return $item['statement']['id'] !== $statement['id'];
+                })->values();
+
+                $match['ledgers'] = $ledgers->filter(function ($item) use ($ledger) {
+                    return $item['ledger']['id'] !== $ledger['id'];
+                })->values();
+
+                Log::info('Updated match:', ['match' => $match]);
+
+                // If no statements or ledgers are left, remove the entire match
+                if (empty($match['statements']) || empty($match['ledgers'])) {
+                    Log::info('Removing empty match:', ['key' => $key]);
+                    unset($res['matches'][$key]);
+                }
+            }
+        }
+
+        // Reindex the matches array after removing items
+        $res['matches'] = array_values($res['matches']);
+
+        Log::info('Updated res:', ['res' => $res]);
+
+        return $res;
+    }
+
+    protected function matchRecords($ledger, $statement, $action, $resArray, $filteredLedger, $filteredStatement){
+        if($action == 'match'){
+            $newMatch = $this->matchedRepository->store($ledger, $statement, 100);
+            $resArray = $this->addMatched($resArray, $filteredStatement, $filteredLedger);
+            $resArray = $this->removeUnmatched('statements', $resArray, $filteredStatement);
+            $resArray = $this->removeUnmatched('ledgers', $resArray, $filteredLedger);
+
+        }else if($action == 'unmatch'){
+            $newMatch = $this->matchedRepository->remove($ledger, $statement, 100);
+            $resArray = $this->removeMatch($resArray, $filteredStatement, $filteredLedger);
+            Log::info('Matches: ', $resArray['matches']);
+            $resArray = $this->addUnmatched('statements', $resArray, $filteredStatement);
+            $resArray = $this->addUnmatched('ledgers', $resArray, $filteredLedger);
+        }
+        $resArray['summary']['totalUnmatched'] = count($resArray['unmatched_statements']) + count($resArray['unmatched_ledgers']);
+        $resArray['summary']['totalMatched'] = count($resArray['matches']);
+
+        return $resArray;
+    }
+
+    public function matchUnmatch(array $data, Reconciliation $reconciliation) {
+        $ledgers = [];
+        $statements = [];
+
+        foreach ($data['ledgers'] as $ledger) {
+            $ledgers[] = $this->ledgerRepository->store([ // Fix method call
+                'reconciliation_id' => $reconciliation->id,
+                ...$ledger
+            ]);
+        }
+
+        foreach ($data['statements'] as $statement) {
+            $statements[] = $this->statementRepository->store([
+                'reconciliation_id' => $reconciliation->id,
+                ...$statement
+            ]);
+        }
 
         $response = $this->mainRepository->findResponse($reconciliation);
         $resArray = $response->data;
-        $newMatch = $this->matchedRepository->store($ledger, $statement);
-        $res = [
-            'file1_transaction' => $filteredStatement,
-            'file2_transaction' => $filteredLedger,
-            'match_score' => 100
-        ];
+        Log::info('Initial resArray:', ['resArray' => $resArray]);
 
-        if($data['action'] == 'match'){
-
-            $resArray['only_in_file2'] = array_values(array_filter($resArray['only_in_file2'], function ($item) use ($filteredLedger) {
-                return !(
-                    json_encode($item) === json_encode($filteredLedger)
-                );
-            }));
-
-            $resArray['unmatched']['unmatched_file2'] = array_values(array_filter($resArray['unmatched']['unmatched_file2'], function ($item) use ($filteredLedger) {
-                return !(
-                    json_encode($item) === json_encode($filteredLedger)
-                );
-            }));
-
-            $resArray['only_in_file1'] = array_values(array_filter($resArray['only_in_file1'], function ($item) use ($filteredStatement) {
-                return !(
-                    json_encode($item) === json_encode($filteredStatement)
-                );
-            }));
-
-            $resArray['unmatched']['unmatched_file1'] = array_values(array_filter($resArray['unmatched']['unmatched_file1'], function ($item) use ($filteredStatement) {
-                    return !(
-                        json_encode($item) === json_encode($filteredStatement)
-                    );
-                }));
-            array_push($resArray['matches'], $res);
-
-            $resArray['matchSummary']['totalUnmatched'] = count($resArray['unmatched']['unmatched_file1']) + count($resArray['unmatched']['unmatched_file2']);
-            $resArray['matchSummary']['totalMatched'] = count($resArray['matches']);
-
-        }else if($data['action'] === 'unmatch'){
-            $match = $this->matchedRepository->remove($ledger, $statement);
-
-            $resArray['matches'] = array_values(array_filter($resArray['matches'], function ($item) use ($filteredStatement, $filteredLedger) {
-            return !(
-                json_encode($item['file1_transaction']) === json_encode($filteredStatement) &&
-                json_encode($item['file2_transaction']) === json_encode($filteredLedger)
-            );
-        }));
-
-            array_push($resArray['only_in_file1'], $filteredStatement);
-            array_push($resArray['unmatched']['unmatched_file1'], $filteredStatement);
-            array_push($resArray['only_in_file2'], $filteredLedger);
-            array_push($resArray['unmatched']['unmatched_file2'], $filteredLedger);
-
-
-            $resArray['matchSummary']['totalUnmatched'] = count($resArray['unmatched']['unmatched_file1']) + count($resArray['unmatched']['unmatched_file2']);
-            $resArray['matchSummary']['totalMatched'] = count($resArray['matches']);
+        // Refactor repetitive logic
+        if (count($ledgers) > 1 && count($statements) == 1) {
+            $filteredStatement = (new TransactionResource($statements[0]))->toArray(request());
+            foreach ($ledgers as $ledg) {
+                $filteredLedger = (new TransactionResource($ledg))->toArray(request());
+                $resArray = $this->matchRecords($ledg, $statements[0], $data['action'], $resArray, $filteredLedger, $filteredStatement);
+            }
+        } elseif (count($statements) > 1 && count($ledgers) == 1) {
+            $filteredLedger = (new TransactionResource($ledgers[0]))->toArray(request());
+            foreach ($statements as $stat) {
+                $filteredStatement = (new TransactionResource($stat))->toArray(request());
+                $resArray = $this->matchRecords($ledgers[0], $stat, $data['action'], $resArray, $filteredLedger, $filteredStatement);
+            }
+        } else {
+            $filteredStatement = (new TransactionResource($statements[0]))->toArray(request());
+            $filteredLedger = (new TransactionResource($ledgers[0]))->toArray(request());
+            $resArray = $this->matchRecords($ledgers[0], $statements[0], $data['action'], $resArray, $filteredLedger, $filteredStatement);
         }
 
         $response->data = $resArray;

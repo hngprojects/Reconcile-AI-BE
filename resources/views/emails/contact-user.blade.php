@@ -124,13 +124,13 @@
     <div class="container">
         <!-- Header -->
         <div class="header">
-            <img src="https://api-dev.reconxi.com/assets/logo.png" alt="ReconXi Logo" class="logo">
+            <img src="{{ $message->embed(public_path('assets/logo.png')) }}" alt="ReconXi Logo" class="logo">
         </div>
         
         <!-- Main Content -->
         <div class="content">
             <div class="illustration">
-                <img src="https://api-dev.reconxi.com/assets/personal-data.png" alt="Email Notification">
+                <img src="{{ $message->embed(public_path('assets/personal-data.png')) }}" alt="Email Notification">
             </div>
             
             <h2>Hi {{ $data['name'] }}</h2>
@@ -163,17 +163,17 @@
         <!-- Footer -->
         <div class="footer">
             <div class="social-icons">
-                <a href="https://www.instagram.com/reconxi02">
-                    <img src="https://api-dev.reconxi.com/assets/instagram-icon.png" alt="Instagram">
+                <a href="https://www.instagram.com/reconxihq?igsh=MXd5a3Q2YmZrb2s5bg%3D%3D&utm_source=qr">
+                    <img src="{{ $message->embed(public_path('assets/instagram-icon.png')) }}" alt="Instagram">
                 </a>
                 <a href="https://www.facebook.com/profile.php?id=61573471907361">
-                    <img src="https://api-dev.reconxi.com/assets/facebook-icon.png" alt="Facebook">
+                    <img src="{{ $message->embed(public_path('assets/facebook-icon.png')) }}" alt="Facebook">
                 </a>
-                <a href="https://www.linkedin.com/in/recon-xi-b06835354">
-                    <img src="https://api-dev.reconxi.com/assets/linkedin-icon.png" alt="LinkedIn">
+                <a href="http://www.linkedin.com/in/recon-xi-b06835354">
+                    <img src="{{ $message->embed(public_path('assets/linkedin-icon.png')) }}" alt="LinkedIn">
                 </a>
-                <a href="https://x.com/reconxi02">
-                    <img src="https://api-dev.reconxi.com/assets/twitter-icon.png" alt="Twitter">
+                <a href="https://x.com/thereconxi">
+                    <img src="{{ $message->embed(public_path('assets/twitter-icon.png')) }}" alt="Twitter">
                 </a>
             </div>
             

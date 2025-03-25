@@ -4,10 +4,15 @@ on:
     branches:
       - main
       - dev
+  # workflow_run:
+  #   workflows: ["CI Testing"]  # 🚀 This runs ONLY after CI workflow completes
+  #   types:
+  #     - completed  # Runs when CI finishes (success or failure)
 jobs:
   deployment:
     runs-on: reconcile
     timeout-minutes: 10
+    if: ${{ github.event_name == 'push' || github.event.workflow_run.conclusion == 'success' }}
     steps:
       # - uses: actions/checkout@v4
       - name: Deploy to the server
@@ -20,17 +25,35 @@ jobs:
           script: |
             if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
               echo "Starting Laravel deployment for production..."
-              cd /var/www/html/Reconcile-AI-BE-main
-              git pull origin main
+              cd /var/www/html/BE-main
+              sudo chown -R $USER:$USER
+              git fetch origin 
+              git reset --hard HEAD 
+              git checkout main 
+              git reset --hard origin/main 
+              git pull --rebase --no-edit
               composer install --no-interaction --prefer-dist --no-dev
               php artisan jwt:secret
               php artisan optimize:clear
               php artisan migrate --force
+              php artisan queue:restart
               sudo systemctl restart nginx
             else
+              # echo "Starting Laravel deployment for staging..."
+              # # Start the deployment service (using explicit sudo with NOPASSWD permission)
+              # cd /var/www/html/staging
+              # # sudo chown -R $USER:$USER .
+              # composer install --no-interaction --prefer-dist --no-dev
+              # php artisan jwt:secret
+              # php artisan optimize:clear
+              # php artisan migrate --force
+              # sudo systemctl restart nginx
               echo "Starting Laravel deployment..."
               # Start the deployment service (using explicit sudo with NOPASSWD permission)
-              sudo systemctl daemon-reload
-              sudo systemctl restart laravel-deploy.service
+              # sudo systemctl daemon-reload
+              # sudo systemctl restart laravel-deploy.service
+              echo "Starting Processor..."
+              bash /usr/local/bin/staging_be_processor.sh
             fi
+
 

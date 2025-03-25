@@ -40,7 +40,10 @@ class User extends Authenticatable implements JWTSubject, CanResetPasswordContra
         'name',
         'email',
         'password',
-        'avatar'
+        'avatar',
+        'country',
+        'city'
+
     ];
 
     /**
@@ -72,5 +75,30 @@ class User extends Authenticatable implements JWTSubject, CanResetPasswordContra
     public function sendPasswordResetNotification($token)
     {
         $this->notify(new ResetPasswordNotification($token));
+    }
+
+    /* public function paymentPlan()
+    {
+        return $this->hasOne(PaymentPlan::class);
+    } */
+
+    /* public function paymentPlans()
+    {
+        return $this->hasMany(PaymentPlan::class);
+    } */
+
+    // In User.php
+    public function paymentPlan()
+    {
+        return $this->hasOne(PaymentPlan::class)->where('is_active', true);
+    }
+
+    // Remove all other payment plan relationships
+
+    public function currentPaymentPlan()
+    {
+        return $this->hasOne(PaymentPlan::class)
+                ->where('is_active', true)
+                ->with('plan');
     }
 }
