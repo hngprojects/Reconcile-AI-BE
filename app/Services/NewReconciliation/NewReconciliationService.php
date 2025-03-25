@@ -12,4 +12,5 @@ interface NewReconciliationService extends BaseService{
     public function storeReconciliation($statements, $ledgers, $user);
     public function matchUnmatch(Reconciliation $reconciliation, array $statements, array $ledgers, string $action);
     public function fetchResults(Reconciliation $reconciliation);
+    public function fetchUserReconciliations(User $user);
 }
