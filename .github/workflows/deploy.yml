@@ -48,7 +48,7 @@ jobs:
               echo "✅ Staging Processor started successfully."
 
             elif [[ "${{ github.ref }}" == "refs/heads/staging" ]]; then
-              echo "🚀 Deploying to STAGING (NEW)..."
+              echo "🚀 Deploying to STAGING (For-Testing)..."
               cd /var/www/html/staging-new
               
               echo "🚀 Starting New Staging Processor..."
