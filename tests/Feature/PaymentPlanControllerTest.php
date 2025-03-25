@@ -7,8 +7,8 @@ use App\Models\User;
 use App\Models\PaymentPlan;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
-// use Carbon\Carbon;
 use Illuminate\Support\Str;
+use PHPUnit\Framework\Attributes\Test;
 
 class PaymentPlanControllerTest extends TestCase
 {
@@ -47,7 +47,7 @@ class PaymentPlanControllerTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function user_can_create_first_payment_plan()
     {
         // Authenticate the user
@@ -78,7 +78,7 @@ class PaymentPlanControllerTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function cannot_create_plan_with_incorrect_price()
     {
         // Authenticate the user
@@ -102,7 +102,7 @@ class PaymentPlanControllerTest extends TestCase
             ]);
     }
 
-    /** @test */
+    #[Test]
     public function cannot_create_plan_with_invalid_plan_name()
     {
         // Authenticate the user
@@ -125,7 +125,7 @@ class PaymentPlanControllerTest extends TestCase
             ]);
     }
 
-    /** @test */
+    #[Test]
     public function cannot_create_new_plan_before_existing_plan_expires()
     {
         // Create an active plan that's not close to expiration
@@ -159,7 +159,7 @@ class PaymentPlanControllerTest extends TestCase
             ]);
     }
 
-    /** @test */
+    #[Test]
     public function can_create_new_plan_when_existing_plan_is_close_to_expiration()
     {
         // Create an active plan that's close to expiration
@@ -200,8 +200,8 @@ class PaymentPlanControllerTest extends TestCase
         ]);
     }
 
-    /** @test */
-    public function can_update_plan_when_close_to_expiration()
+    #[Test]
+    public function cannot_update_plan_when_close_to_expiration()
     {
         // Create an active plan that's close to expiration
         $existingPlan = PaymentPlan::create([
@@ -227,22 +227,22 @@ class PaymentPlanControllerTest extends TestCase
         $response = $this->putJson('/api/v1/payment-plan', $requestData);
 
         // Assert successful response
-        $response->assertStatus(200)
+        $response->assertStatus(400)
             ->assertJson([
-                'status' => true,
-                'message' => 'Payment plan updated successfully.'
+                'status' => false,
+                'message' => 'Cannot update plan until the current one expires.'
             ]);
 
         // Refresh the existing plan
-        $updatedPlan = PaymentPlan::find($existingPlan->id);
+        // $updatedPlan = PaymentPlan::find($existingPlan->id);
 
-        // Check database for updated plan
-        $this->assertEquals($this->enterprisePlan->id, $updatedPlan->plan_id);
-        $this->assertEquals('Enterprise', $updatedPlan->plan);
-        $this->assertEquals(99.99, $updatedPlan->price);
+        // // Check database for updated plan
+        // $this->assertEquals($this->enterprisePlan->id, $updatedPlan->plan_id);
+        // $this->assertEquals('Enterprise', $updatedPlan->plan);
+        // $this->assertEquals(99.99, $updatedPlan->price);
     }
 
-    /** @test */
+    #[Test]
     public function cannot_update_plan_before_expiration()
     {
         // Create an active plan that's not close to expiration
@@ -272,11 +272,11 @@ class PaymentPlanControllerTest extends TestCase
         $response->assertStatus(400)
             ->assertJson([
                 'status' => false,
-                'message' => 'Cannot update plan until it\'s close to expiration.'
+                'message' => 'Cannot update plan until the current one expires.'
             ]);
     }
 
-    /** @test */
+    #[Test]
     public function cannot_update_plan_with_incorrect_price()
     {
         // Create an active plan that's close to expiration
@@ -311,7 +311,7 @@ class PaymentPlanControllerTest extends TestCase
             ]);
     }
 
-    /** @test */
+    #[Test]
     public function cannot_update_plan_with_invalid_plan_name()
     {
         // Create an active plan that's close to expiration
@@ -345,7 +345,7 @@ class PaymentPlanControllerTest extends TestCase
             ]);
     }
 
-    /** @test */
+    #[Test]
     public function show_returns_active_payment_plan()
     {
         // Create an active plan using the seeded plan
@@ -380,7 +380,7 @@ class PaymentPlanControllerTest extends TestCase
         $this->assertArrayHasKey('is_expired', $responseData);
     }
 
-    /** @test */
+    #[Test]
     public function show_returns_404_when_no_active_plan()
     {
         // Authenticate the user
