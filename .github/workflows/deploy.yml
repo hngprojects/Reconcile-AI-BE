@@ -49,8 +49,10 @@ jobs:
 
             elif [[ "${{ github.ref }}" == "refs/heads/staging" ]]; then
               echo "🚀 Deploying to STAGING (NEW)..."
+              # cd /var/www/html/staging-new
               
               echo "🚀 Starting New Processor..."
+
               sudo bash /usr/local/bin/stagingnew_be_processor.sh
               echo "✅ New Staging Processor started successfully."
 
