@@ -22,8 +22,34 @@ class PaymentPlan extends Model
     protected static function booted()
     {
         static::saving(function ($plan) {
-            // Auto-deactivate plans when they expire
-            if ($plan->expire_date < now()) {
+            $now = now();
+            $basicPlan = Plan::where('name', 'Basic')->first(); // Get the Basic plan
+
+            if (!$basicPlan) {
+                return; // Prevent errors if no Basic plan exists
+            }
+
+            // If the plan is expired
+            if ($plan->expire_date < $now) {
+                // If the plan is already Basic, reset start and expire dates
+                if ($plan->plan_id === $basicPlan->id) {
+                    $plan->start_date = $now;
+                    $plan->expire_date = $now->copy()->addDays($basicPlan->plan_length);
+                    $plan->reconciliations_used = 0;
+                } 
+                // If it's not Basic, check for the extra 3-day grace period
+                else {
+                    if ($plan->expire_date->addDays(3)->lessThan($now)) {
+                        // Convert to Basic plan
+                        $plan->plan_id = $basicPlan->id;
+                        $plan->start_date = $now;
+                        $plan->expire_date = $now->copy()->addDays($basicPlan->plan_length);
+                        $plan->reconciliations_used = 0;
+                        $plan->price = $basicPlan->amounnt;
+                        $plan->plan = $basicPlan->plan;
+                    }
+                }
+                // Deactivate plan
                 $plan->is_active = false;
             }
         });
