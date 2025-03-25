@@ -241,7 +241,7 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
     protected function generateEmbeddings(Collection $statements, Collection $ledgers){
         $statements->map(function (Statement $statement) {
             $formattedDate = date('Y-m-d', strtotime($statement->date));
-            $combinedText = "Person's name: {$statement->person}, Amount: {$statement->amount} Date: {$formattedDate}, Other Relevant Information: {$ledger->other_information}";
+            $combinedText = "Person's name: {$statement->person}, Amount: {$statement->amount} Date: {$formattedDate}, Other Relevant Information: {$statement->other_information}";
             $embedding = $this->getEmbedding($combinedText);
             $this->statementRepository->addVector($statement, $embedding);
         });
