@@ -11,15 +11,12 @@ use App\Services\ReconciliationService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Mockery;
 use Tests\TestCase;
 use Illuminate\Support\Str;
-use App\Repositories\Statement\StatementRepository;
-use App\Repositories\Ledger\LedgerRepository;
-use App\Repositories\MatchingTransaction\MatchingTransactionRepository;
-use App\Http\Resources\TransactionResource;
+use Illuminate\Support\Facades\Event;
+
 use App\Models\PaymentPlan;
 use App\Models\Plan;
 
@@ -30,10 +27,15 @@ class ReconciliationTest extends TestCase
     protected User $user;
     protected Plan $planStarter;
     protected Plan $planBusiness;
+    protected ReconciliationService $mockService;
 
     protected function setUp(): void
     {
         parent::setUp();
+
+        // Speed up tests by not running event listeners
+        Event::fake();
+
         Storage::fake('local');
         $this->user = User::factory()->create();
         $this->planStarter = Plan::factory()->create([
@@ -42,9 +44,26 @@ class ReconciliationTest extends TestCase
         ]);
 
         $this->planBusiness = Plan::factory()->create([
-            'plan' => 'Business',
+            'plan' => 'Business Pro',
             'reconciliations_per_month' => -1
         ]);
+
+        // Create active payment plan
+        PaymentPlan::factory()->create([
+            'user_id' => $this->user->id,
+            'plan_id' => $this->planBusiness->id,
+            'is_active' => true
+        ]);
+        
+        // Create mock service
+        $this->mockService = Mockery::mock(ReconciliationService::class);
+        $this->app->instance(ReconciliationService::class, $this->mockService);
+    }
+
+    protected function tearDown(): void 
+    {
+        Mockery::close();
+        parent::tearDown();
     }
 
     public function test_reconcile_with_gemini_returns_successful_response(): void
@@ -759,11 +778,5 @@ class ReconciliationTest extends TestCase
                 ]
             ]
         ]);
-    }
-
-    protected function tearDown(): void
-    {
-        Mockery::close();
-        parent::tearDown();
     }
 }

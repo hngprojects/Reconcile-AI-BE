@@ -7,10 +7,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use App\Models\User;
 use App\Models\Ledger;
 use App\Models\Statement;
-use Illuminate\Support\Str;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class MatchingTransaction extends Pivot
 {
+    use HasFactory, HasUuids;
     protected $table = "matched_statements";
     protected $fillable = [
         'statement_id',
@@ -19,18 +21,7 @@ class MatchingTransaction extends Pivot
         'status'
     ];
     protected $keyType = 'string';
-
-
-    protected static function boot()
-    {
-        parent::boot();
-
-        static::creating(function ($model) {
-            if (empty($model->{$model->getKeyName()})) {
-                $model->{$model->getKeyName()} = (string) Str::uuid();
-            }
-        });
-    }
+    public $incrementing = false;
 
     public function user(): BelongsTo
     {

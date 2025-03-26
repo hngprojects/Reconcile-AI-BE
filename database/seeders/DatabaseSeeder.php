@@ -23,8 +23,8 @@ class DatabaseSeeder extends Seeder
             LedgerSeeder::class,
             StatementSeeder::class,
             MatchingTransactionSeeder::class,
-            PaymentPlanSeeder::class,
             PlanSeeder::class,
+            PaymentPlanSeeder::class,
         ]);
     }
 }

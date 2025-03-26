@@ -31,9 +31,8 @@ class PaymentPlanFactory extends Factory
             'start_date' => $startDate,
             'expire_date' => $expireDate,
             'is_active' => true,
-            'price' => $this->faker->randomFloat(2, 10, 100),
+            // 'price' => $this->faker->randomFloat(2, 10, 100),
             'reconciliations_used' => 0,
-            'plan' => $plan->plan,
             'created_at' => now(),
             'updated_at' => now(),
         ];

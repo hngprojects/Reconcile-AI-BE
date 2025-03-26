@@ -15,7 +15,7 @@ class FixUserPlans extends Command
 
     public function handle()
     {
-        $this->info("Checking user plans...");
+        /* $this->info("Checking user plans...");
         Log::info("Starting FixUserPlans command...");
 
         $basicPlan = Plan::where('plan', 'Basic')->first();
@@ -40,7 +40,7 @@ class FixUserPlans extends Command
                     continue;
                 }
 
-                $activePayment = $paymentPlan->plan()->first();
+                $activePayment = $paymentPlan->plan;
 
                 if ($paymentPlan->plan_id === $basicPlan->id) {
                     // Basic Plan: Set start_date as registration date
@@ -59,7 +59,7 @@ class FixUserPlans extends Command
         });
 
         $this->info("User plans checked and updated!");
-        Log::info("User plans checked and updated!");
+        Log::info("User plans checked and updated!"); */
 
         // Update reconciliation counts
         $this->updateReconciliationCounts();
@@ -72,6 +72,7 @@ class FixUserPlans extends Command
 
         User::chunk(100, function ($users) {
             foreach ($users as $user) {
+                // Get the active payment plan
                 $paymentPlan = $user->paymentPlan;
 
                 if (!$paymentPlan) {
@@ -79,14 +80,29 @@ class FixUserPlans extends Command
                     continue;
                 }
 
-                // Count reconciliations
-                $reconciliationCount = Reconciliation::where('user_id', $user->id)->count();
+                $startDate = $paymentPlan->start_date;
+                $expireDate = $paymentPlan->expire_date;
 
-                // Update the reconciliation count in the payment plan
-                $paymentPlan->reconciliations_used = $reconciliationCount;
-                $paymentPlan->save();
+                // Ensure we have valid dates
+                if (!$startDate || !$expireDate) {
+                    Log::warning("Skipping reconciliation update for user {$user->id} (Invalid plan dates).");
+                    continue;
+                }
 
-                Log::info("Updated reconciliation count for user {$user->id}: reconciliations_used={$reconciliationCount}");
+                // Get reconciliation count within the current plan's active period
+                $reconciliationCount = Reconciliation::where('user_id', $user->id)
+                    ->whereBetween('created_at', [$startDate, $expireDate])
+                    ->count();
+
+                // Only update if the count has changed
+                if ($reconciliationCount !== $paymentPlan->reconciliations_used) {
+                    $paymentPlan->reconciliations_used = $reconciliationCount;
+                    $paymentPlan->save();
+
+                    Log::info("Updated reconciliation count for user {$user->id}: reconciliations_used={$reconciliationCount}");
+                } else {
+                    Log::info("No changes needed for user {$user->id} (Reconciliation count unchanged).");
+                }
             }
         });
 

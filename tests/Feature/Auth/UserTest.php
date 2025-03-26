@@ -11,6 +11,7 @@ use App\Models\User;
 
 class UserTest extends TestCase
 {
+    use RefreshDatabase;
     /**
      * A basic feature test example.
      */
@@ -95,10 +96,10 @@ class UserTest extends TestCase
     {
         // Create a plan first
         $plan = Plan::create([
-            'name' => 'Basic Plan',
+            'name' => 'Basic Plan-2',
             'description' => 'Free trial for 7 days with 5 reconciliations.',
             'plan_length' => 30,
-            'plan' => 'Basic',
+            'plan' => 'Basic-2',
             'reconciliations_per_month' => 5,
             'amount' => 0.00,
         ]);
@@ -109,15 +110,12 @@ class UserTest extends TestCase
         $paymentPlan = PaymentPlan::create([
             'user_id' => $user->id,
             'plan_id' => $plan->id,
-            'price' => 0,
-            'plan' => 'Basic',
             'start_date' => now(),
             'expire_date' => now()->addDays(30),
             'is_active' => true
         ]);
 
         $response = $this->actingAs($user)->get('/api/v1/user');
-        // dd($response->getContent());
 
         $response->assertStatus(200);
 
@@ -131,7 +129,6 @@ class UserTest extends TestCase
                     'id',
                     'user_id',
                     'plan_id',
-                    'price',
                     'plan' => [
                         'id',
                         'name',
@@ -155,7 +152,7 @@ class UserTest extends TestCase
         ]);
 
         // Check specific values using paths
-        $response->assertJsonPath('data.plan.plan.plan', 'Basic');
+        $response->assertJsonPath('data.plan.plan.plan', 'Basic-2');
 
         $response->assertJsonFragment([
             'id' => $user->id,
