@@ -156,19 +156,17 @@ class GoogleAuthController extends Controller
                     Mail::to($user->email)->queue(new WelcomeEmail($user, $getStartedUrl));
                 }
 
-                $plan = $user->paymentPlan;
+                $userdetails = $user->load('paymentPlan.plan');
+
+                $plan = $userdetails->paymentPlan;
 
                 return response()->json([
                     'status_code' => 200,
+                    'status' => 'success',
                     'message' => 'User Created Successfully',
                     'access_token' => $token,
                     'data' => [
-                        'user' => [
-                            'id' => $user->id,
-                            'email' => $user->email,
-                            'name' => $user->name,
-                            'avatar' => $avatarUrl,
-                        ],
+                        'user' => $user,
                         'plan' => $plan
                     ]
                 ]);
@@ -403,26 +401,6 @@ class GoogleAuthController extends Controller
      *     )
      * )
      */
-    /* public function fetchUser(Request $request)
-    {
-        // $user = $request->user();
-        $user = $request->user()->load('paymentPlan.plan');
-        // dd($user);
-        $plan = $user->paymentPlan;
-        // $userPlan = $plan->plan();
-
-        return response()->json([
-            'status_code' => 200,
-            'status' => 'success',
-            'message' => 'User successfully fetched',
-            'data' => [
-                'user' => $request->user(),
-                'plan' => $plan ?? null,
-                'userPlan' => $plan ? $plan->plan : null
-            ]
-        ]);
-    } */
-
     public function fetchUser(Request $request)
     {
         $user = $request->user()->load('paymentPlan.plan');
