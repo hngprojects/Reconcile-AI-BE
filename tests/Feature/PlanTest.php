@@ -16,10 +16,10 @@ class PlanTest extends TestCase
     public function it_can_create_a_plan()
     {
         $payload = [
-            'name' => 'Starter Plan',
+            'name' => 'Starter Plan Test',
             'description' => 'This is a starter plan',
             'plan_length' => 30,
-            'plan' => 'Starter',
+            'plan' => 'Starter Test',
             'amount' => 10.00,
             'reconciliations_per_month' => 10,
         ];
@@ -29,7 +29,7 @@ class PlanTest extends TestCase
         $response->assertStatus(201)
                  ->assertJson(['message' => 'Plan created successfully']);
 
-        $this->assertDatabaseHas('plans', ['name' => 'Starter Plan']);
+        $this->assertDatabaseHas('plans', ['name' => 'Starter Plan Test']);
     }
 
     #[Test]
