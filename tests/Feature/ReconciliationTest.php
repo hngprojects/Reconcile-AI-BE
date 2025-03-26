@@ -22,15 +22,12 @@ use App\Services\ReconciliationService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Mockery;
 use Tests\TestCase;
 use Illuminate\Support\Str;
-use App\Repositories\Statement\StatementRepository;
-use App\Repositories\Ledger\LedgerRepository;
-use App\Repositories\MatchingTransaction\MatchingTransactionRepository;
-use App\Http\Resources\TransactionResource;
+use Illuminate\Support\Facades\Event;
+
 use App\Models\PaymentPlan;
 use App\Models\Plan;
 
@@ -41,116 +38,15 @@ class ReconciliationTest extends TestCase
     protected User $user;
     protected Plan $planStarter;
     protected Plan $planBusiness;
->>>>>>> dev
+    protected ReconciliationService $mockService;
 
     protected function setUp(): void
     {
         parent::setUp();
-<<<<<<< HEAD
-        $this->faker = \Faker\Factory::create(); // Initialize Faker manually
-    }
 
-    private function generateFakeCsv($rows = 5)
-    {
-        $csvContent = "Date,Description,Amount\n";
+        // Speed up tests by not running event listeners
+        Event::fake();
 
-        for ($i = 0; $i < $rows; $i++) {
-            $csvContent .= $this->faker->date('Y-m-d') . ",";
-            $csvContent .= $this->faker->sentence(3) . ",";
-            $csvContent .= $this->faker->randomFloat(2, 10, 1000) . "\n";
-        }
-
-        $filePath = storage_path('framework/testing/' . $this->faker->uuid . '.csv');
-        file_put_contents($filePath, $csvContent);
-
-        return new UploadedFile($filePath, 'test.csv', 'text/csv', null, true);
-    }
-
-    /**
-     * Test when no files are provided
-     */
-    public function test_reconciliation_fails_when_no_files_are_provided()
-    {
-        $response = $this->postJson('/api/v1/reconcile', []);
-
-        $response->assertStatus(422) // Expecting a bad request
-                 ->assertJson([ "data" => [
-                        "financial_statement" => [
-                            "The financial statement field is required."
-                        ],
-                        "company_ledger" => [
-                            "The company ledger field is required."
-                        ]
-                 ]
-                 ]);
-    }
-
-    /**
-     * Test when only one file is provided
-     */
-    public function test_reconciliation_fails_when_only_one_file_is_provided()
-    {
-        $response = $this->postJson('/api/v1/reconcile', [
-            'financial_statement' => $this->generateFakeCsv(4),
-        ]);
-
-        $response->assertStatus(422) // Expecting a bad request
-                 ->assertJson([ "data" => [
-                        "company_ledger" => [
-                            "The company ledger field is required."
-                        ]
-                 ]
-                 ]);
-
-    }
-
-    /**
-     * Test when invalid file format is provided
-     */
-    public function test_reconciliation_fails_when_invalid_file_is_provided()
-    {
-        $invalidFile = UploadedFile::fake()->create('invalid.txt', 100, 'text/plain');
-
-        $response = $this->postJson('/api/v1/reconcile', [
-            'financial_statement' => $invalidFile,
-            'company_ledger' => $invalidFile,
-        ]);
-
-        $response->assertStatus(422) // Unprocessable Entity
-                 ->assertJson([ "data" => [
-                     "financial_statement" => [
-                         "Financial statement must be a CSV file"
-                        ],
-                        "company_ledger" => [
-                            "Company Ledger must be a CSV file."
-                        ]
-                 ]
-                 ]);
-    }
-
-    /**
-     * Test successful reconciliation
-     */
-    public function test_reconciliation_succeeds_with_valid_files()
-    {
-        $bankStatement = $this->generateFakeCsv(4);
-        $companyLedger = $this->generateFakeCsv(4);
-
-        $response = $this->postJson('/api/v1/reconcile', [
-            'financial_statement' => $bankStatement,
-            'company_ledger' => $companyLedger,
-        ]);
-
-        $response->assertStatus(200)
-                 ->assertJsonStructure([
-                     'data' => [
-                        'reconciliationSummary' => [
-                             'totalMatchedTransactions',
-                            'totalUnmatchedTransactions',
-                            'accuracyRate'
-                        ],
-                 ]]);
-=======
         Storage::fake('local');
         $this->user = User::factory()->create();
         $this->planStarter = Plan::factory()->create([
@@ -159,9 +55,26 @@ class ReconciliationTest extends TestCase
         ]);
 
         $this->planBusiness = Plan::factory()->create([
-            'plan' => 'Business',
+            'plan' => 'Business Pro',
             'reconciliations_per_month' => -1
         ]);
+
+        // Create active payment plan
+        PaymentPlan::factory()->create([
+            'user_id' => $this->user->id,
+            'plan_id' => $this->planBusiness->id,
+            'is_active' => true
+        ]);
+        
+        // Create mock service
+        $this->mockService = Mockery::mock(ReconciliationService::class);
+        $this->app->instance(ReconciliationService::class, $this->mockService);
+    }
+
+    protected function tearDown(): void 
+    {
+        Mockery::close();
+        parent::tearDown();
     }
 
     public function test_reconcile_with_gemini_returns_successful_response(): void
@@ -876,12 +789,5 @@ class ReconciliationTest extends TestCase
                 ]
             ]
         ]);
-    }
-
-    protected function tearDown(): void
-    {
-        Mockery::close();
-        parent::tearDown();
->>>>>>> dev
     }
 }

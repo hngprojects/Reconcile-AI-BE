@@ -46,6 +46,12 @@ class CheckReconciliationLimitTest extends TestCase
         $this->app->instance(ReconciliationService::class, $this->mockService);
     }
 
+    protected function tearDown(): void 
+    {
+        Mockery::close();
+        parent::tearDown();
+    }
+
     #[Test]
     public function it_allows_business_plan_users_to_reconcile_unlimited()
     {

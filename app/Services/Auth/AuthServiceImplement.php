@@ -133,8 +133,6 @@ class AuthServiceImplement extends ServiceApi implements AuthService
 
             $plan = $user->paymentPlan()->create([
                 'user_id' => $user->id,
-                'price' => 0,
-                'plan' => 'Basic',
             ]);
 
             $token = JWTAuth::fromUser($user);

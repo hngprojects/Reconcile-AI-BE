@@ -43,13 +43,13 @@ class PlanController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'name' => 'required|string',
+            'name' => 'required|string|unique:plans,name',
             'description' => 'nullable|string',
             'plan_length' => 'required|integer',
-            'plan' => 'required|string',
+            'plan' => 'required|string|unique:plans,plan',
             'amount' => 'required|numeric',
             'reconciliations_per_month' => 'required|integer',
-        ]);
+        ]);        
         $plan = $this->planService->createPlan($data);
         if ($plan) {
             return response()->json(['message' => 'Plan created successfully', 'data' => $plan], 201);
