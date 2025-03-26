@@ -25,33 +25,15 @@ jobs:
           script: |
             if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
               echo "Starting Laravel deployment for production..."
-              cd /var/www/html/BE-main
-              sudo chown -R $USER:$USER
-              git fetch origin 
-              git reset --hard HEAD 
-              git checkout main 
-              git reset --hard origin/main 
-              git pull --rebase --no-edit
-              composer install --no-interaction --prefer-dist --no-dev
-              php artisan jwt:secret
-              php artisan optimize:clear
-              php artisan migrate --force
-              php artisan queue:restart
-              sudo systemctl restart nginx
+              # cd /var/www/html/BE-main
+              #  echo "🚀 Starting Main Processor..."
+              bash /usr/local/bin/main.sh
+              echo "✅ New Staging Processor started successfully."
+              
             else
               # echo "Starting Laravel deployment for staging..."
               # # Start the deployment service (using explicit sudo with NOPASSWD permission)
               # cd /var/www/html/staging
-              # # sudo chown -R $USER:$USER .
-              # composer install --no-interaction --prefer-dist --no-dev
-              # php artisan jwt:secret
-              # php artisan optimize:clear
-              # php artisan migrate --force
-              # sudo systemctl restart nginx
-              echo "Starting Laravel deployment..."
-              # Start the deployment service (using explicit sudo with NOPASSWD permission)
-              # sudo systemctl daemon-reload
-              # sudo systemctl restart laravel-deploy.service
               echo "Starting Processor..."
               bash /usr/local/bin/staging_be_processor.sh
             fi
