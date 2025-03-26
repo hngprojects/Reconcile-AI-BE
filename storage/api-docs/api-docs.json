@@ -1927,36 +1927,15 @@
                 "tags": [
                     "Job Applications"
                 ],
-<<<<<<< HEAD
-                "summary": "Reconcile two CSV files",
-                "description": "Uploads two CSV files and returns reconciled records.",
-                "operationId": "47cda2733290d3ed5e6ef36ed538bbd2",
-=======
                 "summary": "Submit a job application",
                 "description": "Handles the submission of a job application. Validates the input, stores the resume file, and saves the application to the database.",
                 "operationId": "651f817fa51db5c0380acd8a379ad3d7",
->>>>>>> dev
                 "requestBody": {
                     "required": true,
                     "content": {
                         "multipart/form-data": {
                             "schema": {
                                 "required": [
-<<<<<<< HEAD
-                                    "bank_statement",
-                                    "company_ledger"
-                                ],
-                                "properties": {
-                                    "bank_statement": {
-                                        "description": "First CSV file",
-                                        "type": "string",
-                                        "format": "binary"
-                                    },
-                                    "company_ledger": {
-                                        "description": "Second CSV file",
-                                        "type": "string",
-                                        "format": "binary"
-=======
                                     "name",
                                     "email",
                                     "resume"
@@ -2337,7 +2316,6 @@
                                         "description": "Partner phone number",
                                         "type": "string",
                                         "example": "1234567890"
->>>>>>> dev
                                     }
                                 },
                                 "type": "object"
@@ -2352,70 +2330,6 @@
                             "application/json": {
                                 "schema": {
                                     "properties": {
-<<<<<<< HEAD
-                                        "message": {
-                                            "description": "Response message",
-                                            "type": "string"
-                                        },
-                                        "status": {
-                                            "description": "Response status",
-                                            "type": "string"
-                                        },
-                                        "status_code": {
-                                            "description": "Response status code",
-                                            "type": "integer"
-                                        },
-                                        "data": {
-                                            "properties": {
-                                                "reconciliationSummary": {
-                                                    "description": "Summary of reconciliation results",
-                                                    "properties": {
-                                                        "totalMatchedTransactions": {
-                                                            "description": "Number of matched transactions",
-                                                            "type": "integer"
-                                                        },
-                                                        "totalUnmatchedTransactions": {
-                                                            "description": "Number of unmatched transactions",
-                                                            "type": "integer"
-                                                        },
-                                                        "accuracyRate": {
-                                                            "description": "Percentage of accuracy",
-                                                            "type": "number",
-                                                            "format": "float"
-                                                        }
-                                                    },
-                                                    "type": "object"
-                                                },
-                                                "matchedTransactions": {
-                                                    "description": "List of matched transactions",
-                                                    "type": "array",
-                                                    "items": {
-                                                        "properties": {
-                                                            "bank_statement": {
-                                                                "description": "Transaction data from bank statement",
-                                                                "type": "object",
-                                                                "example": {
-                                                                    "Date": "2025-01-01",
-                                                                    "Description": "Payment",
-                                                                    "Amount": 1000
-                                                                }
-                                                            },
-                                                            "company_ledger": {
-                                                                "description": "Transaction data from company ledger",
-                                                                "type": "object",
-                                                                "example": {
-                                                                    "Date": "2025-01-01",
-                                                                    "Description": "Payment",
-                                                                    "Amount": 1000
-                                                                }
-                                                            },
-                                                            "status": {
-                                                                "description": "Match status",
-                                                                "type": "string",
-                                                                "example": "matched"
-                                                            }
-                                                        },
-=======
                                         "success": {
                                             "type": "boolean",
                                             "example": true
@@ -3056,14 +2970,11 @@
                                                 "only_in_file2": {
                                                     "type": "array",
                                                     "items": {
->>>>>>> dev
                                                         "type": "object"
                                                     }
                                                 }
                                             },
                                             "type": "object"
-<<<<<<< HEAD
-=======
                                         }
                                     },
                                     "type": "object"
@@ -3184,7 +3095,6 @@
                                             "items": {
                                                 "type": "object"
                                             }
->>>>>>> dev
                                         }
                                     },
                                     "type": "object"
@@ -3192,34 +3102,12 @@
                             }
                         }
                     },
-<<<<<<< HEAD
-                    "422": {
-                        "description": "Validation or processing error",
-=======
                     "401": {
                         "description": "Unauthorized",
->>>>>>> dev
                         "content": {
                             "application/json": {
                                 "schema": {
                                     "properties": {
-<<<<<<< HEAD
-                                        "message": {
-                                            "description": "Error message",
-                                            "type": "string"
-                                        },
-                                        "errors": {
-                                            "description": "Detailed validation errors",
-                                            "type": "object",
-                                            "example": {
-                                                "bank_statement": [
-                                                    "The bank statement file is required."
-                                                ],
-                                                "company_ledger": [
-                                                    "The company ledger file is required."
-                                                ]
-                                            }
-=======
                                         "error": {
                                             "type": "string",
                                             "example": "Unauthorized"
@@ -3385,7 +3273,6 @@
                                     "properties": {
                                         "error": {
                                             "type": "string"
->>>>>>> dev
                                         }
                                     },
                                     "type": "object"
@@ -3879,10 +3766,6 @@
     },
     "tags": [
         {
-<<<<<<< HEAD
-            "name": "Authentication",
-            "description": "Authentication"
-=======
             "name": "Plans",
             "description": "API Endpoints for managing Plans"
         },
@@ -3913,7 +3796,6 @@
         {
             "name": "User",
             "description": "User"
->>>>>>> dev
         },
         {
             "name": "Home",
