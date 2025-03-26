@@ -18,6 +18,15 @@ class AuthRepositoryImplement extends Eloquent implements AuthRepository{
     {
         $this->model = $model;
     }
-
-    // Write something awesome :)
+    
+    public function register($data)
+    {
+        return $this->model->create(
+            [
+                'name' => $data['name'],
+                'email' => $data['email'],
+                'password' => bcrypt($data['password']),
+            ]
+        );
+    }
 }

@@ -35,4 +35,20 @@ return [
         ],
     ],
 
+    'google' => [
+        'client_id' => env('GOOGLE_CLIENT_ID'),
+        'client_secret' => env('GOOGLE_CLIENT_SECRET'),
+        'redirect' => env('GOOGLE_REDIRECT_URI'),
+    ],
+
+    'frontend' => [
+        'url' => env('FRONTEND_URL'),
+        'password_reset_url'=> env('FRONTEND_PASSWORD_RESET_URL'),
+    ],
+
+    'ai_key' => [
+        'deepseek' => env('DEEPSEEK_API_KEY'),
+        'open_api' => env('OPENAI_API_KEY'),
+    ]
+
 ];
