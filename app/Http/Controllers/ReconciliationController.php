@@ -162,26 +162,26 @@ class ReconciliationController extends Controller
     }
 
     /**
- * @OA\Post(
- *     path="/api/v1/reconciliations/{reconciliation}/export",
- *     summary="Export reconciled data as a CSV file",
- *     description="Generates a CSV file containing matched and unmatched transactions from reconciliation.",
- *     tags={"Reconciliation"},
- *     @OA\Parameter(
- *         name="reconciliation",
- *         in="path",
- *         required=true,
- *         description="Reconciliation ID",
- *         @OA\Schema(type="string")
- *     ),
- *     @OA\Response(
- *         response=200,
- *         description="CSV file generated successfully",
- *         @OA\Header(header="Content-Disposition", description="attachment; filename=reconciled-data.csv", @OA\Schema(type="string"))
- *     ),
- *     @OA\Response(response=500, description="Server error while generating CSV file")
- * )
- */
+     * @OA\Post(
+     *     path="/api/v1/reconciliations/{reconciliation}/export",
+     *     summary="Export reconciled data as a CSV file",
+     *     description="Generates a CSV file containing matched and unmatched transactions from reconciliation.",
+     *     tags={"Reconciliation"},
+     *     @OA\Parameter(
+     *         name="reconciliation",
+     *         in="path",
+     *         required=true,
+     *         description="Reconciliation ID",
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="CSV file generated successfully",
+     *         @OA\Header(header="Content-Disposition", description="attachment; filename=reconciled-data.csv", @OA\Schema(type="string"))
+     *     ),
+     *     @OA\Response(response=500, description="Server error while generating CSV file")
+     * )
+     */
     public function export(Reconciliation $reconciliation){
         try {
             return $this->testService->export($reconciliation);
