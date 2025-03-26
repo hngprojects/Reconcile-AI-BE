@@ -139,8 +139,6 @@ class GoogleAuthController extends Controller
                     $user->paymentPlan()->create([
                         'user_id'       => $user->id,
                         'plan_id'       => $basicPlan->id,
-                        'price'         => 0,
-                        'plan'          => 'Basic',
                         'start_date'    => now(),
                         'expire_date'   => now()->addDays($basicPlan->plan_length),
                     ]);
@@ -415,6 +413,7 @@ class GoogleAuthController extends Controller
      */
     public function fetchUser(Request $request)
     {
+        // $plan = $user->paymentPlan()->with('plan')->first();
         $user = $request->user()->load('paymentPlan.plan');
         $paymentPlan = $user->paymentPlan;
 

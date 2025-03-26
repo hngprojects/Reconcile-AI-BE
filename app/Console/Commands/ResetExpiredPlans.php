@@ -45,8 +45,6 @@ class ResetExpiredPlans extends Command
                     $plan->start_date = $now;
                     $plan->expire_date = $now->copy()->addDays($basicPlan->plan_length);
                     $plan->reconciliations_used = 0;
-                    $plan->price = $basicPlan->amount;
-                    $plan->plan = $basicPlan->plan;
 
                     Log::info("User {$plan->user_id} downgraded to Basic plan: start_date={$plan->start_date}, expire_date={$plan->expire_date}");
                 }

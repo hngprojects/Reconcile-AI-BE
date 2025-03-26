@@ -7,12 +7,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use App\Models\MatchedTransaction;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use App\Models\Reconciliation;
-use Illuminate\Support\Str;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
 class Statement extends Model
 {
     /** @use HasFactory<\Database\Factories\StatementFactory> */
-    use HasFactory;
+    use HasFactory, HasUuids;
 
     protected $fillable = [
         'date',
@@ -22,18 +22,7 @@ class Statement extends Model
         'reconciliation_id'
     ];
     protected $keyType = 'string';
-
-
-    protected static function boot()
-    {
-        parent::boot();
-
-        static::creating(function ($model) {
-            if (empty($model->{$model->getKeyName()})) {
-                $model->{$model->getKeyName()} = (string) Str::uuid();
-            }
-        });
-    }
+    public $incrementing = false;
 
     public function matched(): BelongsTo
     {

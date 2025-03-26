@@ -62,7 +62,7 @@ class PaymentPlanController extends Controller
             'status' => true,
             'data' => [
                 'id' => $plan->id,
-                'plan' => $plan->plan,
+                'plan' => $plan->plan->plan,
                 'days_remaining' => now()->diffInDays($plan->expire_date),
                 'is_expired' => $plan->isExpired()
             ]
@@ -163,10 +163,8 @@ class PaymentPlanController extends Controller
 
             $paymentPlan = $user->paymentPlan()->create([
                 'plan_id' => $plan->id,
-                'plan' => $plan->plan,
                 'start_date' => $startDate,
                 'expire_date' => $expireDate,
-                'price' => $plan->amount,
                 'is_active' => true,
                 'reconciliations_used' => 0
             ]);
@@ -240,10 +238,8 @@ class PaymentPlanController extends Controller
         return DB::transaction(function () use ($request) {
             $user = Auth::user();
 
-            // Find the user's current active plan
-            $currentPlan = $user->paymentPlan()
-                ->latest('expire_date')
-                ->first();
+            // Fetch current active plan
+            $currentPlan = $user->paymentPlan()->first();
 
             if (!$currentPlan || !$currentPlan->is_active) {
                 return response()->json([
@@ -252,8 +248,10 @@ class PaymentPlanController extends Controller
                 ], 400);
             }
 
-            // Find the new plan
+            // Fetch new plan and Basic plan
             $newPlan = Plan::where('plan', $request->plan)->first();
+            $basicPlan = Plan::where('plan', 'Basic')->first();
+
             if (!$newPlan) {
                 return response()->json([
                     "status" => false,
@@ -261,7 +259,7 @@ class PaymentPlanController extends Controller
                 ], 400);
             }
 
-            // Ensure the price matches the plan amount
+            // Ensure price matches plan amount
             if ($request->price != $newPlan->amount) {
                 return response()->json([
                     "status" => false,
@@ -270,45 +268,41 @@ class PaymentPlanController extends Controller
                 ], 400);
             }
 
-            // Prevent re-subscribing to the "Basic" plan if already on "Basic"
-            if ($currentPlan->plan === 'Basic' && $newPlan->plan === 'Basic') {
+            // Prevent re-subscribing to Basic plan if already on Basic
+            if ($basicPlan && $currentPlan->plan_id === $basicPlan->id && $newPlan->id === $basicPlan->id) {
                 return response()->json([
                     "status" => false,
                     "message" => "You are already on the Basic plan and cannot subscribe to it again.",
                 ], 400);
             }
 
-            // Determine the start date
-            if ($currentPlan->plan === 'Basic') {
-                // Allow immediate upgrade from Basic
-                $startDate = now();
-            } else {
-                // Otherwise, ensure the plan has expired before updating
+            // Allow immediate upgrade if current plan is Basic, otherwise ensure expiration
+            $startDate = now();
+            if (!($basicPlan && $currentPlan->plan_id === $basicPlan->id)) {
                 if ($currentPlan->is_active) {
                     return response()->json([
                         "status" => false,
                         "message" => "Cannot update plan until the current one expires.",
                     ], 400);
                 }
-                $startDate = now();
             }
 
-            // Update the plan details
+            // Update payment plan
             $currentPlan->update([
                 'plan_id' => $newPlan->id,
-                'plan' => $newPlan->plan,
-                'price' => $newPlan->amount,
                 'start_date' => $startDate,
                 'expire_date' => $startDate->copy()->addDays($newPlan->plan_length),
                 'reconciliations_used' => 0,
                 'is_active' => true, // Reactivating the plan after renewal
             ]);
+
+            // Record billing transaction
             BillingTransaction::create([
                 'user_id' => $user->id,
                 'description' => 'Monthly Subscription',
                 'status' => 'Successful',
-                'plan' => $currentPlan->plan,
-                'amount' => $currentPlan->price
+                'plan' => $newPlan->plan,
+                'amount' => $newPlan->amount
             ]);
 
             return response()->json([

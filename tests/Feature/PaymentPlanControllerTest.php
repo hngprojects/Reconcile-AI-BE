@@ -73,8 +73,6 @@ class PaymentPlanControllerTest extends TestCase
         $this->assertDatabaseHas('payment_plans', [
             'user_id' => $this->user->id,
             'plan_id' => $this->plan->id,
-            'price' => 19.99,
-            'plan' => 'Premium'
         ]);
     }
 
@@ -132,8 +130,6 @@ class PaymentPlanControllerTest extends TestCase
         $existingPlan = PaymentPlan::create([
             'user_id' => $this->user->id,
             'plan_id' => $this->plan->id,
-            'plan' => 'Premium',
-            'price' => 19.99,
             'start_date' => now(),
             'expire_date' => now()->addDays(10),
             'is_active' => true
@@ -166,8 +162,6 @@ class PaymentPlanControllerTest extends TestCase
         $existingPlan = PaymentPlan::create([
             'user_id' => $this->user->id,
             'plan_id' => $this->plan->id,
-            'plan' => 'Premium',
-            'price' => 19.99,
             'start_date' => now()->subDays(25),
             'expire_date' => now()->addDays(5),
             'is_active' => true
@@ -195,8 +189,7 @@ class PaymentPlanControllerTest extends TestCase
         // Check database for new plan
         $this->assertDatabaseHas('payment_plans', [
             'user_id' => $this->user->id,
-            'plan_id' => $this->plan->id,
-            'plan' => 'Premium'
+            'plan_id' => $this->plan->id
         ]);
     }
 
@@ -207,8 +200,6 @@ class PaymentPlanControllerTest extends TestCase
         $existingPlan = PaymentPlan::create([
             'user_id' => $this->user->id,
             'plan_id' => $this->plan->id,
-            'plan' => 'Premium',
-            'price' => 19.99,
             'start_date' => now()->subDays(25),
             'expire_date' => now()->addDays(5),
             'is_active' => true
@@ -249,8 +240,6 @@ class PaymentPlanControllerTest extends TestCase
         $existingPlan = PaymentPlan::create([
             'user_id' => $this->user->id,
             'plan_id' => $this->plan->id,
-            'plan' => 'Premium',
-            'price' => 19.99,
             'start_date' => now(),
             'expire_date' => now()->addDays(10),
             'is_active' => true
@@ -283,8 +272,6 @@ class PaymentPlanControllerTest extends TestCase
         $existingPlan = PaymentPlan::create([
             'user_id' => $this->user->id,
             'plan_id' => $this->plan->id,
-            'plan' => 'Premium',
-            'price' => 19.99,
             'start_date' => now()->subDays(25),
             'expire_date' => now()->addDays(5),
             'is_active' => true
@@ -318,8 +305,6 @@ class PaymentPlanControllerTest extends TestCase
         $existingPlan = PaymentPlan::create([
             'user_id' => $this->user->id,
             'plan_id' => $this->plan->id,
-            'plan' => 'Premium',
-            'price' => 19.99,
             'start_date' => now()->subDays(25),
             'expire_date' => now()->addDays(5),
             'is_active' => true
@@ -352,8 +337,6 @@ class PaymentPlanControllerTest extends TestCase
         $existingPlan = PaymentPlan::create([
             'user_id' => $this->user->id,
             'plan_id' => $this->plan->id,  // Use the seeded plan
-            'plan' => 'Premium',           // Match the seeded plan name
-            'price' => 19.99,
             'start_date' => now()->subDays(10),
             'expire_date' => now()->addDays(40),
             'is_active' => true

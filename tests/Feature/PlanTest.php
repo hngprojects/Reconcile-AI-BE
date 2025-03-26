@@ -37,10 +37,10 @@ class PlanTest extends TestCase
     {
         $plan = Plan::create([
             'id' => Str::uuid(),
-            'name' => 'Business Plan',
+            'name' => 'Business Plan-1',
             'description' => 'Business plan with unlimited reconciliations',
             'plan_length' => 365,
-            'plan' => 'Business',
+            'plan' => 'Business-1',
             'amount' => 25.00,
             'reconciliations_per_month' => -1,
         ]);
@@ -48,7 +48,7 @@ class PlanTest extends TestCase
         $response = $this->getJson("/api/v1/plans/{$plan->id}");
 
         $response->assertStatus(200)
-                 ->assertJson(['id' => $plan->id, 'name' => 'Business Plan']);
+                 ->assertJson(['id' => $plan->id, 'name' => 'Business Plan-1']);
     }
 
     #[Test]

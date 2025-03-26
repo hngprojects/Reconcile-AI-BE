@@ -26,11 +26,11 @@ class CheckReconciliationLimit
         // Ensure the plan is eagerly loaded
         $activePlan = $user->paymentPlan;
 
-        if (!$activePlan || !$activePlan->plan) {
+        if (!$activePlan) {
             return response()->json(['message' => 'No active plan found. Please subscribe.'], 403);
         }
 
-        $paymentPlan = $activePlan->plan()->first();
+        $paymentPlan = $activePlan->plan;
 
         // dd($activePlan->plan);
 
