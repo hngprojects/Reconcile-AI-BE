@@ -4094,8 +4094,6 @@
             "time": "2024-10-02T11:20:13+00:00"
         },
         {
-<<<<<<< HEAD
-=======
             "name": "php-http/multipart-stream-builder",
             "version": "1.4.2",
             "source": {
@@ -4152,7 +4150,6 @@
             "time": "2024-09-04T13:22:54+00:00"
         },
         {
->>>>>>> dev
             "name": "phpoffice/phpspreadsheet",
             "version": "1.29.10",
             "source": {
