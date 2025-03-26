@@ -2,17 +2,6 @@
 
 namespace Tests\Feature;
 
-<<<<<<< HEAD
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Foundation\Testing\WithFaker;
-use Tests\TestCase;
-use Illuminate\Http\UploadedFile;
-
-class ReconciliationTest extends TestCase
-{
-
-    use WithFaker;
-=======
 use App\Models\User;
 use App\Models\ReconciledRecord;
 use App\Models\Reconciliation;
