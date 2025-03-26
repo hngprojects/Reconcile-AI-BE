@@ -179,13 +179,7 @@ class GoogleAuthController extends Controller
                     'message' => $isNewUser ? 'User Created Successfully' : 'Login Successful',
                     'access_token' => $token,
                     'data' => [
-                        'user' => [
-                            'id' => $user->id,
-                            'email' => $user->email,
-                            'name' => $user->name,
-                            'avatar' => $avatarUrl,
-                        ],
-                        'plan' => $plan
+                        'user' => [ ...$user->toArray(), 'payment_plan' => $plan],
                     ]
                 ]);
             } else {
