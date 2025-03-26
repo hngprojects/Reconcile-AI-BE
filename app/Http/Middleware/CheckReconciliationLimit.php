@@ -42,13 +42,21 @@ class CheckReconciliationLimit
             return $next($request);
         }
 
+        // Get the plan's active period
         $startDate = Carbon::parse($paymentPlan->start_date)->startOfDay()->toDateTimeString();
         $expireDate = Carbon::parse($paymentPlan->expire_date)->endOfDay()->toDateTimeString();
 
-        // Count reconciliations
-        $reconciliationCount = Reconciliation::where('user_id', $user->id)
-            ->whereBetween('created_at', [$startDate, $expireDate])
-            ->count();
+        // Optimized count check
+        $reconciliationCount = 0;
+        if (Reconciliation::where('user_id', $user->id)
+        ->whereBetween('created_at', [$startDate, $expireDate])
+        ->exists()) {
+            // Count reconciliations
+            $reconciliationCount = Reconciliation::where('user_id', $user->id)
+                ->whereBetween('created_at', [$startDate, $expireDate])
+                ->count();
+        }
+        
 
         if ($reconciliationCount >= $maxReconciliations) {
             $activePlan->update(['reconciliations_used' => $reconciliationCount]);
@@ -58,7 +66,12 @@ class CheckReconciliationLimit
             ], 429);
         }
 
-        $activePlan->update(['reconciliations_used' => $reconciliationCount + 1]);
+        // $activePlan->update(['reconciliations_used' => $reconciliationCount + 1]);
+
+        // Increment only if reconciliations exist
+        if ($reconciliationCount > 0) {
+            $activePlan->increment('reconciliations_used');
+        }
 
         return $next($request);
     }

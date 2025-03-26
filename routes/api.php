@@ -81,8 +81,7 @@ Route::prefix('v1')->group(function () {
 
     // partners
     Route::post('/partners', [PartnerController::class, 'submit'])->name('partners');
-    Route::post('/reconcile', [ReconciliationController::class, 'reconcile'])->name('reconcile')->middleware([ThrottleUnauthenticated::class, CheckReconciliationLimit::class]); //[ThrottleUnauthenticated::class, CheckReconciliationLimit::class], ThrottleUnauthenticated::class
-    // Route::post('/reconcile', [ReconciliationController::class, 'reconcile'])->name('reconcile')->middleware(ThrottleUnauthenticated::class);
+    Route::post('/reconcile', [ReconciliationController::class, 'reconcile'])->name('reconcile')->middleware([ThrottleUnauthenticated::class, CheckReconciliationLimit::class]);
     Route::middleware('auth:api')->get('/reconciliations/{reconciliation}', [ReconciliationController::class, 'getReconciledRecords'])->whereUuid('reconciliation')->name('reconciled-records');
     Route::middleware('auth:api')->get('/reconciliations', [ReconciliationController::class, 'listUserReconciliations'])->name('list');
     Route::get('/reconciliations/{reconciliation}/export', [ReconciliationController::class, 'export'])->name('export');
