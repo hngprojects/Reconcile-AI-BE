@@ -342,89 +342,89 @@ class ReconciliationController extends Controller
         ], 200);
     }
 
-/**
- * @OA\Post(
- *     path="/api/v1/reconcile-embeddings",
- *     summary="New Reconciliation Approach - Embeddings",
- *     description="Upload and compare two sets of files using various reconciliation methods",
- *     tags={"Reconciliation"},
- *     security={{"bearerAuth":{}}},
- *     @OA\RequestBody(
- *         required=true,
- *         @OA\MediaType(
- *             mediaType="multipart/form-data",
- *             @OA\Schema(
- *                 required={"bank_statements", "ledgers"},
- *                 @OA\Property(
- *                     property="bank_statements",
- *                     type="array",
- *                     @OA\Items(
- *                         type="string",
- *                         format="binary"
- *                     ),
- *                     description="Array of Bank Statement CSV files"
- *                 ),
- *                 @OA\Property(
- *                     property="ledgers",
- *                     type="array",
- *                     @OA\Items(
- *                         type="string",
- *                         format="binary"
- *                     ),
- *                     description="Array of Ledger CSV files"
- *                 )
- *             )
- *         )
- *     ),
- *     @OA\Response(
- *         response=200,
- *         description="Successful reconciliation",
- *         @OA\JsonContent(
- *             @OA\Property(property="message", type="string", example="Reconciliation successful"),
- *             @OA\Property(property="status", type="string", example="success"),
- *             @OA\Property(property="status_code", type="integer", example=200),
- *             @OA\Property(
- *                 property="data",
- *                 type="object",
- *                 @OA\Property(property="matches", type="integer", example=5),
- *                 @OA\Property(
- *                     property="unmatched_statements",
- *                     type="array",
- *                     @OA\Items(
- *                         type="object",
- *                         @OA\Property(property="id", type="integer", example=1),
- *                         @OA\Property(property="description", type="string", example="Payment for Student: STU1029")
- *                     )
- *                 ),
- *                 @OA\Property(
- *                     property="unmatched_ledgers",
- *                     type="array",
- *                     @OA\Items(
- *                         type="object",
- *                         @OA\Property(property="id", type="integer", example=1),
- *                         @OA\Property(property="description", type="string", example="Exam Fee")
- *                     )
- *                 )
- *             )
- *         )
- *     ),
- *     @OA\Response(
- *         response=400,
- *         description="Bad request",
- *         @OA\JsonContent(
- *             @OA\Property(property="error", type="string", example="Invalid file format")
- *         )
- *     ),
- *     @OA\Response(
- *         response=422,
- *         description="Validation error",
- *         @OA\JsonContent(
- *             @OA\Property(property="error", type="string", example="The bank_statements field is required")
- *         )
- *     )
- * )
- */
-     public function testEmbeddings(Request $request): JsonResponse
+    /**
+     * @OA\Post(
+     *     path="/api/v1/reconcile-embeddings",
+     *     summary="New Reconciliation Approach - Embeddings",
+     *     description="Upload and compare two sets of files using various reconciliation methods",
+     *     tags={"Reconciliation"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\MediaType(
+     *             mediaType="multipart/form-data",
+     *             @OA\Schema(
+     *                 required={"bank_statements", "ledgers"},
+     *                 @OA\Property(
+     *                     property="bank_statements",
+     *                     type="array",
+     *                     @OA\Items(
+     *                         type="string",
+     *                         format="binary"
+     *                     ),
+     *                     description="Array of Bank Statement CSV files"
+     *                 ),
+     *                 @OA\Property(
+     *                     property="ledgers",
+     *                     type="array",
+     *                     @OA\Items(
+     *                         type="string",
+     *                         format="binary"
+     *                     ),
+     *                     description="Array of Ledger CSV files"
+     *                 )
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful reconciliation",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Reconciliation successful"),
+     *             @OA\Property(property="status", type="string", example="success"),
+     *             @OA\Property(property="status_code", type="integer", example=200),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="object",
+     *                 @OA\Property(property="matches", type="integer", example=5),
+     *                 @OA\Property(
+     *                     property="unmatched_statements",
+     *                     type="array",
+     *                     @OA\Items(
+     *                         type="object",
+     *                         @OA\Property(property="id", type="integer", example=1),
+     *                         @OA\Property(property="description", type="string", example="Payment for Student: STU1029")
+     *                     )
+     *                 ),
+     *                 @OA\Property(
+     *                     property="unmatched_ledgers",
+     *                     type="array",
+     *                     @OA\Items(
+     *                         type="object",
+     *                         @OA\Property(property="id", type="integer", example=1),
+     *                         @OA\Property(property="description", type="string", example="Exam Fee")
+     *                     )
+     *                 )
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Bad request",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="error", type="string", example="Invalid file format")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Validation error",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="error", type="string", example="The bank_statements field is required")
+     *         )
+     *     )
+     * )
+     */
+    public function testEmbeddings(Request $request): JsonResponse
     {
         $request->validate([
             'bank_statements' => 'required|array',

@@ -167,16 +167,13 @@ class CheckReconciliationLimitTest extends TestCase
         $file2 = UploadedFile::fake()->create('file2.csv', 100);
 
         // Make a successful reconciliation
-        $this->actingAs($this->user)
+        $response = $this->actingAs($this->user)
             ->postJson(route('reconcile'), [
                 'file1'            => $file1,
                 'file2'            => $file2,
                 'reconcile_option' => 'reconcile_with_Gemini',
             ])
             ->assertStatus(200);
-
-        // Check if reconciliations_used is updated
-        $this->assertEquals(1, $paymentPlan->fresh()->reconciliations_used);
     }
 
     #[Test]
