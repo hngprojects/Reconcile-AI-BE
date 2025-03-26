@@ -947,7 +947,7 @@
                 ],
                 "summary": "Get user's payment plan history",
                 "description": "Retrieves the authenticated user's payment plan transaction history",
-                "operationId": "126f5fa1e9cdb3d1d4f12647d2f5c0f6",
+                "operationId": "150af56ba3225498028f5fbe8fe5db19",
                 "responses": {
                     "200": {
                         "description": "Payment plan history retrieved successfully",

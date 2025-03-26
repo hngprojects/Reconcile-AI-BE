@@ -11,6 +11,7 @@ use App\Repositories\Statement\StatementRepository;
 use App\Repositories\MatchingTransaction\MatchingTransactionRepository;
 use App\Models\Reconciliation;
 use App\Models\User;
+use App\Models\PaymentPlan;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Auth;
@@ -87,6 +88,7 @@ class EmbeddingsTest extends TestCase
     {
         $invalidFile = UploadedFile::fake()->create('invalid.txt');
         $user = User::factory()->create();
+        $plan = PaymentPlan::factory()->create(['user_id' => $user->id]);
 
         $response = $this->actingAs($user)->postJson('/api/v1/reconcile-embeddings', [
             'statement' => $invalidFile,
