@@ -90,7 +90,7 @@ class User extends Authenticatable implements JWTSubject, CanResetPasswordContra
     // In User.php
     public function paymentPlan()
     {
-        return $this->hasOne(PaymentPlan::class)->where('is_active', true);
+        return $this->hasOne(PaymentPlan::class, 'user_id')->where('is_active', true);
     }
 
     // Remove all other payment plan relationships
