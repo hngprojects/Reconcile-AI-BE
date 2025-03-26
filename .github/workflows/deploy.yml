@@ -25,7 +25,7 @@ jobs:
           script: |
             if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
               echo "Starting Laravel deployment for production..."
-              cd /var/www/html/BE-main
+              cd /var/www/html/main
               sudo chown -R $USER:$USER
               git fetch origin 
               git reset --hard HEAD 
