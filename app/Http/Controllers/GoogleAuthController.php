@@ -12,7 +12,6 @@ use App\Mail\WelcomeEmail;
 use App\Models\Plan;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Tymon\JWTAuth\Exceptions\JWTException;
 use Tymon\JWTAuth\Exceptions\TokenExpiredException;
@@ -154,22 +153,6 @@ class GoogleAuthController extends Controller
                     Mail::to($user->email)->queue(new WelcomeEmail($user, $getStartedUrl));
                 }
 
-                // $userdetails = $user->load(['paymentPlan.plan']);
-                // Log::info('User details', ['data' => $userdetails]);
-
-                // $plan = $userdetails->paymentPlan ?? null;
-                // Log::info('User plan', ['plan' => $plan]);
-
-                // return response()->json([
-                //     'status_code' => 200,
-                //     'status' => 'success',
-                //     'message' => $isNewUser ? 'User Created Successfully' : 'Login Successful',
-                //     'access_token' => $token,
-                //     'data' => [
-                //         'user' => $user,
-                //         'plan' => $plan
-                //     ]
-                // ]);
                 $plan = $user->paymentPlan;
 
                 return response()->json([

@@ -26,7 +26,7 @@ class Ledger extends Model
 
     public function match(): BelongsTo
     {
-        return $this->belongsTo(MatchedTransaction::class);
+        return $this->belongsTo(MatchingTransaction::class);
     }
 
     public function reconciliation(): BelongsTo

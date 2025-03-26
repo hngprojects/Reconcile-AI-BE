@@ -26,7 +26,7 @@ class Statement extends Model
 
     public function matched(): BelongsTo
     {
-        return $this->belongsTo(MatchedTransaction::class);
+        return $this->belongsTo(MatchingTransaction::class);
     }
 
     public function reconciliation(): BelongsTo
