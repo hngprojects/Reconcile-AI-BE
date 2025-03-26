@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Carbon\Carbon;
 use App\Models\Reconciliation;
+use Illuminate\Support\Facades\Log;
 
 class CheckReconciliationLimit
 {
@@ -41,8 +42,8 @@ class CheckReconciliationLimit
             return $next($request);
         }
 
-        $startDate = Carbon::parse($paymentPlan->start_date);
-        $expireDate = Carbon::parse($paymentPlan->expire_date);
+        $startDate = Carbon::parse($paymentPlan->start_date)->startOfDay()->toDateTimeString();
+        $expireDate = Carbon::parse($paymentPlan->expire_date)->endOfDay()->toDateTimeString();
 
         // Count reconciliations
         $reconciliationCount = Reconciliation::where('user_id', $user->id)
