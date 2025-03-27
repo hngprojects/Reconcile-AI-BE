@@ -39,6 +39,7 @@ class CheckReconciliationLimit
 
         // Skip check for Business plan (-1 means unlimited)
         if ($maxReconciliations === -1) {
+            $activePlan->increment('reconciliations_used');
             return $next($request);
         }
 
