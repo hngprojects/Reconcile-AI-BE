@@ -145,7 +145,10 @@ class GoogleAuthController extends Controller
                     $isNewUser = true;
                 }
 
+                $customTTL = config('jwt.ttl'); // Get the TTL value
+                JWTAuth::factory()->setTTL($customTTL); // Set the TTL before generating the token
                 $token = JWTAuth::fromUser($user);
+
 
                 $getStartedUrl = env('FRONTEND_URL', 'https://reconxi.com') . '/file-upload?token=' . $token;
 
