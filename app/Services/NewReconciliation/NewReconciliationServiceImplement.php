@@ -452,7 +452,7 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
             }
 
             if ($ledgerGroup) {
-                if (!$ledgerGroup['statements']->contains('statement.id', $newLedger['id'])) {
+                if (!$ledgerGroup['statements']->contains('statement.id', $newStatement['id'])) {
                     $ledgerGroup['statements']->push([
                         'statement' => $newStatement,
                         'score' => $percent
@@ -508,6 +508,8 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
             ]
         ];
 
+        $this->mainRepository->updateResponse($reconciliation, $response);
+
         return $response;
     }
 
@@ -534,11 +536,7 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
             }
         }
 
-        $response =  $this->fetchResults($reconciliation);
-
-        $record = $this->mainRepository->updateResponse($reconciliation, $response);
-
-        return $response;
+        return $this->fetchResults($reconciliation);
     }
 
     public function fetchUserReconciliations(User $user){
