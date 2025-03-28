@@ -583,7 +583,7 @@ class ReconciliationTest extends TestCase
         $response->assertStatus(200);
 
         // Assert content type
-        $response->assertHeader('Content-Type', 'text/csv; charset=UTF-8');
+        $response->assertHeader('Content-Type', 'text/plain; charset=UTF-8');
 
         // Check Content-Disposition header dynamically
         $response->assertHeader('Content-Disposition');

@@ -376,7 +376,7 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
     public function export(Reconciliation $reconciliation){
         $record = $this->fetchResults($reconciliation);
 
-        $file = $this->generateCSV($record->data);
+        $file = $this->generateCSV($record);
 
         return Response::download($file)->deleteFileAfterSend(true);
 
