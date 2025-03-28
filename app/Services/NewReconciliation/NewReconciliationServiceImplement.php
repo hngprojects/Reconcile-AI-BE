@@ -374,7 +374,7 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
     }
 
     public function export(Reconciliation $reconciliation){
-        $record = $this->mainRepository->findResponse($reconciliation);
+        $record = $this->fetchResults($reconciliation);
 
         $file = $this->generateCSV($record->data);
 
@@ -496,7 +496,7 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
             ->values()
             ->all();
 
-        $response = [
+        return [
             'reconciliation_id' => $reconciliation->id,
             'matches' => $matches,
             'unmatched_ledgers' => $unmatchedLedgers,
@@ -507,10 +507,7 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
                 'total' => count($unmatchedLedgers) + count($unmatchedStatements) + count($matches)
             ]
         ];
-
-        $this->mainRepository->updateResponse($reconciliation, $response);
-
-        return $response;
+;
     }
 
     public function matchUnmatch(Reconciliation $reconciliation, array $statements, array $ledgers, string $action){
