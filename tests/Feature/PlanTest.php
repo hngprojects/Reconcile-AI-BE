@@ -15,6 +15,9 @@ class PlanTest extends TestCase
     #[Test]
     public function it_can_create_a_plan()
     {
+        $plan = Plan::where('name', 'Starter Plan')->orWhere('plan', 'Starter')->first();
+        if($plan) $plan->delete();
+
         $payload = [
             'name' => 'Starter Plan',
             'description' => 'This is a starter plan',

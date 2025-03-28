@@ -378,17 +378,21 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
         fputcsv($exportFile, ['Date', 'Description', 'Amount', 'Status', 'Score', 'Date', 'Description', 'Amount']);
 
         foreach ($data['matches'] as $match) {
-            $arr = [
-                $match['statements'][0]['statement']['Date'],
-                $match['statements'][0]['statement']['Description'],
-                $match['statements'][0]['statement']['Amount'],
-                'Matched',
-                $match['score'],
-                $match['ledgers'][0]['Date'],
-                $match['ledgers'][0]['Description'],
-                $match['ledgers'][0]['Amount'],
-            ];
-            fputcsv($exportFile, $arr);
+            foreach ($match['statements'] as $key => $statement) {
+                foreach ($match['ledgers'] as $key => $ledger) {
+                    $arr = [
+                        $statement['statement']['Date'],
+                        $statement['statement']['Description'],
+                        $statement['statement']['Amount'],
+                        'Matched',
+                        $statement['score'],
+                        $ledger['ledger']['Date'],
+                        $ledger['ledger']['Description'],
+                        $ledger['ledger']['Amount'],
+                    ];
+                    fputcsv($exportFile, $arr);
+                }
+            }
         }
 
         foreach ($data['unmatched_statements'] as $row) {
