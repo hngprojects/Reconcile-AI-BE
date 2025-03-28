@@ -54,13 +54,13 @@ class ReconciliationTest extends TestCase
             'plan_id' => $this->planBusiness->id,
             'is_active' => true
         ]);
-        
+
         // Create mock service
         $this->mockService = Mockery::mock(ReconciliationService::class);
         $this->app->instance(ReconciliationService::class, $this->mockService);
     }
 
-    protected function tearDown(): void 
+    protected function tearDown(): void
     {
         Mockery::close();
         parent::tearDown();
