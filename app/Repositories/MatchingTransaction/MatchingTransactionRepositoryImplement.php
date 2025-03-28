@@ -101,7 +101,7 @@ class MatchingTransactionRepositoryImplement extends Eloquent implements Matchin
         $saved = [];
 
         foreach ($matches as $match) {
-            Log::info('Score: ', ['score' => $match->cosine_similarity]);
+            // Log::info('Score: ', ['score' => $match->cosine_similarity]);
            $saved[] = $this->model->create([
                 'ledger_id' => $match->ledger_id,
                 'statement_id' => $match->statement_id,
@@ -109,7 +109,7 @@ class MatchingTransactionRepositoryImplement extends Eloquent implements Matchin
             ]);
         }
 
-        Log::info('Matching results', ['matches' => $saved]);
+        // Log::info('Matching results', ['matches' => $saved]);
         return $matches;
     }
 }

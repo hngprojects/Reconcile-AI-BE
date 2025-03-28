@@ -33,7 +33,7 @@ class StatementRepositoryImplement extends Eloquent implements StatementReposito
     }
 
     public function storeMany(array $statements, Reconciliation $reconciliation){
-        Log::info('Storing statements in db');
+        // Log::info('Storing statements in db');
         foreach ($statements as $statement) {
             $this->model->firstOrCreate([
                 'reconciliation_id' => $reconciliation->id,
@@ -43,7 +43,7 @@ class StatementRepositoryImplement extends Eloquent implements StatementReposito
                 'date' => $statement['Date']
             ]);
         }
-        Log::info('Statements stored successfully');
+        // Log::info('Statements stored successfully');
         return;
     }
 
