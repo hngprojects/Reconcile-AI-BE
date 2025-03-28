@@ -70,7 +70,7 @@ class CheckReconciliationLimit
         // $activePlan->update(['reconciliations_used' => $reconciliationCount + 1]);
 
         // Increment only if reconciliations exist
-        if ($reconciliationCount > 0) {
+        if ($reconciliationCount >= 0) {
             $activePlan->increment('reconciliations_used');
         }
 
