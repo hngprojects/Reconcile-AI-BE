@@ -22,6 +22,7 @@ use App\Mail\ReconciliationCompleted;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Sleep;
 use Illuminate\Support\Facades\Response;
+use NumConvert;
 
 class NewReconciliationServiceImplement extends ServiceApi implements NewReconciliationService{
 
@@ -244,16 +245,16 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
     protected function generateEmbeddings(Collection $statements, Collection $ledgers){
         $statements->map(function (Statement $statement) {
             $formattedDate = date('Y-m-d', strtotime($statement->date));
-            $amt = log10($statement->amount);
-            $combinedText = "Person's name: {$statement->person}, Amount: {$amt} Date: {$formattedDate}, Other Relevant Information: {$statement->other_information}";
+            $amt = NumConvert::word($statement->amount);
+            $combinedText = "Person's name: {$statement->person}, Amount: {$statement->amount}, Amount in words: {$amt} Date: {$formattedDate}, Other Relevant Information: {$statement->other_information}";
             $embedding = $this->getEmbedding($combinedText);
             $this->statementRepository->addVector($statement, $embedding);
         });
 
         $ledgers->map(function (Ledger $ledger) {
             $formattedDate = date('Y-m-d', strtotime($ledger->date));
-            $amt = log10($ledger->amount);
-            $combinedText = "Person's name: {$ledger->person}, Amount: {$amt}, Date: {$formattedDate}, Other Relevant Information: {$ledger->other_information}";
+            $amt = NumConvert::word($ledger->amount);
+            $combinedText = "Person's name: {$ledger->person}, Amount: {$ledger->amount}, Amount in words: {$amt}, Date: {$formattedDate}, Other Relevant Information: {$ledger->other_information}";
             $embedding = $this->getEmbedding($combinedText);
             $this->ledgerRepository->addVector($ledger, $embedding);
         });
@@ -276,6 +277,7 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
             $newLedger = (new TransactionResource($this->ledgerRepository->findById($match->ledger_id)))->toArray(request());
 
             $statementGroup = $matches->firstWhere('statements.0.statement.id', $newStatement['id']);
+            $ledgerGroup = $matches->firstWhere('ledgers.0.ledger.id', $newLedger['id']);
 
             if ($statementGroup) {
                 if (!$statementGroup['ledgers']->contains('ledger.id', $newLedger['id'])) {
@@ -283,23 +285,34 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
                         'ledger' => $newLedger,
                         'score' => $percent
                     ]);
-                } else {
-                    $matches->push([
-                        'statements' => collect([
-                            [
-                                'statement' => $newStatement,
-                                'score' => $percent
-                            ]
-                        ]),
-                        'ledgers' => collect([
-                            [
-                                'ledger' => $newLedger,
-                                'score' => $percent
-                            ]
-                        ])
+                }
+                break;
+            }
+
+            if ($ledgerGroup) {
+                if (!$ledgerGroup['statements']->contains('statement.id', $newLedger['id'])) {
+                    $ledgerGroup['statements']->push([
+                        'statement' => $newStatement,
+                        'score' => $percent
                     ]);
                 }
+                break;
             }
+
+            $matches->push([
+                'statements' => collect([
+                    [
+                        'statement' => $newStatement,
+                        'score' => $percent
+                    ]
+                ]),
+                'ledgers' => collect([
+                    [
+                        'ledger' => $newLedger,
+                        'score' => $percent
+                    ]
+                ])
+            ]);
 
             $matchedLedgerIds[] = $match->ledger_id;
             $matchedStatementIds[] = $match->statement_id;
@@ -426,6 +439,7 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
             $newLedger = (new TransactionResource($this->ledgerRepository->findById($match->ledger_id)))->toArray(request());
 
             $statementGroup = $matches->firstWhere('statements.0.statement.id', $newStatement['id']);
+            $ledgerGroup = $matches->firstWhere('ledgers.0.ledger.id', $newLedger['id']);
 
             if ($statementGroup) {
                 if (!$statementGroup['ledgers']->contains('ledger.id', $newLedger['id'])) {
@@ -434,22 +448,33 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
                         'score' => $percent
                     ]);
                 }
-            } else {
-                    $matches->push([
-                        'statements' => collect([
-                            [
-                                'statement' => $newStatement,
-                                'score' => $percent
-                            ]
-                        ]),
-                        'ledgers' => collect([
-                            [
-                                'ledger' => $newLedger,
-                                'score' => $percent
-                            ]
-                        ])
+                break;
+            }
+
+            if ($ledgerGroup) {
+                if (!$ledgerGroup['statements']->contains('statement.id', $newLedger['id'])) {
+                    $ledgerGroup['statements']->push([
+                        'statement' => $newStatement,
+                        'score' => $percent
                     ]);
                 }
+                break;
+            }
+
+            $matches->push([
+                'statements' => collect([
+                    [
+                        'statement' => $newStatement,
+                        'score' => $percent
+                    ]
+                ]),
+                'ledgers' => collect([
+                    [
+                        'ledger' => $newLedger,
+                        'score' => $percent
+                    ]
+                ])
+            ]);
 
             $matchedLedgerIds[] = $match->ledger_id;
             $matchedStatementIds[] = $match->statement_id;
@@ -471,7 +496,7 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
             ->values()
             ->all();
 
-        return [
+        $response = [
             'reconciliation_id' => $reconciliation->id,
             'matches' => $matches,
             'unmatched_ledgers' => $unmatchedLedgers,
@@ -482,6 +507,8 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
                 'total' => count($unmatchedLedgers) + count($unmatchedStatements) + count($matches)
             ]
         ];
+
+        return $response;
     }
 
     public function matchUnmatch(Reconciliation $reconciliation, array $statements, array $ledgers, string $action){
@@ -507,7 +534,11 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
             }
         }
 
-        return $this->fetchResults($reconciliation);
+        $response =  $this->fetchResults($reconciliation);
+
+        $record = $this->mainRepository->updateResponse($reconciliation, $response);
+
+        return $response;
     }
 
     public function fetchUserReconciliations(User $user){
