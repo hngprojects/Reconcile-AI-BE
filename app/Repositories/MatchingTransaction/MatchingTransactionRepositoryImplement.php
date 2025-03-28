@@ -77,31 +77,39 @@ class MatchingTransactionRepositoryImplement extends Eloquent implements Matchin
 
     public function matchTransactions(Reconciliation $reconciliation){
         $matches = DB::select("
-                SELECT DISTINCT ON (s.id)
+                WITH ranked_matches AS (
+                  SELECT
                     s.id AS statement_id,
                     l.id AS ledger_id,
-                    1 - (s.embedding <=> l.embedding) AS cosine_similarity
-                FROM
-                    statements s
-                JOIN
-                    ledgers l ON s.reconciliation_id = l.reconciliation_id
-                WHERE
-                    s.reconciliation_id = ?
+                    1 - (s.embedding <=> l.embedding) AS cosine_similarity,
+                    ROW_NUMBER() OVER (PARTITION BY s.id ORDER BY 1 - (s.embedding <=> l.embedding) DESC) AS statement_rank,
+                    ROW_NUMBER() OVER (PARTITION BY l.id ORDER BY 1 - (s.embedding <=> l.embedding) DESC) AS ledger_rank
+                  FROM statements s
+                  JOIN ledgers l ON s.reconciliation_id = l.reconciliation_id
+                  WHERE s.reconciliation_id = ?
                     AND 1 - (s.embedding <=> l.embedding) > 0.82
-                ORDER BY
-                    s.id, cosine_similarity DESC
+                )
+                SELECT
+                  statement_id,
+                  ledger_id,
+                  cosine_similarity
+                FROM ranked_matches
+                WHERE statement_rank = 1 AND ledger_rank = 1
+                ORDER BY cosine_similarity DESC
             ", [$reconciliation->id]);
+
+        $saved = [];
 
         foreach ($matches as $match) {
             Log::info('Score: ', ['score' => $match->cosine_similarity]);
-           $this->model->create([
+           $saved[] = $this->model->create([
                 'ledger_id' => $match->ledger_id,
                 'statement_id' => $match->statement_id,
-                'score' => (int) $match->cosine_similarity
+                'score' => (int) ceil((float)$match->cosine_similarity * 100)
             ]);
         }
 
-        Log::info('Matching results', ['matches' => $matches]);
+        Log::info('Matching results', ['matches' => $saved]);
         return $matches;
     }
 }
