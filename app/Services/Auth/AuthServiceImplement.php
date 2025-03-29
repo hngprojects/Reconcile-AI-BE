@@ -3,6 +3,7 @@
 namespace App\Services\Auth;
 
 use App\Models\User;
+use App\Models\Plan;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
 use Tymon\JWTAuth\Exceptions\JWTException;
@@ -131,8 +132,26 @@ class AuthServiceImplement extends ServiceApi implements AuthService
             $validated = $request->validated();
             $user = $this->mainRepository->register($validated);
 
-            $plan = $user->paymentPlan()->create([
-                'user_id' => $user->id,
+            $basicPlan = Plan::where('plan', 'Basic')->first();
+
+            if (!$basicPlan) {
+                // Create Basic plan if it doesn't exist
+                $basicPlan = Plan::create([
+                    'name' => 'Basic Plan',
+                    'plan' => 'Basic',
+                    'description' => 'Free trial for 7 days with 5 reconciliations.',
+                    'plan_length' => 30,
+                    'reconciliations_per_month' => 5,
+                    'amount' => 0.00,
+                ]);
+            }
+
+            // Create a new payment plan
+            $user->paymentPlan()->create([
+                'user_id'       => $user->id,
+                'plan_id'       => $basicPlan->id,
+                'start_date'    => now(),
+                'expire_date'   => now()->addDays($basicPlan->plan_length),
             ]);
 
             $token = JWTAuth::fromUser($user);
@@ -141,7 +160,7 @@ class AuthServiceImplement extends ServiceApi implements AuthService
                 ->setMessage("User account registration successful")
                 ->setData([
                     'user' => new UserResource($user),
-                    'plan' => $plan,
+                    'plan' => $basicPlan,
                     'token' => $token
                 ]);
         } catch (\Exception $e) {
