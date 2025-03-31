@@ -34,7 +34,7 @@ class LedgerRepositoryImplement extends Eloquent implements LedgerRepository{
     }
 
     public function storeMany(array $ledgers, Reconciliation $reconciliation){
-        Log::info('Storing ledgers in db');
+        // Log::info('Storing ledgers in db');
         foreach ($ledgers as $ledger) {
             $this->model->firstOrCreate([
                 'reconciliation_id' => $reconciliation->id,
@@ -44,7 +44,7 @@ class LedgerRepositoryImplement extends Eloquent implements LedgerRepository{
                 'date' => $ledger['Date']
             ]);
         }
-        Log::info('Ledgers stored successfully');
+        // Log::info('Ledgers stored successfully');
         return;
     }
 

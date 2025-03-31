@@ -22,6 +22,7 @@ use App\Mail\ReconciliationCompleted;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Sleep;
 use Illuminate\Support\Facades\Response;
+use NumConvert;
 
 class NewReconciliationServiceImplement extends ServiceApi implements NewReconciliationService{
 
@@ -98,7 +99,7 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
             throw new \Exception('Unable to open the CSV file.');
         }
 
-        return ['data' => $data, 'headers' => $headers];
+        return $data;
     }
 
     public function storeReconciliation($statements, $ledgers, $user){
@@ -135,7 +136,7 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
         $client = new \GuzzleHttp\Client();
         // $apiKey = env('GEMINI_API_KEY');
         $apiKey = config('gemini.api_key');
-        Log::info('Gemini API Key:', ['key' => config('gemini.api_key')]);
+        //Log::info('Gemini API Key:', ['key' => config('gemini.api_key')]);
 
         $url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key={$apiKey}";
 
@@ -178,20 +179,23 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
 
     protected function structuringData($files){
         $structured = [];
-        Log::info('Starting data structuring....', ['files' => $files]);
+        // Log::info('Starting data structuring....', ['files' => $files]);
 
         foreach ($files as $file) {
             $data = $this->loadComplexCsv($file);
+            // Log::info('Loaded data: ', ['files' => $data]);
 
-            $chunks = array_chunk($data, 15);
+            $chunks = array_chunk($data, 10);
 
-            $prompt = "Please structure the attached JSON object into a JSON object with the following properties: Date, Person, Amount and Other Information. The JSON object could be a school ledger, an invoice ledger, a company ledger, a hospital ledger or a bank statement. Please keep this in mind as you go through the dataset. The person property can be derived from properties like Student Name, Invoice Detail, Narration, Summary, Remarks or any other synonyms that are used in a ledger or bank statement. Please ensure you derive a name and add it to the Person property. If it's not available, provide a short summary of the provided data or the unique identifier such as invoice ID and transaction codes or any other synonym. The person property should never be an empty string. The amount can be derived from the debit, credit, amount, total, or anything that fits this criteria. Ensure the value for the amount that has been paid only so put into consideration any synonyms that may highlight this. Any other information should be added to the 'Other Information' property. Intelligently map through all the properties in the JSON and extract all the relevant information for this data structure. Please exclude any rows that have no data. Use the relevant columns to extract this data and ensure the amount is always an absolute value and it should not have any symbols. Return all the data present in the provided JSON in JSON format. Please don't truncate the result.";
+            $prompt = "Please structure the attached JSON object into a JSON object with the following properties: Date, Person, Amount and Other Information. The JSON object could be a school ledger, an invoice ledger, a company ledger, a hospital ledger or a bank statement. Please keep this in mind as you go through the dataset. The person property can be derived from properties like Student Name, Invoice Detail, Narration, Summary, Remarks or any other synonyms that are used in a ledger or bank statement. Please ensure you derive a name and add it to the Person property. If it's not available, provide a short summary of the provided data or the unique identifier such as invoice ID and transaction codes or any other synonym. The person property should never be an empty string and it can't be N/A as well. The amount can be derived from the debit, credit, amount, total, or anything that fits this criteria. Ensure the value for the amount that has been paid only so put into consideration any synonyms that may highlight this. Any other information should be added to the 'Other Information' property. Intelligently map through all the properties in the JSON and extract all the relevant information for this data structure. Please exclude any rows that have no data. Use the relevant columns to extract this data and ensure the amount is always an absolute value and it should not have any symbols. Return all the data present in the provided JSON in JSON format. Please don't truncate the result.";
 
             foreach ($chunks as $chunk) {
-                Log::info('Calling Gemini......');
+                // Log::info('chunk size: ', ['size' => count($chunks)]);
+                // Log::info('Calling Gemini......');
                 $response = $this->callGemini("$prompt. Here's the JSON you need to structure: " . json_encode($chunk) . ". Please return only a valid JSON object");
 
                 $cleanResponse = str_replace(["```json", "```"], "", $response);
+                // Log::info('Info: ', ['res' => $cleanResponse]);
 
                 $decodedResponse = json_decode($cleanResponse, true);
 
@@ -228,7 +232,7 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
     {
         foreach ($matches as $index => $match) {
             foreach ($match['statements'] as $statement) {
-                Log::info('Statement: ', [$statement]);
+                // Log::info('Statement: ', [$statement]);
                 if ($statement['statement']['id'] === $id) {
                     return $index;
                 }
@@ -241,14 +245,16 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
     protected function generateEmbeddings(Collection $statements, Collection $ledgers){
         $statements->map(function (Statement $statement) {
             $formattedDate = date('Y-m-d', strtotime($statement->date));
-            $combinedText = "Person's name: {$statement->person}, Amount: {$statement->amount} Date: {$formattedDate}, Other Relevant Information: {$statement->other_information}";
+            $amt = NumConvert::word($statement->amount);
+            $combinedText = "Person's name: {$statement->person}, Amount: {$statement->amount}, Amount in words: {$amt} Date: {$formattedDate}, Other Relevant Information: {$statement->other_information}";
             $embedding = $this->getEmbedding($combinedText);
             $this->statementRepository->addVector($statement, $embedding);
         });
 
         $ledgers->map(function (Ledger $ledger) {
             $formattedDate = date('Y-m-d', strtotime($ledger->date));
-            $combinedText = "Person's name: {$ledger->person}, Amount: {$ledger->amount}, Date: {$formattedDate}, Other Relevant Information: {$ledger->other_information}";
+            $amt = NumConvert::word($ledger->amount);
+            $combinedText = "Person's name: {$ledger->person}, Amount: {$ledger->amount}, Amount in words: {$amt}, Date: {$formattedDate}, Other Relevant Information: {$ledger->other_information}";
             $embedding = $this->getEmbedding($combinedText);
             $this->ledgerRepository->addVector($ledger, $embedding);
         });
@@ -256,7 +262,6 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
 
     protected function matchUsingEmbeddings(Collection $statements, Collection $ledgers)
     {
-        $matches = [];
         $unmatchedLedgers = [];
         $unmatchedStatements = [];
 
@@ -264,63 +269,56 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
         $matchedStatementIds = [];
         $matchedLedgerIds = [];
 
+        $matches = collect();
+
         foreach ($matched as $match) {
             $percent = ceil($match->cosine_similarity * 100);
-            $statementIndex = $this->findMatchIndex($matches, $match->statement_id);
-            $ledgerIndex = $this->findMatchIndex($matches, $match->ledger_id);
+            $newStatement = (new TransactionResource($this->statementRepository->findById($match->statement_id)))->toArray(request());
+            $newLedger = (new TransactionResource($this->ledgerRepository->findById($match->ledger_id)))->toArray(request());
 
-            if($statementIndex){
-                $matches[] = [
-                    'statements' => [
-                        [
-                            'statement' => (new TransactionResource($this->statementRepository->findById($match->statement_id)))->toArray(request())
-                        ]
-                    ],
-                    'ledgers' => [
-                        ...matches[$statementIndex]['ledgers'],
-                        [
-                            'ledger' => (new TransactionResource($this->ledgerRepository->findById($match->ledger_id)))->toArray(request()),
-                            'score' => "{$percent}%"
-                        ]
-                    ]
-                ];
-            }else if($ledgerIndex){
-                $matches[] = [
-                    'statements' => [
-                        ...$matches[$ledgerIndex]['statements'],
-                        [
-                            'statement' => (new TransactionResource($this->statementRepository->findById($match->statement_id)))->toArray(request()),
-                            'score' => "{$percent}%"
-                        ]
-                    ],
-                    'ledgers' => [
-                        [
-                            'ledger' => (new TransactionResource($this->ledgerRepository->findById($match->ledger_id)))->toArray(request())
-                        ]
-                    ]
-                ];
-            }else{
-                $matches[] = [
-                    'statements' => [
-                        [
-                            'statement' => (new TransactionResource($this->statementRepository->findById($match->statement_id)))->toArray(request()),
-                            'score' => "{$percent}%"
-                        ]
-                    ],
-                    'ledgers' => [
-                        [
-                            'ledger' => (new TransactionResource($this->ledgerRepository->findById($match->ledger_id)))->toArray(request()),
-                            'score' => "{$percent}%"
-                        ]
-                    ]
-                ];
+            $statementGroup = $matches->firstWhere('statements.0.statement.id', $newStatement['id']);
+            $ledgerGroup = $matches->firstWhere('ledgers.0.ledger.id', $newLedger['id']);
+
+            if ($statementGroup) {
+                if (!$statementGroup['ledgers']->contains('ledger.id', $newLedger['id'])) {
+                    $statementGroup['ledgers']->push([
+                        'ledger' => $newLedger,
+                        'score' => $percent
+                    ]);
+                }
+                break;
             }
+
+            if ($ledgerGroup) {
+                if (!$ledgerGroup['statements']->contains('statement.id', $newLedger['id'])) {
+                    $ledgerGroup['statements']->push([
+                        'statement' => $newStatement,
+                        'score' => $percent
+                    ]);
+                }
+                break;
+            }
+
+            $matches->push([
+                'statements' => collect([
+                    [
+                        'statement' => $newStatement,
+                        'score' => $percent
+                    ]
+                ]),
+                'ledgers' => collect([
+                    [
+                        'ledger' => $newLedger,
+                        'score' => $percent
+                    ]
+                ])
+            ]);
 
             $matchedLedgerIds[] = $match->ledger_id;
             $matchedStatementIds[] = $match->statement_id;
         }
-        Log::info('Matched Statements', ['data' => $matchedStatementIds]);
-        Log::info('Matched Ledgers', ['data' => $matchedLedgerIds]);
+        //Log::info('Matched Statements', ['data' => $matchedStatementIds]);
+        //Log::info('Matched Ledgers', ['data' => $matchedLedgerIds]);
 
         $unmatchedStatements = $statements
             ->whereNotIn('id', $matchedStatementIds)
@@ -336,7 +334,7 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
 
         return [
             'reconciliation_id' => $statements->first()->reconciliation->id,
-            'matches' => $matches,
+            'matches' => $matches->toArray(),
             'unmatched_ledgers' => $unmatchedLedgers,
             'unmatched_statements' => $unmatchedStatements,
             'summary' => [
@@ -376,9 +374,9 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
     }
 
     public function export(Reconciliation $reconciliation){
-        $record = $this->mainRepository->findResponse($reconciliation);
+        $record = $this->fetchResults($reconciliation);
 
-        $file = $this->generateCSV($record->data);
+        $file = $this->generateCSV($record);
 
         return Response::download($file)->deleteFileAfterSend(true);
 
@@ -393,58 +391,18 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
         fputcsv($exportFile, ['Date', 'Description', 'Amount', 'Status', 'Score', 'Date', 'Description', 'Amount']);
 
         foreach ($data['matches'] as $match) {
-            $arr = [];
-            if (count($match['statements']) == 1) {
-                foreach ($match['ledgers'] as $key => $ledgerMatch) {
-                    if($key == 0){
-                        $arr = [
-                            $match['statements'][0]['statement']['Date'],
-                            $match['statements'][0]['statement']['Description'],
-                            $match['statements'][0]['statement']['Amount'],
-                            'Matched',
-                            $ledgerMatch['score'],
-                            $ledgerMatch['ledger']['Date'],
-                            $ledgerMatch['ledger']['Description'],
-                            $ledgerMatch['ledger']['Amount'],
-                        ];
-                    } else {
-                        $arr = [
-                            '', '', '',
-                            'Matched',
-                            $ledgerMatch['score'],
-                            $ledgerMatch['ledger']['Date'],
-                            $ledgerMatch['ledger']['Description'],
-                            $ledgerMatch['ledger']['Amount'],
-                        ];
-                    }
-                    fputcsv($exportFile, $arr);
-                }
-            }
-
-            if (count($match['ledgers']) == 1) {
-                foreach ($match['statements'] as $key => $statementMatch) {
-                    Log::info('Index: ', ['key' => $key]);
-                    if($key == 0){
-                        $arr = [
-                            $match['ledgers'][0]['ledger']['Date'],
-                            $match['ledgers'][0]['ledger']['Description'],
-                            $match['ledgers'][0]['ledger']['Amount'],
-                            'Matched',
-                            $statementMatch['score'],
-                            $statementMatch['statement']['Date'],
-                            $statementMatch['statement']['Description'],
-                            $statementMatch['statement']['Amount'],
-                        ];
-                    } else {
-                        $arr = [
-                            '', '', '',
-                            'Matched',
-                            $statementMatch['score'],
-                            $statementMatch['statement']['Date'],
-                            $statementMatch['statement']['Description'],
-                            $statementMatch['statement']['Amount'],
-                        ];
-                    }
+            foreach ($match['statements'] as $key => $statement) {
+                foreach ($match['ledgers'] as $key => $ledger) {
+                    $arr = [
+                        $statement['statement']['Date'],
+                        $statement['statement']['Description'],
+                        $statement['statement']['Amount'],
+                        'Matched',
+                        $statement['score'],
+                        $ledger['ledger']['Date'],
+                        $ledger['ledger']['Description'],
+                        $ledger['ledger']['Amount'],
+                    ];
                     fputcsv($exportFile, $arr);
                 }
             }
@@ -472,66 +430,59 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
 
         $matchedStatementIds = [];
         $matchedLedgerIds = [];
-        $matches = [];
+
+        $matches = collect();
 
         foreach ($matched as $match) {
-            Log::info('Score: ', ['data' => $match]);
-            $percent = $match['score'];
-            $statementIndex = $this->findMatchIndex($matches, $match['statement_id']);
-            $ledgerIndex = $this->findMatchIndex($matches, $match['ledger_id']);
+            $percent = $match->score;
+            $newStatement = (new TransactionResource($this->statementRepository->findById($match->statement_id)))->toArray(request());
+            $newLedger = (new TransactionResource($this->ledgerRepository->findById($match->ledger_id)))->toArray(request());
 
-            if($statementIndex){
-                $matches[] = [
-                    'statements' => [
-                        [
-                            'statement' => (new TransactionResource($this->statementRepository->findById($match['statement_id'])))->toArray(request())
-                        ]
-                    ],
-                    'ledgers' => [
-                        ...$matches[$statementIndex]['ledgers'],
-                        [
-                            'ledger' => (new TransactionResource($this->ledgerRepository->findById($match['ledger_id'])))->toArray(request()),
-                            'score' => "{$percent}%"
-                        ]
-                    ]
-                ];
-            }else if($ledgerIndex){
-                $matches[] = [
-                    'statements' => [
-                        ...$matches[$ledgerIndex]['statements'],
-                        [
-                            'statement' => (new TransactionResource($this->statementRepository->findById($match['statement_id'])))->toArray(request()),
-                            'score' => "{$percent}%"
-                        ]
-                    ],
-                    'ledgers' => [
-                        [
-                            'ledger' => (new TransactionResource($this->ledgerRepository->findById($match['ledger_id'])))->toArray(request())
-                        ]
-                    ]
-                ];
-            }else{
-                $matches[] = [
-                    'statements' => [
-                        [
-                            'statement' => (new TransactionResource($this->statementRepository->findById($match['statement_id'])))->toArray(request()),
-                            'score' => "{$percent}%"
-                        ]
-                    ],
-                    'ledgers' => [
-                        [
-                            'ledger' => (new TransactionResource($this->ledgerRepository->findById($match['ledger_id'])))->toArray(request()),
-                            'score' => "{$percent}%"
-                        ]
-                    ]
-                ];
+            $statementGroup = $matches->firstWhere('statements.0.statement.id', $newStatement['id']);
+            $ledgerGroup = $matches->firstWhere('ledgers.0.ledger.id', $newLedger['id']);
+
+            if ($statementGroup) {
+                if (!$statementGroup['ledgers']->contains('ledger.id', $newLedger['id'])) {
+                    $statementGroup['ledgers']->push([
+                        'ledger' => $newLedger,
+                        'score' => $percent
+                    ]);
+                }
+                break;
             }
 
-            $matchedLedgerIds[] = $match['ledger_id'];
-            $matchedStatementIds[] = $match['statement_id'];
+            if ($ledgerGroup) {
+                if (!$ledgerGroup['statements']->contains('statement.id', $newStatement['id'])) {
+                    $ledgerGroup['statements']->push([
+                        'statement' => $newStatement,
+                        'score' => $percent
+                    ]);
+                }
+                break;
+            }
+
+            $matches->push([
+                'statements' => collect([
+                    [
+                        'statement' => $newStatement,
+                        'score' => $percent
+                    ]
+                ]),
+                'ledgers' => collect([
+                    [
+                        'ledger' => $newLedger,
+                        'score' => $percent
+                    ]
+                ])
+            ]);
+
+            $matchedLedgerIds[] = $match->ledger_id;
+            $matchedStatementIds[] = $match->statement_id;
         }
-        Log::info('Matched Statements', ['data' => $matchedStatementIds]);
-        Log::info('Matched Ledgers', ['data' => $matchedLedgerIds]);
+
+        //Log::info('Matched Statements', ['data' => $matchedStatementIds]);
+        //Log::info('Matched Ledgers', ['data' => $matchedLedgerIds]);
+        //Log::info('Matches', ['data' => $matches]);
 
         $unmatchedStatements = $savedStatements
             ->whereNotIn('id', $matchedStatementIds)
@@ -556,6 +507,7 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
                 'total' => count($unmatchedLedgers) + count($unmatchedStatements) + count($matches)
             ]
         ];
+;
     }
 
     public function matchUnmatch(Reconciliation $reconciliation, array $statements, array $ledgers, string $action){

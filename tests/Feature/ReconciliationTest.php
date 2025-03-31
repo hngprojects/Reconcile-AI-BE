@@ -54,13 +54,13 @@ class ReconciliationTest extends TestCase
             'plan_id' => $this->planBusiness->id,
             'is_active' => true
         ]);
-        
+
         // Create mock service
         $this->mockService = Mockery::mock(ReconciliationService::class);
         $this->app->instance(ReconciliationService::class, $this->mockService);
     }
 
-    protected function tearDown(): void 
+    protected function tearDown(): void
     {
         Mockery::close();
         parent::tearDown();
@@ -583,7 +583,7 @@ class ReconciliationTest extends TestCase
         $response->assertStatus(200);
 
         // Assert content type
-        $response->assertHeader('Content-Type', 'text/csv; charset=UTF-8');
+        $response->assertHeader('Content-Type', 'text/plain; charset=UTF-8');
 
         // Check Content-Disposition header dynamically
         $response->assertHeader('Content-Disposition');

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\BillingTransaction;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class BillingTransactionController extends Controller
 {
@@ -66,8 +67,40 @@ class BillingTransactionController extends Controller
      */
     public function history()
     {
-        $user = auth()->user();
-        $history = BillingTransaction::where('user_id', $user->id)->paginate(10);
-        return response()->json($history);
+        try {
+            $user = auth()->user();
+
+            if (!$user) {
+                return response()->json([
+                    'status_code' => 401,
+                    'message' => 'Unauthenticated.'
+                ], 401);
+            }
+
+            $history = BillingTransaction::where('user_id', $user->id)->paginate(10);
+
+            if ($history->isEmpty()) {
+                return response()->json([
+                    'status_code' => 404,
+                    'message' => 'No billing transactions found.',
+                    'data' => []
+                ], 404);
+            }
+
+            return response()->json([
+                'status_code' => 200,
+                'message' => 'Billing transactions retrieved successfully.',
+                'data' => $history
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('BillingTransaction Error:', ['error' => $e->getMessage()]);
+
+            return response()->json([
+                'status_code' => 500,
+                'message' => 'An error occurred while fetching billing transactions.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 }
