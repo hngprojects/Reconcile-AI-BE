@@ -49,7 +49,7 @@ Route::prefix('v1')->group(function () {
 
 
     Route::middleware('auth:api')->group(function () {
-        Route::post('/profile/update', [UserController::class, 'updateProfile']);
+        Route::post('/profile/update', [UserController::class, 'updateProfile'])->name('update-profile');
         Route::delete('/user', [UserController::class, 'deleteAccount'])->name('user.delete');
         // Get current payment plan
         Route::get('payment-plan', [PaymentPlanController::class, 'show'])->name('payment-plan.show');
