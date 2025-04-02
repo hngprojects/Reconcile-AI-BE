@@ -1,0 +1,50 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
+class PaymentPlan extends Model
+{
+    use HasFactory;
+
+    protected $guarded = [];
+
+    protected $casts = [
+        'start_date'    => 'datetime',
+        'expire_date'   => 'datetime',
+        'is_active'     => 'boolean'
+    ];
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function plan(): BelongsTo
+    {
+        // return $this->belongsTo(Plan::class);
+        return $this->belongsTo(Plan::class, 'plan_id', 'id');
+    }
+
+    public function isActive(): bool
+    {
+        return now()->between($this->start_date, $this->expire_date);
+    }
+
+    public function daysRemaining(): int
+    {
+        return now()->diffInDays($this->expire_date, false);
+    }
+
+    /* public function isExpired(): bool
+    {
+        return $this->expire_date < now();
+    } */
+
+    public function isExpired(): bool {
+        return now()->greaterThan($this->expire_date);
+    }
+}

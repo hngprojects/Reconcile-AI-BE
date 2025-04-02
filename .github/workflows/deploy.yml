@@ -10,14 +10,21 @@ jobs:
   deployment:
     runs-on: reconcile
     timeout-minutes: 10
+<<<<<<< HEAD
     steps:
       # - uses: actions/checkout@v4
+=======
+    if: ${{ github.event_name == 'push' }}
+
+    steps:
+>>>>>>> 6ad9c69c36498c12ca59168b25484bf77bdaaf61
       - name: Deploy to the server
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.SSH_SERVER }}
           username: ${{ secrets.SSH_USERNAME }}
           password: ${{ secrets.SSH_PASSWORD }}
+<<<<<<< HEAD
           # port: 22
           script: |
             if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
@@ -43,4 +50,36 @@ jobs:
               # Start the deployment service (using explicit sudo with NOPASSWD permission)
               sudo systemctl daemon-reload
               sudo systemctl restart laravel-deploy.service
+=======
+          script: |
+            if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+              echo "🚀 Deploying to PRODUCTION..."
+              # cd /var/www/html/BE-main
+              #  echo "🚀 Starting Main Processor..."
+              bash /usr/local/bin/main.sh
+              echo "✅  Processor started successfully."
+              
+              echo "✅ Production deployment complete."
+
+            elif [[ "${{ github.ref }}" == "refs/heads/dev" ]]; then
+              echo "🚀 Deploying to STAGING..."
+              cd /var/www/html/staging
+              
+              echo "🚀 Starting Processor..."
+              bash /usr/local/bin/staging_be_processor.sh
+              echo "✅ Staging Processor started successfully."
+
+            elif [[ "${{ github.ref }}" == "refs/heads/staging" ]]; then
+              echo "🚀 Deploying to STAGING (For-Testing)..."
+              cd /var/www/html/staging-new
+              
+              echo "🚀 Starting New Staging Processor..."
+
+              bash /usr/local/bin/stagingnew_be_processor.sh
+              echo "✅ New Staging Processor started successfully."
+
+            else
+              echo "❌ Unknown branch: ${{ github.ref }}. Exiting..."
+              exit 1
+>>>>>>> 6ad9c69c36498c12ca59168b25484bf77bdaaf61
             fi

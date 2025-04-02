@@ -113,4 +113,6 @@ return [
         'name' => env('MAIL_FROM_NAME', 'Example'),
     ],
 
+    'admin_address' => env('ADMIN_EMAIL', 'admin@reconxi.com'),
+
 ];
