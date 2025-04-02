@@ -5,7 +5,11 @@
         "This file is @generated automatically"
     ],
 <<<<<<< HEAD
+<<<<<<< HEAD
     "content-hash": "29c2eb72571553d58bfa2a44163aeb06",
+=======
+    "content-hash": "34cb0405e6985af40d84ca7f13922527",
+>>>>>>> 6ad9c69c36498c12ca59168b25484bf77bdaaf61
 =======
     "content-hash": "34cb0405e6985af40d84ca7f13922527",
 >>>>>>> 6ad9c69c36498c12ca59168b25484bf77bdaaf61
@@ -3872,7 +3876,10 @@
         },
         {
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> 6ad9c69c36498c12ca59168b25484bf77bdaaf61
             "name": "openai-php/client",
             "version": "v0.10.3",
             "source": {
@@ -4138,6 +4145,9 @@
             "time": "2025-02-15T23:27:08+00:00"
         },
         {
+<<<<<<< HEAD
+>>>>>>> 6ad9c69c36498c12ca59168b25484bf77bdaaf61
+=======
 >>>>>>> 6ad9c69c36498c12ca59168b25484bf77bdaaf61
             "name": "php-http/discovery",
             "version": "1.20.0",
@@ -4219,7 +4229,10 @@
         },
         {
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> 6ad9c69c36498c12ca59168b25484bf77bdaaf61
             "name": "php-http/multipart-stream-builder",
             "version": "1.4.2",
             "source": {
@@ -4276,6 +4289,9 @@
             "time": "2024-09-04T13:22:54+00:00"
         },
         {
+<<<<<<< HEAD
+>>>>>>> 6ad9c69c36498c12ca59168b25484bf77bdaaf61
+=======
 >>>>>>> 6ad9c69c36498c12ca59168b25484bf77bdaaf61
             "name": "phpoffice/phpspreadsheet",
             "version": "1.29.10",

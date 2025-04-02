@@ -3,7 +3,11 @@ name: CI Testing
 on:
   pull_request:
 <<<<<<< HEAD
+<<<<<<< HEAD
     branches: [main, dev, staging] # Runs for same-repo PRs
+=======
+    branches: [main, dev] # Runs for same-repo PRs
+>>>>>>> 6ad9c69c36498c12ca59168b25484bf77bdaaf61
 =======
     branches: [main, dev] # Runs for same-repo PRs
 >>>>>>> 6ad9c69c36498c12ca59168b25484bf77bdaaf61
@@ -15,6 +19,7 @@ on:
 
 jobs:
   test:
+<<<<<<< HEAD
 <<<<<<< HEAD
     # runs-on: ubuntu-latest
     runs-on: ubuntu-latest
@@ -38,10 +43,15 @@ jobs:
     runs-on: reconcile
     timeout-minutes: 10
 >>>>>>> 6ad9c69c36498c12ca59168b25484bf77bdaaf61
+=======
+    runs-on: reconcile
+    timeout-minutes: 10
+>>>>>>> 6ad9c69c36498c12ca59168b25484bf77bdaaf61
 
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
+<<<<<<< HEAD
 <<<<<<< HEAD
         with:
           ref: ${{ github.event.pull_request.head.sha }} # Checkout the fork's branch
@@ -49,6 +59,8 @@ jobs:
 
       - name: Set up PHP
         uses: shivammathur/setup-php@v2
+=======
+>>>>>>> 6ad9c69c36498c12ca59168b25484bf77bdaaf61
 =======
 >>>>>>> 6ad9c69c36498c12ca59168b25484bf77bdaaf61
         with:

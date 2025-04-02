@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
@@ -13,6 +14,8 @@ class ReconciliationTest extends TestCase
 
     use WithFaker;
 =======
+=======
+>>>>>>> 6ad9c69c36498c12ca59168b25484bf77bdaaf61
 use App\Models\User;
 use App\Models\ReconciledRecord;
 use App\Models\Reconciliation;
@@ -39,11 +42,15 @@ class ReconciliationTest extends TestCase
     protected Plan $planStarter;
     protected Plan $planBusiness;
     protected ReconciliationService $mockService;
+<<<<<<< HEAD
+>>>>>>> 6ad9c69c36498c12ca59168b25484bf77bdaaf61
+=======
 >>>>>>> 6ad9c69c36498c12ca59168b25484bf77bdaaf61
 
     protected function setUp(): void
     {
         parent::setUp();
+<<<<<<< HEAD
 <<<<<<< HEAD
         $this->faker = \Faker\Factory::create(); // Initialize Faker manually
     }
@@ -149,6 +156,8 @@ class ReconciliationTest extends TestCase
                         ],
                  ]]);
 =======
+=======
+>>>>>>> 6ad9c69c36498c12ca59168b25484bf77bdaaf61
 
         // Speed up tests by not running event listeners
         Event::fake();
@@ -895,6 +904,9 @@ class ReconciliationTest extends TestCase
                 ]
             ]
         ]);
+<<<<<<< HEAD
+>>>>>>> 6ad9c69c36498c12ca59168b25484bf77bdaaf61
+=======
 >>>>>>> 6ad9c69c36498c12ca59168b25484bf77bdaaf61
     }
 }

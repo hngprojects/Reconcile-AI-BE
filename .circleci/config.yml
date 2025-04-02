@@ -1,4 +1,5 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 version: 2.1
 
 executors:
@@ -58,6 +59,8 @@ workflows:
                 - dev
                 - main
 =======
+=======
+>>>>>>> 6ad9c69c36498c12ca59168b25484bf77bdaaf61
 # version: 2.1
 # executors:
 #   php-executor:
@@ -115,4 +118,7 @@ workflows:
 #               only:
 #                 - dev
 #                 - main
+<<<<<<< HEAD
+>>>>>>> 6ad9c69c36498c12ca59168b25484bf77bdaaf61
+=======
 >>>>>>> 6ad9c69c36498c12ca59168b25484bf77bdaaf61

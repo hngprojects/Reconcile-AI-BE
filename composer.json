@@ -11,6 +11,11 @@
         "darkaonline/l5-swagger": "^9.0",
         "google-gemini-php/laravel": "^1.0",
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+        "guzzlehttp/guzzle": "^7.9",
+        "hnhdigital-os/laravel-number-converter": "^1.7",
+>>>>>>> 6ad9c69c36498c12ca59168b25484bf77bdaaf61
 =======
         "guzzlehttp/guzzle": "^7.9",
         "hnhdigital-os/laravel-number-converter": "^1.7",

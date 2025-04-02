@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\JsonResponse;
 <<<<<<< HEAD
+<<<<<<< HEAD
 use GuzzleHttp\Client;
 use Illuminate\Validation\ValidationException;
 
@@ -97,6 +98,20 @@ use Illuminate\Validation\ValidationException;
  *             )
  *         )
  *     )
+=======
+use App\Models\ReconciledRecord;
+use Illuminate\Support\Facades\Auth;
+use App\Models\Reconciliation;
+use App\Http\Requests\ManualReconciliationRequest;
+use App\Jobs\ProcessReconciliation;
+use App\Jobs\ProcessRecoxReconciliation;
+use Illuminate\Support\Facades\Log;
+
+/**
+ * @OA\Tag(
+ *     name="Reconciliation",
+ *     description="API Endpoints for file reconciliation"
+>>>>>>> 6ad9c69c36498c12ca59168b25484bf77bdaaf61
 =======
 use App\Models\ReconciledRecord;
 use Illuminate\Support\Facades\Auth;
@@ -221,6 +236,9 @@ class ReconciliationController extends Controller
         try {
             $file1Path = $request->file('file1')->store('uploads');
             $file2Path = $request->file('file2')->store('uploads');
+<<<<<<< HEAD
+>>>>>>> 6ad9c69c36498c12ca59168b25484bf77bdaaf61
+=======
 >>>>>>> 6ad9c69c36498c12ca59168b25484bf77bdaaf61
 
             try {
@@ -239,6 +257,7 @@ class ReconciliationController extends Controller
 
                 Storage::delete([$file1Path, $file2Path]);
 
+<<<<<<< HEAD
 <<<<<<< HEAD
                 return response()->json(
                     [
@@ -273,6 +292,17 @@ class ReconciliationController extends Controller
                 default => $this->reconciliationService->reconcileWithGemini($file1FullPath, $file2FullPath),
             };
 
+=======
+            $reconcileOption = $request->input('reconcile_option', 'reconcile_with_Gemini');
+
+            $result = match ($reconcileOption) {
+                'reconcile_with_recox_ai' => $this->reconciliationService->reconcileWithRecox($file1FullPath, $file2FullPath),
+                'reconcile_with_openAI' => $this->reconciliationService->reconcileWithOpenAI($file1FullPath, $file2FullPath),
+                'reconcile_with_deepSeek' => $this->reconciliationService->reconcileWithDeepSeek($file1FullPath, $file2FullPath),
+                default => $this->reconciliationService->reconcileWithGemini($file1FullPath, $file2FullPath),
+            };
+
+>>>>>>> 6ad9c69c36498c12ca59168b25484bf77bdaaf61
             $reconciliation = $this->reconciliationService->store([
                 'user' => Auth::id(),
                 'statement' => $file1FullPath,

@@ -2,6 +2,7 @@
 namespace App\Services;
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 use Gemini\Laravel\Facades\Gemini;
 use Gemini\Types\Blob;
 use Gemini\Types\MimeType;
@@ -62,6 +63,43 @@ class ReconciliationService
         MatchingTransactionRepository $matchedRepository
     )
     {
+=======
+use Maatwebsite\Excel\Facades\Excel;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
+use OpenAI;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Response;
+use App\Repositories\Reconciliation\ReconciliationRepository;
+use App\Repositories\UserFile\UserFileRepository;
+use App\Repositories\Ledger\LedgerRepository;
+use App\Repositories\Statement\StatementRepository;
+use App\Repositories\MatchingTransaction\MatchingTransactionRepository;
+use App\Models\Reconciliation;
+use App\Models\Statement;
+use App\Http\Resources\TransactionResource;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
+use Gemini\Laravel\Facades\Gemini;
+use Illuminate\Support\Collection;
+
+class ReconciliationService
+{
+    protected ReconciliationRepository $mainRepository;
+    protected UserFileRepository $fileRepository;
+    protected LedgerRepository $ledgerRepository;
+    protected StatementRepository $statementRepository;
+    protected MatchingTransactionRepository $matchedRepository;
+
+    public function __construct(
+        ReconciliationRepository $mainRepository,
+        UserFileRepository $fileRepository,
+        LedgerRepository $ledgerRepository,
+        StatementRepository $statementRepository,
+        MatchingTransactionRepository $matchedRepository
+    )
+    {
+>>>>>>> 6ad9c69c36498c12ca59168b25484bf77bdaaf61
         $this->mainRepository = $mainRepository;
         $this->fileRepository = $fileRepository;
         $this->ledgerRepository = $ledgerRepository;
@@ -133,6 +171,8 @@ class ReconciliationService
     }
 
     protected function loadAndNormalizeFile(string $filePath, string $fileType): array
+<<<<<<< HEAD
+=======
     {
         $rawData = $this->loadCsv($filePath);
         $normalized = [];
@@ -163,6 +203,148 @@ class ReconciliationService
         return $normalized;
     }
 
+    protected function isExactMatch(array $bankEntry, array $ledgerEntry): bool
+    {
+        return $bankEntry['amount'] === $ledgerEntry['amount'] &&
+            strtolower($bankEntry['description']) === strtolower($ledgerEntry['description']);
+    }
+
+    protected function calculateFuzzyMatchScore(array $bankEntry, array $ledgerEntry): float
+    {
+        $amountDiff = abs($bankEntry['amount'] - $ledgerEntry['amount']);
+        $amountScore = $amountDiff <= 0.5 ? (1 - $amountDiff / 0.5) * 50 : 0;
+
+        similar_text(strtolower($bankEntry['description']), strtolower($ledgerEntry['description']), $descPercent);
+        $descScore = $descPercent >= 75 ? $descPercent / 2 : 0;
+
+        return $amountScore + $descScore;
+    }
+
+    protected function detectColumns(array $headers, array $headerMapping): array
+    {
+        $mappedHeaders = [];
+
+        foreach ($headerMapping as $standardField => $possibleHeaders) {
+            foreach ($possibleHeaders as $expected) {
+                foreach ($headers as $header) {
+                    if (stripos($header, $expected) !== false) {
+                        $mappedHeaders[$standardField] = $header;
+                        break 2;
+                    }
+                }
+            }
+        }
+
+        return [
+            'date' => $mappedHeaders['date'] ?? null,
+            'description' => $mappedHeaders['description'] ?? null,
+            'amount' => $mappedHeaders['amount'] ?? null,
+        ];
+    }
+
+    protected function findBestColumn(array $headers, array $expectedNames)
+    {
+        foreach ($expectedNames as $expected) {
+            foreach ($headers as $header) {
+                if (stripos($header, $expected) !== false) {
+                    return $header;
+                }
+            }
+        }
+        return null;
+    }
+
+    protected function extractNameFromDescription(string $description): string
+    {
+        if (preg_match('/[A-Z][a-z]+\s[A-Z][a-z]+/', $description, $matches)) {
+            return trim($matches[0]);
+        }
+        return $description;
+    }
+
+    protected function normalizeName(string $name): string
+    {
+        $name = strtolower(trim(str_replace(',', '', $name)));
+
+        $parts = explode(' ', $name);
+        if (count($parts) > 1) {
+            return implode(' ', array_reverse($parts));
+        }
+        return $name;
+    }
+
+    protected function calculateNameSimilarity($name1, $name2)
+    {
+        $name1 = $this->normalizeName($name1);
+        $name2 = $this->normalizeName($name2);
+
+        if (str_contains($name1, $name2) || str_contains($name2, $name1)) {
+            return 100;
+        }
+
+        if ($name1 === implode(' ', array_reverse(explode(' ', $name2)))) {
+            return 95;
+        }
+
+        similar_text($name1, $name2, $percent);
+        return ($percent >= 75) ? $percent : 0;
+    }
+
+    protected function amountsAreClose($amount1, $amount2, $tolerance = 500)
+    {
+        return abs($amount1 - $amount2) <= $tolerance;
+    }
+
+    protected function datesAreClose($date1, $date2, $tolerance = 2)
+    {
+        if (!$date1 || !$date2) {
+            return false;
+        }
+        $date1 = strtotime($date1);
+        $date2 = strtotime($date2);
+        return abs($date1 - $date2) <= ($tolerance * 86400);
+    }
+
+    protected function loadFile(string $filePath): array
+>>>>>>> 6ad9c69c36498c12ca59168b25484bf77bdaaf61
+    {
+        $rawData = $this->loadCsv($filePath);
+        $normalized = [];
+
+<<<<<<< HEAD
+        $headerMapping = [
+            'date' => ['date', 'transaction date', 'payment date', 'completed date', 'Date'],
+            'description' => ['description', 'details', 'remark', 'name', 'transaction description'],
+            'amount' => ['amount', 'transaction amount', 'total', 'cashflow', 'inflow', 'credit', 'debit', 'Credit (Inflow)', 'Debit (Outflow)']
+        ];
+
+        $headers = array_keys($rawData[0]);
+        $mappedHeaders = $this->detectColumns($headers, $headerMapping);
+
+        foreach ($rawData as $row) {
+            $amount = 0;
+
+            if (isset($row[$mappedHeaders['amount']])) {
+                $amount = floatval($row[$mappedHeaders['amount']]);
+            }
+
+            $normalized[] = [
+                'date' => isset($row[$mappedHeaders['date']]) ? $row[$mappedHeaders['date']] : null,
+                'description' => isset($row[$mappedHeaders['description']]) ? trim($row[$mappedHeaders['description']]) : null,
+                'amount' => $amount,
+            ];
+=======
+        if ($extension === 'csv') {
+            return $this->loadCsv($filePath);
+        } elseif (in_array($extension, ['xls', 'xlsx'])) {
+            return $this->loadExcel($filePath);
+>>>>>>> 6ad9c69c36498c12ca59168b25484bf77bdaaf61
+        }
+
+        return $normalized;
+    }
+
+<<<<<<< HEAD
     protected function isExactMatch(array $bankEntry, array $ledgerEntry): bool
     {
         return $bankEntry['amount'] === $ledgerEntry['amount'] &&
@@ -348,6 +530,8 @@ class ReconciliationService
 <<<<<<< HEAD
 =======
 
+=======
+>>>>>>> 6ad9c69c36498c12ca59168b25484bf77bdaaf61
     protected function loadCsv(string $filePath): array
     {
         $data = [];
@@ -818,5 +1002,8 @@ class ReconciliationService
             ]
         ];
     }
+<<<<<<< HEAD
+>>>>>>> 6ad9c69c36498c12ca59168b25484bf77bdaaf61
+=======
 >>>>>>> 6ad9c69c36498c12ca59168b25484bf77bdaaf61
 }

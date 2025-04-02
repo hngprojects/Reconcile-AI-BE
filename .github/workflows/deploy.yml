@@ -11,8 +11,14 @@ jobs:
     runs-on: reconcile
     timeout-minutes: 10
 <<<<<<< HEAD
+<<<<<<< HEAD
     steps:
       # - uses: actions/checkout@v4
+=======
+    if: ${{ github.event_name == 'push' }}
+
+    steps:
+>>>>>>> 6ad9c69c36498c12ca59168b25484bf77bdaaf61
 =======
     if: ${{ github.event_name == 'push' }}
 
@@ -24,6 +30,7 @@ jobs:
           host: ${{ secrets.SSH_SERVER }}
           username: ${{ secrets.SSH_USERNAME }}
           password: ${{ secrets.SSH_PASSWORD }}
+<<<<<<< HEAD
 <<<<<<< HEAD
           # port: 22
           script: |
@@ -53,6 +60,10 @@ jobs:
 =======
           script: |
             if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+=======
+          script: |
+            if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+>>>>>>> 6ad9c69c36498c12ca59168b25484bf77bdaaf61
               echo "🚀 Deploying to PRODUCTION..."
               # cd /var/www/html/BE-main
               #  echo "🚀 Starting Main Processor..."
@@ -81,5 +92,8 @@ jobs:
             else
               echo "❌ Unknown branch: ${{ github.ref }}. Exiting..."
               exit 1
+<<<<<<< HEAD
+>>>>>>> 6ad9c69c36498c12ca59168b25484bf77bdaaf61
+=======
 >>>>>>> 6ad9c69c36498c12ca59168b25484bf77bdaaf61
             fi
