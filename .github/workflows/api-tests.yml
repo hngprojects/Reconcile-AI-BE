@@ -1,0 +1,154 @@
+# name: API Test Automation
+
+# on:
+#   push:
+#     branches: [ main, develop ]
+#   pull_request:
+#     branches: [ main, develop ]
+# #   schedule:
+# #     - cron: '0 0 * * 1'
+
+# jobs:
+#   api-tests:
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: Checkout repository
+#         uses: actions/checkout@v4
+      
+#       - name: Setup Node.js
+#         uses: actions/setup-node@v4
+#         with:
+#           node-version: '20'
+      
+#       - name: Install Newman and Newman Reporter HTML
+#         run: |
+#           npm install -g newman
+#           npm install -g newman-reporter-htmlextra
+      
+#       - name: Run API Tests with Newman
+#         run: |
+#           newman run ./postman/collections/api-test-collection.json \
+#             -e ./postman/environments/test-environment.json \
+#             --reporters cli,htmlextra,junit \
+#             --reporter-htmlextra-export ./newman/reports/htmlreport.html \
+#             --reporter-junit-export ./newman/reports/junitreport.xml
+      
+#       - name: Check Test Results
+#         run: |
+#           if [ -f ./newman/reports/junitreport.xml ]; then
+#             echo "Test execution completed"
+#             # Optional: Add additional result parsing here
+#           else
+#             echo "Test execution failed"
+#             exit 1
+#           fi
+      
+#       - name: Upload Test Reports
+#         uses: actions/upload-artifact@v4
+#         # reports will be updated even if tests fail
+#         if: always()
+#         with:
+#           name: newman-test-reports
+#           path: ./newman/reports/
+#           retention-days: 7
+
+name: API Test Automation
+
+on:
+  push:
+    branches: [ staging, dev ]
+  pull_request:
+    branches: [ main, dev ]
+#   schedule:
+#     - cron: '0 0 * * 1' # Run every Monday at midnight
+
+jobs:
+  api-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      
+      - name: Install Newman and Newman Reporter HTML
+        run: |
+          npm install -g newman newman-reporter-json newman-reporter-html newman-reporter-htmlextra
+      
+      - name: Create Log Directory
+        run: mkdir -p ./newman/logs
+      
+      - name: Run API Tests with Newman
+        run: |
+          # Run Newman with JSON reporter for parsing results
+          newman run ./postman/collections/api-test-collection.json \
+            -e ./postman/environments/test-environment.json \
+            --reporters cli,htmlextra,junit,json \
+            --reporter-htmlextra-export ./newman/reports/htmlreport.html \
+            --reporter-junit-export ./newman/reports/junitreport.xml \
+            --reporter-json-export ./newman/reports/jsonreport.json
+          
+          # Create a timestamp for the log
+          echo "API Test Execution - $(date)" > ./newman/logs/api_logs.txt
+          echo "=================================================" >> ./newman/logs/api_logs.txt
+          
+          # Parse JSON report to create the log file
+          node -e '
+            const fs = require("fs");
+            const jsonReport = JSON.parse(fs.readFileSync("./newman/reports/jsonreport.json", "utf8"));
+            
+            const logStream = fs.createWriteStream("./newman/logs/api_logs.txt", {flags: "a"});
+            
+            logStream.write(`Collection: ${jsonReport.collection.info.name}\n`);
+            logStream.write(`Total Requests: ${jsonReport.run.stats.requests.total}\n`);
+            logStream.write(`Total Tests: ${jsonReport.run.stats.assertions.total}\n`);
+            logStream.write(`Passed Tests: ${jsonReport.run.stats.assertions.total - jsonReport.run.stats.assertions.failed}\n`);
+            logStream.write(`Failed Tests: ${jsonReport.run.stats.assertions.failed}\n\n`);
+            
+            logStream.write("DETAILED TEST RESULTS\n");
+            logStream.write("===================\n\n");
+            
+            jsonReport.run.executions.forEach((execution) => {
+              logStream.write(`[REQUEST] ${execution.item.name}\n`);
+              
+              execution.assertions.forEach((assertion) => {
+                const status = assertion.error ? "❌ FAILED" : "✅ PASSED";
+                logStream.write(`  ${status} - ${assertion.assertion}\n`);
+                
+                if(assertion.error) {
+                  logStream.write(`    Error: ${assertion.error.message}\n`);
+                  logStream.write(`    Expected: ${assertion.error.expected}\n`);
+                  logStream.write(`    Actual: ${assertion.error.actual}\n`);
+                }
+              });
+              
+              logStream.write("\n");
+            });
+            
+            logStream.write("END OF TEST LOG\n");
+            logStream.end();
+            console.log("Log file created successfully");
+          '
+      
+      - name: Check Test Results
+        run: |
+          if [ -f ./newman/reports/junitreport.xml ]; then
+            echo "Test execution completed"
+            cat ./newman/logs/api_logs.txt
+          else
+            echo "Test execution failed"
+            exit 1
+          fi
+      
+      - name: Upload Test Reports and Logs
+        uses: actions/upload-artifact@v3
+        if: always() # Upload reports even if tests fail
+        with:
+          name: newman-test-reports
+          path: |
+            ./newman/reports/
+            ./newman/logs/
+          retention-days: 7

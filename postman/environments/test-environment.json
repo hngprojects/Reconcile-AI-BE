@@ -1,0 +1,49 @@
+{
+    "id": "test-environment",
+    "name": "Test Environment",
+    "values": [
+      {
+        "key": "baseUrl",
+        "value": "https://api.example.com/v1",
+        "type": "default",
+        "enabled": true
+      },
+      {
+        "key": "authToken",
+        "value": "",
+        "type": "default",
+        "enabled": true
+      },
+      {
+        "key": "validUserId",
+        "value": "12345",
+        "type": "default",
+        "enabled": true
+      },
+      {
+        "key": "invalidUserId",
+        "value": "999999",
+        "type": "default",
+        "enabled": true
+      },
+      {
+        "key": "createdProductId",
+        "value": "",
+        "type": "default",
+        "enabled": true
+      },
+      {
+        "key": "testUsername",
+        "value": "testuser@example.com",
+        "type": "default",
+        "enabled": true
+      },
+      {
+        "key": "testPassword",
+        "value": "Password123!",
+        "type": "default",
+        "enabled": true
+      }
+    ],
+    "_postman_variable_scope": "environment"
+  }

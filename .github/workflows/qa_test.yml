@@ -1,0 +1,52 @@
+name: API Test Automation
+
+on:
+  push:
+    branches: [ main, staging ]
+  pull_request:
+    branches: [ main, staging ]
+#   schedule:
+#     - cron: '0 0 * * 1' # Run every Monday at midnight
+
+jobs:
+  api-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      
+      - name: Install Newman and Newman Reporter HTML
+        run: |
+          npm install -g newman
+          npm install -g newman-reporter-html newman-reporter-htmlextra
+      
+      - name: Run API Tests with Newman
+        run: |
+          newman run ./postman/collections/api-test-collection.json --parallel 4 \
+            -e ./postman/environments/test-environment.json \
+            --reporters cli,htmlextra,junit \
+            --reporter-htmlextra-export ./newman/reports/htmlreport.html \
+            --reporter-junit-export ./newman/reports/junitreport.xml
+      
+      - name: Check Test Results
+        run: |
+          if [ -f ./newman/reports/junitreport.xml ]; then
+            echo "Test execution completed"
+            # Optional: Add additional result parsing here
+          else
+            echo "Test execution failed"
+            exit 1
+          fi
+      
+      - name: Upload Test Reports
+        uses: actions/upload-artifact@v4
+        if: always() # Upload reports even if tests fail
+        with:
+          name: newman-test-reports
+          path: ./newman/reports/
+          retention-days: 7

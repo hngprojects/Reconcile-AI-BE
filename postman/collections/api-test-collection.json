@@ -1,0 +1,340 @@
+{
+    "info": {
+      "name": "API Test Collection",
+      "description": "Comprehensive API tests for all product features",
+      "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+      {
+        "name": "User Management",
+        "item": [
+          {
+            "name": "Get User (Positive)",
+            "event": [
+              {
+                "listen": "prerequest",
+                "script": {
+                  "exec": [
+                    "// Set up test data",
+                    "pm.variables.set('validUserId', '12345');",
+                    "console.log('Preparing to test Get User with valid ID: ' + pm.variables.get('validUserId'));"
+                  ],
+                  "type": "text/javascript"
+                }
+              },
+              {
+                "listen": "test",
+                "script": {
+                  "exec": [
+                    "// Validate response status code",
+                    "pm.test(\"Status code is 200\", function () {",
+                    "    pm.response.to.have.status(200);",
+                    "});",
+                    "",
+                    "// Validate response format",
+                    "pm.test(\"Response is in JSON format\", function () {",
+                    "    pm.response.to.be.json;",
+                    "});",
+                    "",
+                    "// Validate response content",
+                    "pm.test(\"User data is valid\", function () {",
+                    "    var jsonData = pm.response.json();",
+                    "    pm.expect(jsonData).to.have.property('id');",
+                    "    pm.expect(jsonData).to.have.property('username');",
+                    "    pm.expect(jsonData).to.have.property('email');",
+                    "    pm.expect(jsonData.id).to.eql(pm.variables.get('validUserId'));",
+                    "});",
+                    "",
+                    "// Response time validation",
+                    "pm.test(\"Response time is acceptable\", function () {",
+                    "    pm.expect(pm.response.responseTime).to.be.below(500);",
+                    "});"
+                  ],
+                  "type": "text/javascript"
+                }
+              }
+            ],
+            "request": {
+              "method": "GET",
+              "url": "{{baseUrl}}/users/{{validUserId}}",
+              "header": [
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{authToken}}",
+                  "type": "text"
+                }
+              ]
+            }
+          },
+          {
+            "name": "Get User (Negative - Not Found)",
+            "event": [
+              {
+                "listen": "prerequest",
+                "script": {
+                  "exec": [
+                    "// Set up invalid test data",
+                    "pm.variables.set('invalidUserId', '999999');",
+                    "console.log('Preparing to test Get User with invalid ID: ' + pm.variables.get('invalidUserId'));"
+                  ],
+                  "type": "text/javascript"
+                }
+              },
+              {
+                "listen": "test",
+                "script": {
+                  "exec": [
+                    "// Validate response status code for not found",
+                    "pm.test(\"Status code is 404\", function () {",
+                    "    pm.response.to.have.status(404);",
+                    "});",
+                    "",
+                    "// Validate error message",
+                    "pm.test(\"Error message is correct\", function () {",
+                    "    var jsonData = pm.response.json();",
+                    "    pm.expect(jsonData).to.have.property('error');",
+                    "    pm.expect(jsonData.error).to.include('not found');",
+                    "});"
+                  ],
+                  "type": "text/javascript"
+                }
+              }
+            ],
+            "request": {
+              "method": "GET",
+              "url": "{{baseUrl}}/users/{{invalidUserId}}",
+              "header": [
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{authToken}}",
+                  "type": "text"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "name": "Product Features",
+        "item": [
+          {
+            "name": "Create Product (Positive)",
+            "event": [
+              {
+                "listen": "prerequest",
+                "script": {
+                  "exec": [
+                    "// Generate unique test data",
+                    "const uuid = require('uuid');",
+                    "const productId = uuid.v4();",
+                    "pm.variables.set('productName', 'Test Product ' + productId);",
+                    "pm.variables.set('productPrice', 99.99);",
+                    "",
+                    "console.log('Preparing test data for product creation: ' + pm.variables.get('productName'));"
+                  ],
+                  "type": "text/javascript"
+                }
+              },
+              {
+                "listen": "test",
+                "script": {
+                  "exec": [
+                    "// Validate response status code",
+                    "pm.test(\"Status code is 201\", function () {",
+                    "    pm.response.to.have.status(201);",
+                    "});",
+                    "",
+                    "// Validate response format",
+                    "pm.test(\"Response is in JSON format\", function () {",
+                    "    pm.response.to.be.json;",
+                    "});",
+                    "",
+                    "// Validate product creation",
+                    "pm.test(\"Product was created successfully\", function () {",
+                    "    var jsonData = pm.response.json();",
+                    "    pm.expect(jsonData).to.have.property('id');",
+                    "    pm.expect(jsonData).to.have.property('name', pm.variables.get('productName'));",
+                    "    pm.expect(jsonData).to.have.property('price', pm.variables.get('productPrice'));",
+                    "    ",
+                    "    // Store product ID for future tests",
+                    "    pm.environment.set('createdProductId', jsonData.id);",
+                    "});"
+                  ],
+                  "type": "text/javascript"
+                }
+              }
+            ],
+            "request": {
+              "method": "POST",
+              "url": "{{baseUrl}}/products",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{authToken}}",
+                  "type": "text"
+                }
+              ],
+              "body": {
+                "mode": "raw",
+                "raw": "{\n    \"name\": \"{{productName}}\",\n    \"price\": {{productPrice}},\n    \"description\": \"This is a test product created during automated API testing\"\n}"
+              }
+            }
+          },
+          {
+            "name": "Create Product (Negative - Validation Error)",
+            "event": [
+              {
+                "listen": "test",
+                "script": {
+                  "exec": [
+                    "// Validate response status code",
+                    "pm.test(\"Status code is 400\", function () {",
+                    "    pm.response.to.have.status(400);",
+                    "});",
+                    "",
+                    "// Validate error message",
+                    "pm.test(\"Validation error message is correct\", function () {",
+                    "    var jsonData = pm.response.json();",
+                    "    pm.expect(jsonData).to.have.property('errors');",
+                    "    pm.expect(jsonData.errors).to.be.an('array').that.is.not.empty;",
+                    "    pm.expect(jsonData.errors[0]).to.include.any.keys('field', 'message');",
+                    "});"
+                  ],
+                  "type": "text/javascript"
+                }
+              }
+            ],
+            "request": {
+              "method": "POST",
+              "url": "{{baseUrl}}/products",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{authToken}}",
+                  "type": "text"
+                }
+              ],
+              "body": {
+                "mode": "raw",
+                "raw": "{\n    \"name\": \"\",\n    \"price\": -10,\n    \"description\": \"Invalid product with empty name and negative price\"\n}"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "name": "Authentication",
+        "item": [
+          {
+            "name": "Login (Positive)",
+            "event": [
+              {
+                "listen": "prerequest",
+                "script": {
+                  "exec": [
+                    "// Set up test credentials",
+                    "pm.variables.set('testUsername', 'testuser@example.com');",
+                    "pm.variables.set('testPassword', 'Password123!');",
+                    "",
+                    "console.log('Preparing to test login with: ' + pm.variables.get('testUsername'));"
+                  ],
+                  "type": "text/javascript"
+                }
+              },
+              {
+                "listen": "test",
+                "script": {
+                  "exec": [
+                    "// Validate response status code",
+                    "pm.test(\"Status code is 200\", function () {",
+                    "    pm.response.to.have.status(200);",
+                    "});",
+                    "",
+                    "// Validate token in response",
+                    "pm.test(\"Authentication token received\", function () {",
+                    "    var jsonData = pm.response.json();",
+                    "    pm.expect(jsonData).to.have.property('token');",
+                    "    pm.expect(jsonData.token).to.be.a('string').and.to.have.lengthOf.above(10);",
+                    "    ",
+                    "    // Store token for subsequent requests",
+                    "    pm.environment.set('authToken', jsonData.token);",
+                    "});"
+                  ],
+                  "type": "text/javascript"
+                }
+              }
+            ],
+            "request": {
+              "method": "POST",
+              "url": "{{baseUrl}}/auth/login",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                }
+              ],
+              "body": {
+                "mode": "raw",
+                "raw": "{\n    \"username\": \"{{testUsername}}\",\n    \"password\": \"{{testPassword}}\"\n}"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "event": [
+      {
+        "listen": "prerequest",
+        "script": {
+          "exec": [
+            "// Collection-wide pre-request script",
+            "console.log('Starting test execution at: ' + new Date().toISOString());",
+            "",
+            "// Set up global variables if not already set",
+            "if (!pm.environment.get('baseUrl')) {",
+            "    console.warn('baseUrl environment variable not set, using default');",
+            "    pm.environment.set('baseUrl', 'https://api.example.com/v1');",
+            "}"
+          ],
+          "type": "text/javascript"
+        }
+      },
+      {
+        "listen": "test",
+        "script": {
+          "exec": [
+            "// Collection-wide test script",
+            "console.log('Request completed at: ' + new Date().toISOString());",
+            "",
+            "// Common response time validation",
+            "pm.test(\"Response received in a timely manner\", function() {",
+            "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+            "});",
+            "",
+            "// Common header validation",
+            "pm.test(\"Content-Type header is present\", function () {",
+            "    pm.response.to.have.header('Content-Type');",
+            "});"
+          ],
+          "type": "text/javascript"
+        }
+      }
+    ],
+    "variable": [
+      {
+        "key": "baseUrl",
+        "value": "https://api.example.com/v1"
+      }
+    ]
+  }
