@@ -64,10 +64,12 @@ jobs:
 
               // Get GitHub user from environment variable or default to current user
               const githubUser = process.env.GITHUB_ACTOR || "hendrixxD";
-              const qaName = "LENGE DANDUNG JOSHUA";
+              const qaName1 = "LENGE DANDUNG JOSHUA";
+              const qaName2 = "MAUREEN GBEFA";
               
               logStream.write(`Github User: ${githubUser}\n\n`);
-              logStream.write(`QA: ${qaName}\n\n`);
+              logStream.write(`QA: ${qaName1}\n\n`);
+              logStream.write(`QA: ${qaName2}\n\n`);
               logStream.write(`Collection: ${jsonReport.collection.info.name}\n`);
               logStream.write(`Total Requests: ${jsonReport.run.stats.requests.total}\n`);
               logStream.write(`Total Tests: ${jsonReport.run.stats.assertions.total}\n`);
