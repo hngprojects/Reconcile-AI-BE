@@ -49,7 +49,9 @@ jobs:
           echo "::set-output name=newman_exit_code::$?"
           
           # Create a timestamp for the log
-          echo "API Test Execution - $(date)" > ./public/newman/logs/api_logs.txt
+          current_time=$(date)
+          adjusted_time=$(date -d "$current_time 1 hour")
+          echo "API Test Execution - $adjusted_time" > ./public/newman/logs/api_logs.txt
           echo "=================================================" >> ./public/newman/logs/api_logs.txt
           
           # Parse JSON report to create the log file
@@ -67,7 +69,7 @@ jobs:
               logStream.write(`Failed Tests: ${jsonReport.run.stats.assertions.failed}\n\n`);
               
               logStream.write("DETAILED TEST RESULTS\n");
-              logStream.write("===================\n\n");
+              logStream.write("=====================\n\n");
               
               let requestCounter = 1;
               let testCounter = 1;
