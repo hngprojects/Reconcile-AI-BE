@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\BankAccountController;
 use App\Http\Controllers\BillingTransactionController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\JobApplicationController;
@@ -59,6 +60,10 @@ Route::prefix('v1')->group(function () {
         Route::put('payment-plan', [PaymentPlanController::class, 'update'])->name('payment-plan.update');
         // Optional: Payment history route if you implement it later
         Route::get('payment-plan/history', [BillingTransactionController::class, 'history'])->name('payment-plan.history');
+
+        // bank account 
+        Route::apiResource('bank-accounts', BankAccountController::class);
+        Route::patch('bank-accounts/{bankAccount}/toggle-default', [BankAccountController::class, 'toggleDefault']);
     });
     Route::prefix('newsletter')->name('newsletter.')->group(function () {
         Route::get('/unsubscribe/{email}', [NewsLetterController::class, 'oneClickUnsubscribe'])->name('one-click-unsubscribe');
