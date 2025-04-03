@@ -25,6 +25,11 @@ jobs:
           
           # Navigate to project directory
           cd /var/www/html/QA
+          git fetch origin
+          git reset --hard HEAD
+          git checkout qa-test
+          git reset --hard origin/qa-test
+          git pull --rebase --no-edit
       
 
           # Run Newman with JSON reporter for parsing results
