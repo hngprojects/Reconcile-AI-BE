@@ -3,13 +3,13 @@ name: CI/CD For Test Automation
 
 on:
   push:
-    branches: testing
+    branches: qa-test
   pull_request:
-    branches: main
+    branches: q1-test
 
 jobs:
   api-tests:
-    runs-on: ubuntu-latest
+    runs-on: reconcile
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
