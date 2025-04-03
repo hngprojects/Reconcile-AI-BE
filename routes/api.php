@@ -1,24 +1,23 @@
 <?php
 
+use App\Http\Controllers\BillingTransactionController;
+use App\Http\Controllers\ContactController;
+use App\Http\Controllers\JobApplicationController;
+use App\Http\Controllers\OutboundMarketingController;
+use App\Http\Controllers\PartnerController;
+use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\PlanController;
-use App\Http\Controllers\UserController;
-use App\Http\Controllers\ContactController;
-use App\Http\Controllers\PartnerController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\WaitListController;
-use App\Http\Controllers\GoogleAuthController;
-use App\Http\Controllers\OnboardingController;
-use App\Http\Controllers\PaymentPlanController;
-use App\Http\Middleware\ThrottleUnauthenticated;
-use App\Http\Middleware\CheckReconciliationLimit;
 use App\Http\Controllers\Api\NewsLetterController;
-use App\Http\Controllers\JobApplicationController;
-use App\Http\Controllers\ReconciliationController;
 use App\Http\Controllers\CustomerFeedbackController;
-use App\Http\Controllers\OutboundMarketingController;
-use App\Http\Controllers\BillingTransactionController;
+use App\Http\Controllers\GoogleAuthController;
+use App\Http\Controllers\PaymentPlanController;
+use App\Http\Controllers\PlanController;
+use App\Http\Controllers\ReconciliationController;
+use App\Http\Middleware\CheckReconciliationLimit;
+use App\Http\Middleware\ThrottleUnauthenticated;
 
 Route::prefix('v1')->group(function () {
     Route::get('/', function () {
@@ -43,7 +42,6 @@ Route::prefix('v1')->group(function () {
         Route::get('/google', [GoogleAuthController::class, 'redirectToGoogle']);
         Route::get('/google/callback', [GoogleAuthController::class, 'handleGoogleCallback']);
         Route::post('/google-login', [GoogleAuthController::class, 'loginGoogle']);
-        Route::post('/google-register', [GoogleAuthController::class, 'registerWithGoogle']);
         Route::post('/refresh', [GoogleAuthController::class, 'refresh']);
     });
 
@@ -98,22 +96,4 @@ Route::prefix('v1')->group(function () {
     // jobs
 
     Route::post('/job-application', [JobApplicationController::class, 'store']);
-
-    // Onboarding Routes
-    Route::prefix('onboarding')->middleware('auth:api')->group(function () {
-        Route::post('business', [OnboardingController::class, 'saveBusiness'])
-            ->name('onboarding.business.save');
-            
-        Route::post('bank', [OnboardingController::class, 'saveBank'])
-            ->name('onboarding.bank.save');
-            
-        Route::post('ledger', [OnboardingController::class, 'saveLedger'])
-            ->name('onboarding.ledger.save');
-            
-        Route::post('complete', [OnboardingController::class, 'complete'])
-            ->name('onboarding.complete');
-            
-        Route::get('status', [OnboardingController::class, 'status'])
-            ->name('onboarding.status');
-    });
 });
