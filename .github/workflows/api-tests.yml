@@ -9,7 +9,7 @@ on:
 
 jobs:
   api-tests:
-    runs-on: ubuntu-latest
+    runs-on: reconcile
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -21,37 +21,33 @@ jobs:
       
       - name: Install Newman and Newman Reporter HTML
         run: |
-          npm install -g newman newman-reporter-json newman-reporter-html newman-reporter-htmlextra
+          sshpass -p "${{ secrets.SSH_PASSWORD }}" ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_SERVER }} << 'EOF'
+          
+          # Navigate to project directory
+          cd /var/www/html/QA
       
-      - name: Create Directories
-        run: |
-          mkdir -p ./newman/logs
-          mkdir -p ./newman/reports
-      
-      - name: Run API Tests with Newman
-        id: run_tests
-        run: |
+
           # Run Newman with JSON reporter for parsing results
           newman run ./postman/collections/Reconxi_postman_collection.json \
             --reporters cli,htmlextra,junit,json \
-            --reporter-htmlextra-export ./newman/reports/htmlreport.html \
-            --reporter-junit-export ./newman/reports/junitreport.xml \
-            --reporter-json-export ./newman/reports/jsonreport.json || true
+            --reporter-htmlextra-export ./public/newman/reports/htmlreport.html \
+            --reporter-junit-export ./public/newman/reports/junitreport.xml \
+            --reporter-json-export ./public/newman/reports/jsonreport.json 
           
           # Store the exit code
           echo "::set-output name=newman_exit_code::$?"
           
           # Create a timestamp for the log
-          echo "API Test Execution - $(date)" > ./newman/logs/api_logs.txt
-          echo "=================================================" >> ./newman/logs/api_logs.txt
+          echo "API Test Execution - $(date)" > ./public/newman/logs/api_logs.txt
+          echo "=================================================" >> ./public/newman/logs/api_logs.txt
           
           # Parse JSON report to create the log file
           node -e '
             const fs = require("fs");
             try {
-              const jsonReport = JSON.parse(fs.readFileSync("./newman/reports/jsonreport.json", "utf8"));
+              const jsonReport = JSON.parse(fs.readFileSync("./public/newman/reports/jsonreport.json", "utf8"));
               
-              const logStream = fs.createWriteStream("./newman/logs/api_logs.txt", {flags: "a"});
+              const logStream = fs.createWriteStream("./public/newman/logs/api_logs.txt", {flags: "a"});
               
               logStream.write(`Collection: ${jsonReport.collection.info.name}\n`);
               logStream.write(`Total Requests: ${jsonReport.run.stats.requests.total}\n`);
@@ -88,7 +84,7 @@ jobs:
               console.log("Log file created successfully");
             } catch (error) {
               console.error("Error processing JSON report:", error);
-              fs.appendFileSync("./newman/logs/api_logs.txt", 
+              fs.appendFileSync("./public/newman/logs/api_logs.txt", 
                 "\nERROR: Failed to process JSON report. Newman execution may have failed.\n" +
                 "Error details: " + error.message + "\n" +
                 "END OF TEST LOG\n"
@@ -96,28 +92,18 @@ jobs:
             }
           '
       
-      - name: Check Test Results
-        run: |
+
           # First check if Newman ran successfully by examining reports directory
           echo "Checking for report files..."
-          ls -la ./newman/reports/ || echo "Reports directory is empty or doesn't exist"
+          ls -la ./public/newman/reports/ || echo "Reports directory is empty or doesn't exist"
           
           # Then check specifically for the JUnit report
-          if [ -f "./newman/reports/junitreport.xml" ]; then
+          if [ -f "./public/newman/reports/junitreport.xml" ]; then
             echo "Test execution completed. JUnit report found."
-            cat ./newman/logs/api_logs.txt || echo "Log file not found"
+            cat ./public/newman/logs/api_logs.txt || echo "Log file not found"
           else
             echo "Test execution failed. JUnit report not found."
-            cat ./newman/logs/api_logs.txt || echo "Log file not found"
+            cat ./public/newman/logs/api_logs.txt || echo "Log file not found"
             exit 1
           fi
       
-      - name: Upload Test Reports and Logs
-        uses: actions/upload-artifact@v4
-        if: always() # Upload reports even if tests fail
-        with:
-          name: newman-test-reports
-          path: |
-            ./newman/reports/
-            ./newman/logs/
-          retention-days: 7
