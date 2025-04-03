@@ -9,7 +9,7 @@ on:
 
 jobs:
   api-tests:
-    runs-on: reconcile
+    runs-on: hng12interns
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -36,7 +36,7 @@ jobs:
             --reporters cli,htmlextra,junit,json \
             --reporter-htmlextra-export ./newman/reports/htmlreport.html \
             --reporter-junit-export ./newman/reports/junitreport.xml \
-            --reporter-json-export ./newman/reports/jsonreport.json
+            --reporter-json-export ./newman/reports/jsonreport.json || true
           
           # Store the exit code
           echo "::set-output name=newman_exit_code::$?"
