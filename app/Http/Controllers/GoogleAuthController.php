@@ -4,36 +4,31 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-// use Laravel\Socialite\Facades\Socialite;
-// use App\Models\User;
+use Laravel\Socialite\Facades\Socialite;
+use App\Models\User;
 use Tymon\JWTAuth\Facades\JWTAuth;
-// use Illuminate\Support\Facades\Mail;
-// use App\Mail\WelcomeEmail;
-// use App\Models\Plan;
-// use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\WelcomeEmail;
+use App\Models\Plan;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Validator;
-// use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Log;
 use Tymon\JWTAuth\Exceptions\JWTException;
 use Tymon\JWTAuth\Exceptions\TokenExpiredException;
 use Tymon\JWTAuth\Exceptions\TokenInvalidException;
 use Tymon\JWTAuth\Exceptions\TokenBlacklistedException;
 use Illuminate\Http\JsonResponse;
-use App\Services\GoogleAuth\GoogleAuthService;
 
 class GoogleAuthController extends Controller
 {
-    protected $googleAuthService;
-    
-    public function __construct(GoogleAuthService $googleAuthService)
-    {
-        $this->googleAuthService = $googleAuthService;
-    }
-
+    /**
+     * Authenticate using Google.
+     */
     /**
      * @OA\Post(
      *     path="/api/v1/auth/google-login",
-     *     summary="Login user using Google",
-     *     description="Logs in a user using Google OAuth and returns an access token.",
+     *     summary="Authenticate using Google",
+     *     description="Logs in or registers a user using Google OAuth and returns an access token.",
      *     tags={"Authentication"},
      *     @OA\RequestBody(
      *         required=true,
@@ -47,15 +42,19 @@ class GoogleAuthController extends Controller
      *         description="User successfully authenticated",
      *         @OA\JsonContent(
      *             @OA\Property(property="status_code", type="integer", example=200),
-     *             @OA\Property(property="message", type="string", example="Login Successful"),
+     *             @OA\Property(property="message", type="string", example="User Created Successfully"),
      *             @OA\Property(property="access_token", type="string", example="eyJhbGciOiJIUzI1NiIsIn..."),
      *             @OA\Property(property="data", type="object",
      *                 @OA\Property(property="user", type="object",
      *                     @OA\Property(property="id", type="integer", example=1),
      *                     @OA\Property(property="email", type="string", example="user@example.com"),
      *                     @OA\Property(property="name", type="string", example="John Doe"),
-     *                     @OA\Property(property="avatar", type="string", example="https://example.com/avatar.jpg"),
-     *                     @OA\Property(property="payment_plan", type="object")
+     *                     @OA\Property(property="avatar", type="string", example="https://example.com/avatar.jpg")
+     *                 ),
+     *                 @OA\Property(property="plan", type="object",
+     *                     @OA\Property(property="user_id", type="integer", example=1),
+     *                     @OA\Property(property="price", type="integer", example=0),
+     *                     @OA\Property(property="plan", type="string", example="Basic")
      *                 )
      *             )
      *         )
@@ -66,14 +65,6 @@ class GoogleAuthController extends Controller
      *         @OA\JsonContent(
      *             @OA\Property(property="status_code", type="integer", example=401),
      *             @OA\Property(property="message", type="string", example="Invalid Token Payload")
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=404,
-     *         description="User not found",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="status_code", type="integer", example=404),
-     *             @OA\Property(property="message", type="string", example="Please register")
      *         )
      *     ),
      *     @OA\Response(
@@ -100,87 +91,93 @@ class GoogleAuthController extends Controller
             ], 422);
         }
 
-        // Process login with Google
-        $result = $this->googleAuthService->processLogin($request->id_token);
-        
-        return response()->json($result);
-    }
+        $isNewUser = false;
 
-    /**
-     * @OA\Post(
-     *     path="/api/v1/auth/google-register",
-     *     summary="Register user using Google",
-     *     description="Registers a new user using Google OAuth and returns an access token.",
-     *     tags={"Authentication"},
-     *     @OA\RequestBody(
-     *         required=true,
-     *         @OA\JsonContent(
-     *             required={"id_token"},
-     *             @OA\Property(property="id_token", type="string", example="eyJhbGciOiJSUzI1NiIsImtpZ...")
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="User successfully registered",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="status_code", type="integer", example=200),
-     *             @OA\Property(property="message", type="string", example="User Created Successfully"),
-     *             @OA\Property(property="access_token", type="string", example="eyJhbGciOiJIUzI1NiIsIn..."),
-     *             @OA\Property(property="data", type="object",
-     *                 @OA\Property(property="user", type="object",
-     *                     @OA\Property(property="id", type="integer", example=1),
-     *                     @OA\Property(property="email", type="string", example="user@example.com"),
-     *                     @OA\Property(property="name", type="string", example="John Doe"),
-     *                     @OA\Property(property="avatar", type="string", example="https://example.com/avatar.jpg"),
-     *                     @OA\Property(property="payment_plan", type="object")
-     *                 )
-     *             )
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=401,
-     *         description="Invalid Token",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="status_code", type="integer", example=401),
-     *             @OA\Property(property="message", type="string", example="Invalid Token Payload")
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=403,
-     *         description="User already exists",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="status_code", type="integer", example=403),
-     *             @OA\Property(property="message", type="string", example="Please login into your account")
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=422,
-     *         description="Validation Error",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="status_code", type="integer", example=422),
-     *             @OA\Property(property="message", type="object")
-     *         )
-     *     )
-     * )
-     */
-    public function registerWithGoogle(Request $request)
-    {
-        // Validate the incoming request
-        $validator = Validator::make($request->all(), [
-            'id_token' => 'required|string',
-        ]);
+        // Extract Google user data from the request
+        $idToken = $request->id_token;
 
-        if ($validator->fails()) {
+        $response = Http::get("https://www.googleapis.com/oauth2/v3/tokeninfo?id_token={$idToken}");
+        Log::info('Response', ['data' => $response]);
+        if($response->successful()) {
+            $payload = $response->json();
+            if (isset($payload['sub']) && isset($payload['email'])) {
+                $email = $payload['email'];
+                $firstName = $payload['given_name'] ?? null;
+                $lastName = $payload['family_name'] ?? null;
+                $avatarUrl = $payload['picture'] ?? null;
+
+                // Create or update user
+                $user = User::where('email', $email)->first();
+                if (!$user) {
+
+                    // Hash::make(Str::random(12))
+
+                    $user = User::create([
+                        'name' => $firstName . ' ' . $lastName,
+                        'email' => $email,
+                        'avatar' => $avatarUrl,
+                        'password' => "", // Random password
+                    ]);
+
+                    // Get the Basic plan
+                    $basicPlan = Plan::where('plan', 'Basic')->first();
+
+                    if (!$basicPlan) {
+                        // Create Basic plan if it doesn't exist
+                        $basicPlan = Plan::create([
+                            'name' => 'Basic Plan',
+                            'plan' => 'Basic',
+                            'description' => 'Free trial for 7 days with 5 reconciliations.',
+                            'plan_length' => 30,
+                            'reconciliations_per_month' => 5,
+                            'amount' => 0.00,
+                        ]);
+                    }
+
+                    // Create a new payment plan
+                    $user->paymentPlan()->create([
+                        'user_id'       => $user->id,
+                        'plan_id'       => $basicPlan->id,
+                        'start_date'    => now(),
+                        'expire_date'   => now()->addDays($basicPlan->plan_length),
+                    ]);
+
+                    $isNewUser = true;
+                }
+
+                $customTTL = config('jwt.ttl'); // Get the TTL value
+                JWTAuth::factory()->setTTL($customTTL); // Set the TTL before generating the token
+                $token = JWTAuth::fromUser($user);
+
+
+                $getStartedUrl = env('FRONTEND_URL', 'https://reconxi.com') . '/file-upload?token=' . $token;
+
+                if ($isNewUser) {
+                    Mail::to($user->email)->queue(new WelcomeEmail($user, $getStartedUrl));
+                }
+
+                $plan = $user->paymentPlan;
+
+                return response()->json([
+                    'status_code' => 200,
+                    'message' => $isNewUser ? 'User Created Successfully' : 'Login Successful',
+                    'access_token' => $token,
+                    'data' => [
+                        'user' => [ ...$user->toArray(), 'payment_plan' => $plan],
+                    ]
+                ]);
+            } else {
+                return response()->json([
+                    'status_code' => 401,
+                    'message' => 'Invalid Token Payload'
+                ], 401);
+            }
+        } else {
             return response()->json([
-                'status_code' => 422,
-                'message' => $validator->errors()
-            ], 422);
+                'status_code' => 401,
+                'message' => 'Invalid Token: ' . $response->body()
+            ], 401);
         }
-
-        // Process registration with Google
-        $result = $this->googleAuthService->processRegistration($request->id_token);
-        
-        return response()->json($result, $result['status_code']);
     }
 
     /**
@@ -266,6 +263,100 @@ class GoogleAuthController extends Controller
                 'message' => 'Could not refresh token',
             ], 500);
         }
+    }
+
+    /**
+     * @OA\Get(
+     *     path="/api/v1/auth/google",
+     *     summary="Redirect to Google for authentication",
+     *     description="Redirects the user to Google's OAuth login page to authenticate.",
+     *     tags={"Authentication"},
+     *     @OA\Response(
+     *         response=302,
+     *         description="Redirect to Google's OAuth login page"
+     *     )
+     * )
+     */
+    public function redirectToGoogle()
+    {
+        return Socialite::driver('google')->stateless()->redirect();
+    }
+
+    /**
+     * @OA\Get(
+     *     path="/api/v1/auth/google/callback",
+     *     summary="Handle Google OAuth callback",
+     *     description="Handles the callback from Google OAuth after the user logs in. Creates or retrieves the user and returns a JWT token.",
+     *     tags={"Authentication"},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful authentication",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="user", type="object", description="Authenticated user details",
+     *                 @OA\Property(property="id", type="integer", example=1),
+     *                 @OA\Property(property="name", type="string", example="John Doe"),
+     *                 @OA\Property(property="email", type="string", example="john.doe@gmail.com"),
+     *                 @OA\Property(property="avatar", type="string", example="https://example.com/avatar.jpg")
+     *              ),
+     *             @OA\Property(property="token", type="string", example="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...", description="JWT token for authenticated requests")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Authentication failed",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="error", type="string", example="Unauthorized")
+     *         )
+     *     )
+     * )
+     */
+    public function handleGoogleCallback(Request $request)
+    {
+        try {
+            // Try to retrieve the user from Google
+            $googleUser = Socialite::driver('google')->stateless()->user();
+        } catch (\Exception $e) {
+            // Redirect back to the frontend with an error message
+            return redirect()->away(env('FRONTEND_URL', 'https://reconxi.com') . '/login?error=google_auth_failed');
+        }
+
+        $ip = $request->ip(); // Get user's IP address
+
+        $isNewUser = false; // Flag to track if user is new
+
+        // Find an existing registered user or create a new one
+        $user = User::where('email', $googleUser->email)->first();
+
+        if (!$user) {
+            // Create new user
+            $user = User::create([
+                'name' => $googleUser->name,
+                'email' => $googleUser->email,
+                'avatar' => $googleUser->avatar,
+                'password' => "", // Random password
+            ]);
+
+            // Create a new payment plan
+            $user->paymentPlan()->create([
+                'user_id' => $user->id,
+                'price' => 0,
+                'plan' => 'Basic',
+            ]);
+
+            $isNewUser = true; // User is newly created
+        }
+
+        // Generate JWT token
+        $token = JWTAuth::fromUser($user);
+
+        $getStartedUrl = env('FRONTEND_URL', 'https://reconxi.com') . '/file-upload?token=' . $token;
+
+        // Send welcome email asynchronously only for new users
+        if ($isNewUser) {
+            Mail::to($user->email)->queue(new WelcomeEmail($user, $getStartedUrl));
+        }
+
+        return redirect()->away($getStartedUrl);
     }
 
     /**
