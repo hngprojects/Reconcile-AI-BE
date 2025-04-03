@@ -61,12 +61,20 @@ jobs:
               const jsonReport = JSON.parse(fs.readFileSync("./public/newman/reports/jsonreport.json", "utf8"));
               
               const logStream = fs.createWriteStream("./public/newman/logs/api_logs.txt", {flags: "a"});
+
+              // Get GitHub user from environment variable or default to current user
+              const githubUser = process.env.GITHUB_ACTOR || "hendrixxD";
+              const qaName = "LENGE DANDUNG JOSHUA";
               
+              logStream.write(`Github User: ${githubUser}\n'n`);
+              logStream.write(`QA: ${qaName}\n\n`);
               logStream.write(`Collection: ${jsonReport.collection.info.name}\n`);
               logStream.write(`Total Requests: ${jsonReport.run.stats.requests.total}\n`);
               logStream.write(`Total Tests: ${jsonReport.run.stats.assertions.total}\n`);
               logStream.write(`Passed Tests: ${jsonReport.run.stats.assertions.total - jsonReport.run.stats.assertions.failed}\n`);
               logStream.write(`Failed Tests: ${jsonReport.run.stats.assertions.failed}\n\n`);
+
+              logStream.write(`Collection: ${jsonReport.collection.info.name}\n`);
               
               logStream.write("DETAILED TEST RESULTS\n");
               logStream.write("=====================\n\n");
