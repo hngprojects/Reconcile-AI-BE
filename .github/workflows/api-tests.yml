@@ -9,7 +9,7 @@ on:
 
 jobs:
   api-tests:
-    runs-on: hng12interns
+    runs-on: backendim
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
