@@ -129,7 +129,7 @@ class BankAccountController extends Controller
      *         in="path",
      *         required=true,
      *         description="ID of the bank account to update",
-     *         @OA\Schema(type="integer")
+     *          @OA\Schema(type="string", format="uuid")
      *     ),
      *     @OA\RequestBody(
      *         required=true,
@@ -254,7 +254,7 @@ class BankAccountController extends Controller
      *         in="path",
      *         required=true,
      *         description="ID of the bank account to delete",
-     *         @OA\Schema(type="integer")
+     *         @OA\Schema(type="string", format="uuid")
      *     ),
      *     @OA\Response(
      *         response=200,
@@ -356,7 +356,7 @@ class BankAccountController extends Controller
      *         in="path",
      *         required=true,
      *         description="ID of the bank account to set as default",
-     *         @OA\Schema(type="integer")
+     *          @OA\Schema(type="string", format="uuid")
      *     ),
      *     @OA\Response(
      *         response=200,
@@ -519,7 +519,7 @@ class BankAccountController extends Controller
      *         in="path",
      *         required=true,
      *         description="ID of the bank account to retrieve",
-     *         @OA\Schema(type="integer")
+     *         @OA\Schema(type="string", format="uuid")
      *     ),
      *     @OA\Response(
      *         response=200,
