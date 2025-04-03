@@ -1,0 +1,121 @@
+
+name: CI/CD For Test Automation
+
+on:
+  push:
+    branches: log/counter
+  pull_request:
+    branches: q1-test
+
+jobs:
+  api-tests:
+    runs-on: reconcile
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      
+      - name: Install Newman and Newman Reporter HTML
+        run: |
+          sshpass -p "${{ secrets.SSH_PASSWORD }}" ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_SERVER }} << 'EOF'
+          
+          # Navigate to project directory
+          cd /var/www/html/QA
+          git fetch origin
+          git reset --hard HEAD
+          git checkout qa-test
+          git reset --hard origin/qa-test
+          git pull --rebase --no-edit
+
+          #remove old generated files 
+          rm -rf public/newman
+      
+
+          # Run Newman with JSON reporter for parsing results
+          newman run ./postman/collections/Reconxi_postman_collection.json \
+            --reporters cli,htmlextra,junit,json \
+            --reporter-htmlextra-export ./public/newman/reports/htmlreport.html \
+            --reporter-junit-export ./public/newman/reports/junitreport.xml \
+            --reporter-json-export ./public/newman/reports/jsonreport.json 
+
+          # create log folder
+          mkdir -p ./public/newman/logs
+
+          
+          # Store the exit code
+          echo "::set-output name=newman_exit_code::$?"
+          
+          # Create a timestamp for the log
+          echo "API Test Execution - $(date)" > ./public/newman/logs/api_logs.txt
+          echo "=================================================" >> ./public/newman/logs/api_logs.txt
+          
+          # Parse JSON report to create the log file
+          node -e '
+            const fs = require("fs");
+            try {
+              const jsonReport = JSON.parse(fs.readFileSync("./public/newman/reports/jsonreport.json", "utf8"));
+              
+              const logStream = fs.createWriteStream("./public/newman/logs/api_logs.txt", {flags: "a"});
+              
+              logStream.write(`Collection: ${jsonReport.collection.info.name}\n`);
+              logStream.write(`Total Requests: ${jsonReport.run.stats.requests.total}\n`);
+              logStream.write(`Total Tests: ${jsonReport.run.stats.assertions.total}\n`);
+              logStream.write(`Passed Tests: ${jsonReport.run.stats.assertions.total - jsonReport.run.stats.assertions.failed}\n`);
+              logStream.write(`Failed Tests: ${jsonReport.run.stats.assertions.failed}\n\n`);
+              
+              logStream.write("DETAILED TEST RESULTS\n");
+              logStream.write("===================\n\n");
+              
+              jsonReport.run.executions.forEach((execution) => {
+                logStream.write(`[REQUEST] ${execution.item.name}\n`);
+                
+                if (execution.assertions && execution.assertions.length > 0) {
+                  execution.assertions.forEach((assertion) => {
+                    const status = assertion.error ? "❌ FAILED" : "✅ PASSED";
+                    logStream.write(`  ${status} - ${assertion.assertion}\n`);
+                    
+                    if(assertion.error) {
+                      logStream.write(`    Error: ${assertion.error.message}\n`);
+                      if (assertion.error.expected) logStream.write(`    Expected: ${assertion.error.expected}\n`);
+                      if (assertion.error.actual) logStream.write(`    Actual: ${assertion.error.actual}\n`);
+                    }
+                  });
+                } else {
+                  logStream.write(`  ⚠️ NO TESTS for this request\n`);
+                }
+                
+                logStream.write("\n");
+              });
+              
+              logStream.write("END OF TEST LOG\n");
+              logStream.end();
+              console.log("Log file created successfully");
+            } catch (error) {
+              console.error("Error processing JSON report:", error);
+              fs.appendFileSync("./public/newman/logs/api_logs.txt", 
+                "\nERROR: Failed to process JSON report. Newman execution may have failed.\n" +
+                "Error details: " + error.message + "\n" +
+                "END OF TEST LOG\n"
+              );
+            }
+          '
+      
+
+          # First check if Newman ran successfully by examining reports directory
+          echo "Checking for report files..."
+          ls -la ./public/newman/reports/ || echo "Reports directory is empty or doesn't exist"
+          
+          # Then check specifically for the JUnit report
+          if [ -f "./public/newman/reports/junitreport.xml" ]; then
+            echo "Test execution completed. JUnit report found."
+            cat ./public/newman/logs/api_logs.txt || echo "Log file not found"
+          else
+            echo "Test execution failed. JUnit report not found."
+            cat ./public/newman/logs/api_logs.txt || echo "Log file not found"
+            exit 1
+          fi
+      
