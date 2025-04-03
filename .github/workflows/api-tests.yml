@@ -66,7 +66,7 @@ jobs:
               const githubUser = "hendrixxD";
               const qaName = "LENGE DANDUNG JOSHUA";
               
-              logStream.write(`Github User: ${githubUser}\n'n`);
+              logStream.write(`Github User: ${githubUser}\n\n`);
               logStream.write(`QA: ${qaName}\n\n`);
               logStream.write(`Collection: ${jsonReport.collection.info.name}\n`);
               logStream.write(`Total Requests: ${jsonReport.run.stats.requests.total}\n`);
@@ -74,7 +74,7 @@ jobs:
               logStream.write(`Passed Tests: ${jsonReport.run.stats.assertions.total - jsonReport.run.stats.assertions.failed}\n`);
               logStream.write(`Failed Tests: ${jsonReport.run.stats.assertions.failed}\n\n`);
 
-              logStream.write(`Collection: ${jsonReport.collection.info.name}\n`);
+              logStream.write(`Collection: ${jsonReport.collection.info.name}\n);
               
               logStream.write("DETAILED TEST RESULTS\n");
               logStream.write("=====================\n\n");
