@@ -30,6 +30,9 @@ jobs:
           git checkout qa-test
           git reset --hard origin/qa-test
           git pull --rebase --no-edit
+
+          #remove old generated files 
+          rm -rf public/newman
       
 
           # Run Newman with JSON reporter for parsing results
@@ -38,6 +41,10 @@ jobs:
             --reporter-htmlextra-export ./public/newman/reports/htmlreport.html \
             --reporter-junit-export ./public/newman/reports/junitreport.xml \
             --reporter-json-export ./public/newman/reports/jsonreport.json 
+
+          # create log folder
+          mkdir -p ./public/newman/logs
+
           
           # Store the exit code
           echo "::set-output name=newman_exit_code::$?"
