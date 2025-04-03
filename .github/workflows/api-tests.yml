@@ -63,7 +63,7 @@ jobs:
               const logStream = fs.createWriteStream("./public/newman/logs/api_logs.txt", {flags: "a"});
 
               // Get GitHub user from environment variable or default to current user
-              const githubUser = process.env.GITHUB_ACTOR || "hendrixxD";
+              const githubUser = process.env.GITHUB_ACTOR || "hendrixxD-";
               const qaName = "LENGE DANDUNG JOSHUA";
               
               logStream.write(`Github User: ${githubUser}\n\n`);
