@@ -40,9 +40,7 @@ Route::prefix('v1')->group(function () {
         // Route::post('/resend-verification-email', [AuthController::class, 'resendVerificationEmail'])->name('resend-verification-email');
 
         // google auth
-        Route::get('/google', [GoogleAuthController::class, 'redirectToGoogle']);
-        Route::get('/google/callback', [GoogleAuthController::class, 'handleGoogleCallback']);
-        Route::post('/google-login', [GoogleAuthController::class, 'loginGoogle']);
+        Route::post('/google-login', [GoogleAuthController::class, 'login']);
         Route::post('/refresh', [GoogleAuthController::class, 'refresh']);
     });
 
