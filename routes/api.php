@@ -67,13 +67,6 @@ Route::prefix('v1')->group(function () {
         Route::get('/bookkeeping-ledgers', [BookkeepingLedgerController::class, 'index']);
         Route::post('/bookkeeping-ledgers', [BookkeepingLedgerController::class, 'store']);
         Route::put('/bookkeeping-ledgers/{ledger}/toggle', [BookkeepingLedgerController::class, 'toggle']);
-
-        Route::get('/bank-accounts', [BankAccountController::class, 'index']);
-        Route::post('/bank-accounts', [BankAccountController::class, 'store']);
-        Route::put('/bank-accounts/{bankAccount}/default', [BankAccountController::class, 'setDefault']);
-
-        Route::get('/bookkeeping-ledgers/{ledger}/entries', [LedgerEntryController::class, 'index']);
-        Route::post('/ledger-entries', [LedgerEntryController::class, 'store']);
     });
 
     Route::prefix('newsletter')->name('newsletter.')->group(function () {
