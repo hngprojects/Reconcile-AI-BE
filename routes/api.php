@@ -19,6 +19,7 @@ use App\Http\Controllers\PlanController;
 use App\Http\Controllers\ReconciliationController;
 use App\Http\Middleware\CheckReconciliationLimit;
 use App\Http\Middleware\ThrottleUnauthenticated;
+use App\Http\Controllers\BookkeepingLedgerController;
 
 Route::prefix('v1')->group(function () {
     Route::get('/', function () {
@@ -58,6 +59,10 @@ Route::prefix('v1')->group(function () {
         Route::put('payment-plan', [PaymentPlanController::class, 'update'])->name('payment-plan.update');
         // Optional: Payment history route if you implement it later
         Route::get('payment-plan/history', [BillingTransactionController::class, 'history'])->name('payment-plan.history');
+
+        Route::get('/bookkeeping-ledgers', [BookkeepingLedgerController::class, 'index']);
+        Route::post('/bookkeeping-ledgers', [BookkeepingLedgerController::class, 'store']);
+        Route::put('/bookkeeping-ledgers/{ledger}/toggle', [BookkeepingLedgerController::class, 'toggle']);
 
         // bank account 
         Route::apiResource('bank-accounts', BankAccountController::class);

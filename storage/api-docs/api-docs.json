@@ -2020,6 +2020,367 @@
                 ]
             }
         },
+        "/api/v1/bookkeeping-ledgers": {
+            "get": {
+                "tags": [
+                    "Bookkeeping Ledgers"
+                ],
+                "summary": "Get authenticated user's bookkeeping ledgers",
+                "description": "Retrieves a list of bookkeeping ledgers for the authenticated user",
+                "operationId": "5b8877d2612ca54b0fbfbb8bd22bb055",
+                "responses": {
+                    "200": {
+                        "description": "Ledgers retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status_code": {
+                                            "type": "integer",
+                                            "example": 200
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Book Keeping Ledger fetch successful."
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "string",
+                                                        "format": "uuid"
+                                                    },
+                                                    "user_id": {
+                                                        "type": "string",
+                                                        "format": "uuid"
+                                                    },
+                                                    "name": {
+                                                        "type": "string",
+                                                        "example": "General Ledger"
+                                                    },
+                                                    "description": {
+                                                        "type": "string",
+                                                        "example": "Main business ledger"
+                                                    },
+                                                    "categories": {
+                                                        "type": "array",
+                                                        "items": {
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "is_active": {
+                                                        "type": "boolean"
+                                                    },
+                                                    "is_default": {
+                                                        "type": "boolean"
+                                                    },
+                                                    "created_at": {
+                                                        "type": "string",
+                                                        "format": "date-time"
+                                                    },
+                                                    "updated_at": {
+                                                        "type": "string",
+                                                        "format": "date-time"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status_code": {
+                                            "type": "integer",
+                                            "example": 500
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Failed to fetch bookkeeping ledgers."
+                                        },
+                                        "error": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Bookkeeping Ledgers"
+                ],
+                "summary": "Create a new bookkeeping ledger",
+                "description": "Creates a new bookkeeping ledger for the authenticated user",
+                "operationId": "d269eedf550e1d7774f5b82e9bcf2bfb",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "categories"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "General Ledger"
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "example": "Main business ledger"
+                                    },
+                                    "categories": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string",
+                                            "enum": [
+                                                "Assets",
+                                                "Revenue",
+                                                "Liabilities",
+                                                "Expenses",
+                                                "Equity"
+                                            ]
+                                        },
+                                        "example": [
+                                            "Assets",
+                                            "Revenue"
+                                        ]
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Ledger created successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status_code": {
+                                            "type": "integer",
+                                            "example": 200
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Ledger created successfully."
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "string",
+                                                    "format": "uuid"
+                                                },
+                                                "user_id": {
+                                                    "type": "string",
+                                                    "format": "uuid"
+                                                },
+                                                "name": {
+                                                    "type": "string",
+                                                    "example": "General Ledger"
+                                                },
+                                                "description": {
+                                                    "type": "string",
+                                                    "example": "Main business ledger"
+                                                },
+                                                "categories": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string"
+                                                    }
+                                                },
+                                                "created_at": {
+                                                    "type": "string",
+                                                    "format": "date-time"
+                                                },
+                                                "updated_at": {
+                                                    "type": "string",
+                                                    "format": "date-time"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status_code": {
+                                            "type": "integer",
+                                            "example": 500
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Failed to create ledger."
+                                        },
+                                        "error": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/bookkeeping-ledgers/{ledger}/toggle": {
+            "put": {
+                "tags": [
+                    "Bookkeeping Ledgers"
+                ],
+                "summary": "Toggle ledger active status",
+                "description": "Toggle the active status of a specific bookkeeping ledger",
+                "operationId": "e15337e214a37a59cd6e14792f38743f",
+                "parameters": [
+                    {
+                        "name": "ledger",
+                        "in": "path",
+                        "description": "Ledger ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "is_active"
+                                ],
+                                "properties": {
+                                    "is_active": {
+                                        "type": "boolean",
+                                        "example": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Ledger status updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status_code": {
+                                            "type": "integer",
+                                            "example": 200
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Ledger made active"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "string",
+                                                    "format": "uuid"
+                                                },
+                                                "is_active": {
+                                                    "type": "boolean"
+                                                },
+                                                "updated_at": {
+                                                    "type": "string",
+                                                    "format": "date-time"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden action",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Cannot disable the default ledger"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status_code": {
+                                            "type": "integer",
+                                            "example": 500
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Failed to toggle ledger status."
+                                        },
+                                        "error": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/api/v1/contact": {
             "post": {
                 "tags": [
@@ -2326,7 +2687,7 @@
                 ],
                 "summary": "Authenticate using Google",
                 "description": "Logs in or registers a user using Google OAuth and returns an access token.",
-                "operationId": "f94b10ea3b0a07d6ef35093dd1ed75ec",
+                "operationId": "7a38c2ad4a47e09b67ad0fdaeec028c2",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -2384,6 +2745,10 @@
                                                         "avatar": {
                                                             "type": "string",
                                                             "example": "https://example.com/avatar.jpg"
+                                                        },
+                                                        "is_new_user": {
+                                                            "type": "boolean",
+                                                            "example": false
                                                         }
                                                     },
                                                     "type": "object"
@@ -2554,88 +2919,6 @@
                                         "message": {
                                             "type": "string",
                                             "example": "Could not refresh token"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/auth/google": {
-            "get": {
-                "tags": [
-                    "Authentication"
-                ],
-                "summary": "Redirect to Google for authentication",
-                "description": "Redirects the user to Google's OAuth login page to authenticate.",
-                "operationId": "fda6d6d153a3c5e5987f6f9a141476fc",
-                "responses": {
-                    "302": {
-                        "description": "Redirect to Google's OAuth login page"
-                    }
-                }
-            }
-        },
-        "/api/v1/auth/google/callback": {
-            "get": {
-                "tags": [
-                    "Authentication"
-                ],
-                "summary": "Handle Google OAuth callback",
-                "description": "Handles the callback from Google OAuth after the user logs in. Creates or retrieves the user and returns a JWT token.",
-                "operationId": "e057056d65988902a56d9310ab55a788",
-                "responses": {
-                    "200": {
-                        "description": "Successful authentication",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "user": {
-                                            "description": "Authenticated user details",
-                                            "properties": {
-                                                "id": {
-                                                    "type": "integer",
-                                                    "example": 1
-                                                },
-                                                "name": {
-                                                    "type": "string",
-                                                    "example": "John Doe"
-                                                },
-                                                "email": {
-                                                    "type": "string",
-                                                    "example": "john.doe@gmail.com"
-                                                },
-                                                "avatar": {
-                                                    "type": "string",
-                                                    "example": "https://example.com/avatar.jpg"
-                                                }
-                                            },
-                                            "type": "object"
-                                        },
-                                        "token": {
-                                            "description": "JWT token for authenticated requests",
-                                            "type": "string",
-                                            "example": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "Authentication failed",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "error": {
-                                            "type": "string",
-                                            "example": "Unauthorized"
                                         }
                                     },
                                     "type": "object"
@@ -4714,16 +4997,16 @@
     },
     "tags": [
         {
+            "name": "Authentication",
+            "description": "API Endpoints for User Authentication"
+        },
+        {
             "name": "Plans",
             "description": "API Endpoints for managing Plans"
         },
         {
             "name": "Reconciliation",
             "description": "API Endpoints for file reconciliation"
-        },
-        {
-            "name": "Authentication",
-            "description": "Authentication"
         },
         {
             "name": "Newsletter",
@@ -4736,6 +5019,10 @@
         {
             "name": "Payment Plans",
             "description": "Payment Plans"
+        },
+        {
+            "name": "Bookkeeping Ledgers",
+            "description": "Bookkeeping Ledgers"
         },
         {
             "name": "Contact",
