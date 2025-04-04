@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\BankAccountController;
 use App\Http\Controllers\BillingTransactionController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\JobApplicationController;
@@ -18,10 +19,7 @@ use App\Http\Controllers\PlanController;
 use App\Http\Controllers\ReconciliationController;
 use App\Http\Middleware\CheckReconciliationLimit;
 use App\Http\Middleware\ThrottleUnauthenticated;
-
 use App\Http\Controllers\BookkeepingLedgerController;
-use App\Http\Controllers\BankAccountController;
-use App\Http\Controllers\LedgerEntryController;
 
 Route::prefix('v1')->group(function () {
     Route::get('/', function () {
@@ -43,9 +41,7 @@ Route::prefix('v1')->group(function () {
         // Route::post('/resend-verification-email', [AuthController::class, 'resendVerificationEmail'])->name('resend-verification-email');
 
         // google auth
-        Route::get('/google', [GoogleAuthController::class, 'redirectToGoogle']);
-        Route::get('/google/callback', [GoogleAuthController::class, 'handleGoogleCallback']);
-        Route::post('/google-login', [GoogleAuthController::class, 'loginGoogle']);
+        Route::post('/google-login', [GoogleAuthController::class, 'login']);
         Route::post('/refresh', [GoogleAuthController::class, 'refresh']);
     });
 
@@ -67,8 +63,11 @@ Route::prefix('v1')->group(function () {
         Route::get('/bookkeeping-ledgers', [BookkeepingLedgerController::class, 'index']);
         Route::post('/bookkeeping-ledgers', [BookkeepingLedgerController::class, 'store']);
         Route::put('/bookkeeping-ledgers/{ledger}/toggle', [BookkeepingLedgerController::class, 'toggle']);
-    });
 
+        // bank account 
+        Route::apiResource('bank-accounts', BankAccountController::class);
+        Route::patch('bank-accounts/{bankAccount}/toggle-default', [BankAccountController::class, 'toggleDefault']);
+    });
     Route::prefix('newsletter')->name('newsletter.')->group(function () {
         Route::get('/unsubscribe/{email}', [NewsLetterController::class, 'oneClickUnsubscribe'])->name('one-click-unsubscribe');
         Route::get('/resubscribe/{email}', [NewsLetterController::class, 'oneClickResubscribe'])->name('resubscribe');
