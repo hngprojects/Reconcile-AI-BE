@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class BankAccount extends Model
 {
@@ -18,4 +19,14 @@ class BankAccount extends Model
         'opening_balance',
         'currency',
     ];
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function businessInfo(): BelongsTo
+    {
+        return $this->belongsTo(BusinessInfo::class);
+    }
 }

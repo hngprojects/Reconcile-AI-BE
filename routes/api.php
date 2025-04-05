@@ -1,25 +1,26 @@
 <?php
 
-use App\Http\Controllers\BankAccountController;
-use App\Http\Controllers\BillingTransactionController;
-use App\Http\Controllers\ContactController;
-use App\Http\Controllers\JobApplicationController;
-use App\Http\Controllers\OutboundMarketingController;
-use App\Http\Controllers\PartnerController;
-use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\PlanController;
+use App\Http\Controllers\UserController;
+use App\Http\Controllers\ContactController;
+use App\Http\Controllers\PartnerController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\WaitListController;
-use App\Http\Controllers\Api\NewsLetterController;
-use App\Http\Controllers\CustomerFeedbackController;
 use App\Http\Controllers\GoogleAuthController;
+use App\Http\Controllers\BankAccountController;
 use App\Http\Controllers\PaymentPlanController;
-use App\Http\Controllers\PlanController;
-use App\Http\Controllers\ReconciliationController;
-use App\Http\Middleware\CheckReconciliationLimit;
+use App\Http\Controllers\AccountSetupController;
 use App\Http\Middleware\ThrottleUnauthenticated;
+use App\Http\Middleware\CheckReconciliationLimit;
+use App\Http\Controllers\Api\NewsLetterController;
+use App\Http\Controllers\JobApplicationController;
+use App\Http\Controllers\ReconciliationController;
+use App\Http\Controllers\CustomerFeedbackController;
 use App\Http\Controllers\BookkeepingLedgerController;
+use App\Http\Controllers\OutboundMarketingController;
+use App\Http\Controllers\BillingTransactionController;
 
 Route::prefix('v1')->group(function () {
     Route::get('/', function () {
@@ -67,6 +68,9 @@ Route::prefix('v1')->group(function () {
         // bank account 
         Route::apiResource('bank-accounts', BankAccountController::class);
         Route::patch('bank-accounts/{bankAccount}/toggle-default', [BankAccountController::class, 'toggleDefault']);
+
+        // account setup
+        Route::post('/account/setup', AccountSetupController::class)->name('account.setup');
     });
     Route::prefix('newsletter')->name('newsletter.')->group(function () {
         Route::get('/unsubscribe/{email}', [NewsLetterController::class, 'oneClickUnsubscribe'])->name('one-click-unsubscribe');
