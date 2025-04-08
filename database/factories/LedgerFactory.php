@@ -21,7 +21,8 @@ class LedgerFactory extends Factory
             'person' => fake()->name(),
             'other_information' => fake()->sentence(),
             'amount' => fake()->randomNumber(),
-            'reconciliation_id' => \App\Models\Reconciliation::factory()
+            'reconciliation_id' => \App\Models\Reconciliation::factory(),
+            'bookkeeping_ledger_id' => \App\Models\BookkeepingLedger::factory()
         ];
     }
 }
