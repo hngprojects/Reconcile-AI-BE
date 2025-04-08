@@ -29,7 +29,7 @@ class BookkeepingLedger extends Model
 
     public function entries()
     {
-        return $this->hasMany(LedgerEntry::class, 'ledger_id');
+        return $this->hasMany(Ledger::class, 'ledger_id');
     }
 
     /* public static function createDefaultForUser($user)

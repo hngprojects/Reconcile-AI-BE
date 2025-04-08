@@ -19,7 +19,9 @@ class Ledger extends Model
         'person',
         'amount',
         'other information',
-        'reconciliation_id'
+        'reconciliation_id',
+        'bookkeeping_ledger_id',
+        'transaction_type'
     ];
     protected $keyType = 'string';
     public $incrementing = false;
@@ -32,5 +34,10 @@ class Ledger extends Model
     public function reconciliation(): BelongsTo
     {
         return $this->belongsTo(Reconciliation::class);
+    }
+
+    public function ledgerType(): BelongsTO
+    {
+        return $this->belongsTo(BookkeepingLedger::class);
     }
 }
