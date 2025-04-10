@@ -181,5 +181,3 @@ Reconcile-AI-BE/
 ## <span id="contributing">Interested in Contribution to ReconcileAI?</span>
 Please review our [Contribution Guidelines](./CONTRIBUTING.md)
 
-
-incrisz 
