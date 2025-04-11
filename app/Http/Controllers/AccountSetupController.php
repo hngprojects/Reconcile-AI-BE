@@ -48,7 +48,7 @@ class AccountSetupController extends Controller
      * Setup new account
      *
      * @OA\Post(
-     *     path="/api/account/setup",
+     *     path="/api/v1/account/setup",
      *     summary="Complete account setup",
      *     tags={"Account"},
      *     security={{"bearerAuth":{}}},
