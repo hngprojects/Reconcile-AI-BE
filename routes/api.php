@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AccountChartCategoryController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PlanController;
@@ -71,6 +72,11 @@ Route::prefix('v1')->group(function () {
 
         // account setup
         Route::post('/account/setup', AccountSetupController::class)->name('account.setup');
+        // chart account categories
+        Route::prefix('chart-account-categories')->name('chart-account-categories.')->group(function () {
+            Route::get('/', [AccountChartCategoryController::class, 'index'])->name('chart-account-categories');
+            Route::put('/{id}/toggle', [AccountChartCategoryController::class, 'toggle_category'])->name('update-chart-account-categories');
+        });
     });
     Route::prefix('newsletter')->name('newsletter.')->group(function () {
         Route::get('/unsubscribe/{email}', [NewsLetterController::class, 'oneClickUnsubscribe'])->name('one-click-unsubscribe');
