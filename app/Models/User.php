@@ -10,6 +10,7 @@ use App\Notifications\Auth\ResetPasswordNotification;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Contracts\Auth\CanResetPassword as CanResetPasswordContract;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class User extends Authenticatable implements JWTSubject, CanResetPasswordContract
 {
@@ -100,5 +101,24 @@ class User extends Authenticatable implements JWTSubject, CanResetPasswordContra
         return $this->hasOne(PaymentPlan::class)
                 ->where('is_active', true)
                 ->with('plan');
+    }
+
+    public function bankAccounts(): HasMany
+    {
+        return $this->hasMany(BankAccount::class);
+    }
+
+    public function businessInfos(): HasMany
+    {
+        return $this->hasMany(BusinessInfo::class);
+    }
+
+    public function ledgers(): HasMany
+    {
+        return $this->hasMany(BookkeepingLedger::class);
+    }
+
+    public function user(): HasMany {
+        return $this->hasMany(ChartAccountCategory::class, 'user_chart_categories', 'user_id', 'account_chart_category_id');
     }
 }

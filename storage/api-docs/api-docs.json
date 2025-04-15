@@ -2,6 +2,7 @@
     "openapi": "3.0.0",
     "info": {
         "title": "Reconcile AI Apis",
+        "description": "API documentation for Reconcile AI application",
         "version": "1.0.0"
     },
     "servers": [
@@ -10,6 +11,315 @@
         }
     ],
     "paths": {
+        "/api/v1/chart-account-categories": {
+            "get": {
+                "tags": [
+                    "Chart Account Categories"
+                ],
+                "summary": "Get all chart account categories",
+                "description": "Retrieves a list of all chart account categories",
+                "operationId": "005e8716cfd5cc06a283c285c3abd541",
+                "responses": {
+                    "200": {
+                        "description": "Chart account categories retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Chart account categories retrieved successfully"
+                                        },
+                                        "status": {
+                                            "type": "string",
+                                            "example": "success"
+                                        },
+                                        "status_code": {
+                                            "type": "integer",
+                                            "example": 200
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "integer",
+                                                        "example": 1
+                                                    },
+                                                    "name": {
+                                                        "type": "string",
+                                                        "example": "Category Name"
+                                                    },
+                                                    "is_active": {
+                                                        "type": "boolean",
+                                                        "example": true
+                                                    },
+                                                    "is_required": {
+                                                        "type": "boolean",
+                                                        "example": false
+                                                    },
+                                                    "created_at": {
+                                                        "type": "string",
+                                                        "format": "date-time",
+                                                        "example": "2023-01-01T00:00:00.000000Z"
+                                                    },
+                                                    "updated_at": {
+                                                        "type": "string",
+                                                        "format": "date-time",
+                                                        "example": "2023-01-01T00:00:00.000000Z"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Unauthenticated"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/chart-account-categories/{id}/toggle": {
+            "put": {
+                "tags": [
+                    "Chart Account Categories"
+                ],
+                "summary": "Toggle a chart account category",
+                "description": "Toggles the active status of a chart account category",
+                "operationId": "adbf09f643573a915f370e3e5be2c36a",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID of the chart account category to toggle",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Chart account category updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Chart account category updated successfully"
+                                        },
+                                        "status": {
+                                            "type": "string",
+                                            "example": "success"
+                                        },
+                                        "status_code": {
+                                            "type": "integer",
+                                            "example": 200
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "string",
+                                                    "format": "uuid",
+                                                    "example": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+                                                },
+                                                "name": {
+                                                    "type": "string",
+                                                    "example": "Category Name"
+                                                },
+                                                "is_active": {
+                                                    "type": "boolean",
+                                                    "example": true
+                                                },
+                                                "is_required": {
+                                                    "type": "boolean",
+                                                    "example": false
+                                                },
+                                                "created_at": {
+                                                    "type": "string",
+                                                    "format": "date-time",
+                                                    "example": "2023-01-01T00:00:00.000000Z"
+                                                },
+                                                "updated_at": {
+                                                    "type": "string",
+                                                    "format": "date-time",
+                                                    "example": "2023-01-01T00:00:00.000000Z"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Category is required and cannot be disabled",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Category is required and cannot be disabled"
+                                        },
+                                        "status": {
+                                            "type": "string",
+                                            "example": "error"
+                                        },
+                                        "status_code": {
+                                            "type": "integer",
+                                            "example": 403
+                                        },
+                                        "data": {
+                                            "type": "null",
+                                            "example": null
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Unauthenticated"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/account/setup": {
+            "post": {
+                "tags": [
+                    "Account"
+                ],
+                "summary": "Complete account setup",
+                "description": "Setup new account",
+                "operationId": "fc4c5b17e9f8503fdcc34bcb9d832e70",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/AccountSetupRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Account created successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AccountSetupResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "The given data was invalid."
+                                        },
+                                        "errors": {
+                                            "properties": {
+                                                "account_number": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string",
+                                                        "example": "The account number has already been taken."
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Account setup failed"
+                                        },
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Error message"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/api/v1/auth/login": {
             "post": {
                 "tags": [
@@ -4987,6 +5297,130 @@
         }
     },
     "components": {
+        "schemas": {
+            "AccountSetupResponse": {
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "data": {
+                        "properties": {
+                            "business_name": {
+                                "type": "string",
+                                "example": "Dayo & Co."
+                            },
+                            "business_type": {
+                                "type": "string",
+                                "example": "Retail"
+                            },
+                            "currency": {
+                                "type": "string",
+                                "example": "NGN"
+                            },
+                            "reporting_year": {
+                                "type": "string",
+                                "example": "January - December"
+                            },
+                            "bank_name": {
+                                "type": "string",
+                                "example": "Access Bank"
+                            },
+                            "account_name": {
+                                "type": "string",
+                                "example": "Dayo Business"
+                            },
+                            "account_number": {
+                                "type": "string",
+                                "example": "1234567890"
+                            },
+                            "opening_balance": {
+                                "type": "number",
+                                "format": "float",
+                                "example": 10000
+                            },
+                            "ledger_types": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string",
+                                    "enum": [
+                                        "general",
+                                        "vendor",
+                                        "customer"
+                                    ]
+                                }
+                            }
+                        },
+                        "type": "object"
+                    },
+                    "message": {
+                        "type": "string",
+                        "example": "Account setup completed successfully"
+                    }
+                },
+                "type": "object"
+            },
+            "AccountSetupRequest": {
+                "required": [
+                    "business_name",
+                    "business_type",
+                    "currency",
+                    "reporting_year",
+                    "bank_name",
+                    "account_name",
+                    "account_number",
+                    "opening_balance",
+                    "ledger_types"
+                ],
+                "properties": {
+                    "business_name": {
+                        "type": "string",
+                        "example": "Dayo & Co."
+                    },
+                    "business_type": {
+                        "type": "string",
+                        "example": "Retail"
+                    },
+                    "currency": {
+                        "type": "string",
+                        "example": "NGN"
+                    },
+                    "reporting_year": {
+                        "type": "string",
+                        "example": "January - December"
+                    },
+                    "bank_name": {
+                        "type": "string",
+                        "example": "Access Bank"
+                    },
+                    "account_name": {
+                        "type": "string",
+                        "example": "Dayo Business"
+                    },
+                    "account_number": {
+                        "type": "string",
+                        "example": "1234567890"
+                    },
+                    "opening_balance": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 10000
+                    },
+                    "ledger_types": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "enum": [
+                                "general",
+                                "vendor",
+                                "customer"
+                            ]
+                        }
+                    }
+                },
+                "type": "object"
+            }
+        },
         "securitySchemes": {
             "bearerAuth": {
                 "type": "http",
@@ -4996,6 +5430,10 @@
         }
     },
     "tags": [
+        {
+            "name": "Account",
+            "description": "Account setup operations"
+        },
         {
             "name": "Authentication",
             "description": "API Endpoints for User Authentication"
@@ -5007,6 +5445,10 @@
         {
             "name": "Reconciliation",
             "description": "API Endpoints for file reconciliation"
+        },
+        {
+            "name": "Chart Account Categories",
+            "description": "Chart Account Categories"
         },
         {
             "name": "Newsletter",
