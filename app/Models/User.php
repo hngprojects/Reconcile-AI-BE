@@ -121,4 +121,9 @@ class User extends Authenticatable implements JWTSubject, CanResetPasswordContra
     public function user(): HasMany {
         return $this->hasMany(ChartAccountCategory::class, 'user_chart_categories', 'user_id', 'account_chart_category_id');
     }
+    
+    public function ledgerEntries(): HasMany
+    {
+        return $this->hasMany(LedgerEntry::class);
+    }
 }
