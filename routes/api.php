@@ -22,7 +22,6 @@ use App\Http\Controllers\CustomerFeedbackController;
 use App\Http\Controllers\BookkeepingLedgerController;
 use App\Http\Controllers\OutboundMarketingController;
 use App\Http\Controllers\BillingTransactionController;
-use App\Http\Controllers\LedgerEntryController;
 
 Route::prefix('v1')->group(function () {
     Route::get('/', function () {
@@ -78,11 +77,6 @@ Route::prefix('v1')->group(function () {
             Route::get('/', [AccountChartCategoryController::class, 'index'])->name('chart-account-categories');
             Route::put('/{id}/toggle', [AccountChartCategoryController::class, 'toggle_category'])->name('update-chart-account-categories');
         });
-
-        Route::post('/ledger-entries', [LedgerEntryController::class, 'store']);
-        Route::get('/ledger-entries', [LedgerEntryController::class,'index']);
-        Route::get('/ledger-entries/{id}', [LedgerEntryController::class,'show']);
-        Route::put('/ledger-entries/{id}', [LedgerEntryController::class,'update']);
     });
     Route::prefix('newsletter')->name('newsletter.')->group(function () {
         Route::get('/unsubscribe/{email}', [NewsLetterController::class, 'oneClickUnsubscribe'])->name('one-click-unsubscribe');
