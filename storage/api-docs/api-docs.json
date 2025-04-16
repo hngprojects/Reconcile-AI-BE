@@ -1306,6 +1306,84 @@
                 ]
             }
         },
+        "/api/v1/business-info/{id}": {
+            "put": {
+                "tags": [
+                    "Business"
+                ],
+                "summary": "Update business information",
+                "operationId": "86887a6aeb5e35ea2c83ea7b2bfbd819",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Business info ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/BusinessInfoRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Business info updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/BusinessInfoResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ValidationErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Business info not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ServerErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ServerErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/api/v1/bank-accounts": {
             "get": {
                 "tags": [
@@ -3723,6 +3801,548 @@
                 }
             }
         },
+        "/api/v1/ledger-entries": {
+            "get": {
+                "tags": [
+                    "Ledger Entries"
+                ],
+                "summary": "Get all ledger entries",
+                "description": "Retrieves all ledger entries for the authenticated user",
+                "operationId": "56f5a20576d6702925a19871192486f5",
+                "responses": {
+                    "200": {
+                        "description": "Ledger entries retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status_code": {
+                                            "type": "integer",
+                                            "example": 200
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Ledger entries retrieved successfully"
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "string",
+                                                        "format": "uuid"
+                                                    },
+                                                    "bookkeeping_ledger_id": {
+                                                        "type": "string",
+                                                        "format": "uuid"
+                                                    },
+                                                    "transaction_type": {
+                                                        "type": "string",
+                                                        "enum": [
+                                                            "Income",
+                                                            "Expense",
+                                                            "Payable",
+                                                            "Receivable"
+                                                        ]
+                                                    },
+                                                    "date": {
+                                                        "type": "string",
+                                                        "format": "date"
+                                                    },
+                                                    "person": {
+                                                        "type": "string"
+                                                    },
+                                                    "amount": {
+                                                        "type": "number",
+                                                        "format": "float"
+                                                    },
+                                                    "reconciliation_id": {
+                                                        "type": "string",
+                                                        "format": "uuid"
+                                                    },
+                                                    "payment": {
+                                                        "properties": {
+                                                            "payment_status": {
+                                                                "type": "string",
+                                                                "enum": [
+                                                                    "paid",
+                                                                    "unpaid",
+                                                                    "partial"
+                                                                ]
+                                                            },
+                                                            "due_date": {
+                                                                "type": "string",
+                                                                "format": "date"
+                                                            },
+                                                            "amount_paid": {
+                                                                "type": "number",
+                                                                "format": "float"
+                                                            },
+                                                            "bank_account_id": {
+                                                                "type": "string",
+                                                                "format": "uuid"
+                                                            },
+                                                            "account_chart_id": {
+                                                                "type": "string",
+                                                                "format": "uuid"
+                                                            },
+                                                            "reference": {
+                                                                "type": "string"
+                                                            },
+                                                            "attachment": {
+                                                                "type": "string"
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Ledger Entries"
+                ],
+                "summary": "Create a new ledger entry",
+                "description": "Creates a new ledger entry for the authenticated user",
+                "operationId": "2535011423d8baf2eacde627f67af105",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "bookkeeping_ledger_id",
+                                    "transaction_type",
+                                    "transaction_date",
+                                    "description",
+                                    "amount",
+                                    "paid_status",
+                                    "amount_paid",
+                                    "bank_account_id",
+                                    "account_chart_id",
+                                    "reconciliation_id"
+                                ],
+                                "properties": {
+                                    "bookkeeping_ledger_id": {
+                                        "type": "string",
+                                        "format": "uuid",
+                                        "example": "550e8400-e29b-41d4-a716-446655440000"
+                                    },
+                                    "transaction_type": {
+                                        "type": "string",
+                                        "enum": [
+                                            "Income",
+                                            "Expense",
+                                            "Payable",
+                                            "Receivable"
+                                        ],
+                                        "example": "Income"
+                                    },
+                                    "transaction_date": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2024-01-15"
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "example": "Monthly service payment"
+                                    },
+                                    "amount": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 1000
+                                    },
+                                    "paid_status": {
+                                        "type": "string",
+                                        "enum": [
+                                            "paid",
+                                            "unpaid",
+                                            "partial"
+                                        ],
+                                        "example": "paid"
+                                    },
+                                    "due_date": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2024-02-15"
+                                    },
+                                    "amount_paid": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 1000
+                                    },
+                                    "bank_account_id": {
+                                        "type": "string",
+                                        "format": "uuid",
+                                        "example": "550e8400-e29b-41d4-a716-446655440000"
+                                    },
+                                    "account_chart_id": {
+                                        "type": "string",
+                                        "format": "uuid",
+                                        "example": "550e8400-e29b-41d4-a716-446655440000"
+                                    },
+                                    "reference": {
+                                        "type": "string",
+                                        "example": "INV-2024-001"
+                                    },
+                                    "attachment": {
+                                        "type": "file",
+                                        "format": "binary"
+                                    },
+                                    "reconciliation_id": {
+                                        "type": "string",
+                                        "format": "uuid",
+                                        "example": "550e8400-e29b-41d4-a716-446655440000"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Ledger entry created successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status_code": {
+                                            "type": "integer",
+                                            "example": 201
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Ledger entry created successfully"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "ledger": {
+                                                    "type": "object"
+                                                },
+                                                "payment": {
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status_code": {
+                                            "type": "integer",
+                                            "example": 422
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Validation failed"
+                                        },
+                                        "errors": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/ledger-entries/{id}": {
+            "get": {
+                "tags": [
+                    "Ledger Entries"
+                ],
+                "summary": "Get a specific ledger entry",
+                "description": "Retrieves a specific ledger entry by ID for the authenticated user",
+                "operationId": "b790bab07e1d60565badf936dd3d72b2",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Ledger entry ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Ledger entry retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status_code": {
+                                            "type": "integer",
+                                            "example": 200
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Ledger entry retrieved successfully"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "string",
+                                                    "format": "uuid"
+                                                },
+                                                "bookkeeping_ledger_id": {
+                                                    "type": "string",
+                                                    "format": "uuid"
+                                                },
+                                                "transaction_type": {
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "Income",
+                                                        "Expense",
+                                                        "Payable",
+                                                        "Receivable"
+                                                    ]
+                                                },
+                                                "date": {
+                                                    "type": "string",
+                                                    "format": "date"
+                                                },
+                                                "person": {
+                                                    "type": "string"
+                                                },
+                                                "amount": {
+                                                    "type": "number",
+                                                    "format": "float"
+                                                },
+                                                "reconciliation_id": {
+                                                    "type": "string",
+                                                    "format": "uuid"
+                                                },
+                                                "payment": {
+                                                    "properties": {
+                                                        "payment_status": {
+                                                            "type": "string",
+                                                            "enum": [
+                                                                "paid",
+                                                                "unpaid",
+                                                                "partial"
+                                                            ]
+                                                        },
+                                                        "due_date": {
+                                                            "type": "string",
+                                                            "format": "date"
+                                                        },
+                                                        "amount_paid": {
+                                                            "type": "number",
+                                                            "format": "float"
+                                                        },
+                                                        "bank_account_id": {
+                                                            "type": "string",
+                                                            "format": "uuid"
+                                                        },
+                                                        "account_chart_id": {
+                                                            "type": "string",
+                                                            "format": "uuid"
+                                                        },
+                                                        "reference": {
+                                                            "type": "string"
+                                                        },
+                                                        "attachment": {
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Ledger entry not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status_code": {
+                                            "type": "integer",
+                                            "example": 404
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Ledger entry not found"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Ledger Entries"
+                ],
+                "summary": "Update a ledger entry",
+                "description": "Updates a specific ledger entry and its payment details",
+                "operationId": "17d5f72b1cf0e646a4618a93b15fdb8a",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Ledger ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "bookkeeping_ledger_id": {
+                                        "type": "string",
+                                        "format": "uuid"
+                                    },
+                                    "transaction_type": {
+                                        "type": "string",
+                                        "enum": [
+                                            "Income",
+                                            "Expense",
+                                            "Payable",
+                                            "Receivable"
+                                        ]
+                                    },
+                                    "transaction_date": {
+                                        "type": "string",
+                                        "format": "date"
+                                    },
+                                    "description": {
+                                        "type": "string"
+                                    },
+                                    "amount": {
+                                        "type": "number",
+                                        "format": "float"
+                                    },
+                                    "paid_status": {
+                                        "type": "string",
+                                        "enum": [
+                                            "paid",
+                                            "unpaid",
+                                            "partial"
+                                        ]
+                                    },
+                                    "due_date": {
+                                        "type": "string",
+                                        "format": "date"
+                                    },
+                                    "amount_paid": {
+                                        "type": "number",
+                                        "format": "float"
+                                    },
+                                    "bank_account_id": {
+                                        "type": "string",
+                                        "format": "uuid"
+                                    },
+                                    "account_chart_id": {
+                                        "type": "string",
+                                        "format": "uuid"
+                                    },
+                                    "reference": {
+                                        "type": "string"
+                                    },
+                                    "attachment": {
+                                        "type": "file",
+                                        "format": "binary"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Ledger entry updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status_code": {
+                                            "type": "integer",
+                                            "example": 200
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Ledger entry updated successfully"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "ledger": {
+                                                    "type": "object"
+                                                },
+                                                "payment": {
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/api/v1/outbound-marketing": {
             "post": {
                 "tags": [
@@ -5664,6 +6284,10 @@
         {
             "name": "Job Applications",
             "description": "Job Applications"
+        },
+        {
+            "name": "Ledger Entries",
+            "description": "Ledger Entries"
         },
         {
             "name": "Marketing",
