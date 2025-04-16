@@ -43,8 +43,8 @@ class User extends Authenticatable implements JWTSubject, CanResetPasswordContra
         'password',
         'avatar',
         'country',
-        'city'
-
+        'city',
+        'phone_number'
     ];
 
     /**
