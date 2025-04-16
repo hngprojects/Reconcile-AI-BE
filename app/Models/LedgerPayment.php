@@ -11,6 +11,7 @@ class LedgerPayment extends Model
     use HasUuids;
     protected $table = 'ledger_payments';
     protected $fillable = [
+        'ledger_id',
         'payment_status',
         'due_date',
         'amount_paid',
@@ -20,9 +21,9 @@ class LedgerPayment extends Model
         'attachment'
     ];
 
-    public function ledger(): BelongsTo
+    public function ledger()
     {
-        return $this->belongsTo(BookkeepingLedger::class);
+        return $this->belongsTo(Ledger::class);
     }
 
     public function account(): BelongsTo
