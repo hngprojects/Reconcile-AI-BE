@@ -160,7 +160,7 @@ class UserController extends Controller
             $updatedUser = User::find($user->id);
 
             if ($updatedUser->avatar) {
-                $updatedUser->avatar = Storage::url($updatedUser->avatar);
+                $updatedUser->avatar = config('app.url') . Storage::url($updatedUser->avatar);
             }
 
             return response()->json([
