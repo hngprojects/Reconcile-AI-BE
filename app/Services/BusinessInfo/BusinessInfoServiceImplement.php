@@ -4,96 +4,62 @@ namespace App\Services\BusinessInfo;
 
 use LaravelEasyRepository\ServiceApi;
 use App\Repositories\BusinessInfo\BusinessInfoRepository;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Validator;
 use Exception;
 
 class BusinessInfoServiceImplement extends ServiceApi implements BusinessInfoService{
 
-    /**
-     * set title message api for CRUD
-     * @param string $title
-     */
-     protected string $title = "Business Info Service";
-     /**
-     * uncomment this to override the default message
-     * protected string $create_message = "";
-     * protected string $update_message = "";
-     * protected string $delete_message = "";
-     */
+    protected string $title = "Business Info Service";
 
-     /**
-     * don't change $this->mainRepository variable name
-     * because used in extends service class
-     */
     public function __construct(protected BusinessInfoRepository $mainRepository)
     {
     }
 
-    public function setupBusinessInfo(Request $request): array
+    public function setupBusinessInfo($request): array
     {
         try {
-            $validated = $request->validate([
-                'business_name' => 'required|string|max:255',
-                'business_type' => 'required|string|max:255',
-                'currency' => 'required|string|max:3',
-                'reporting_year' => 'sometimes|string'
-            ]);
-
-            $year = $this->parseReportingYear($validated['reporting_year'] ?? 'January - December');
+            $validated = $this->validateRequest($request);
 
             $businessInfo = $this->mainRepository->createBusinessInfo([
                 'user_id' => $request->user()->id,
                 'name' => $validated['business_name'],
                 'type' => $validated['business_type'],
                 'currency' => $validated['currency'],
-                'reporting_year_start' => $year['start'],
-                'reporting_year_end' => $year['end'],
+                'reporting_year' => $validated['reporting_year'],
             ]);
 
-            return $this->formatResponse(
-                201,
-                'Business info created successfully',
-                $businessInfo
-            );
+            return $this->response(201, 'Business info created successfully', $businessInfo);
 
         } catch (\Illuminate\Validation\ValidationException $e) {
-            return $this->formatResponse(
-                422,
-                'Validation error',
-                null,
-                $e->errors()
-            );
-                
+            return $this->response(422, 'Validation error', null, $e->errors());
         } catch (Exception $e) {
-            return $this->formatResponse(
-                400,
-                'Failed to create business info',
-                null,
-                $e->getMessage()
-            );
+            return $this->response(400, 'Failed to create business info', null, $e->getMessage());
         }
     }
 
-    private function parseReportingYear(string $yearRange): array
+    private function validateRequest($request): array
     {
-        $currentYear = now()->year;
-        $months = explode(' - ', $yearRange);
-        
-        return [
-            'start' => Carbon::parse("first day of {$months[0]} $currentYear")->toDateString(),
-            'end' => Carbon::parse("last day of {$months[1]} $currentYear")->toDateString()
-        ];
+        $validator = Validator::make($request->all(), [
+            'business_name' => 'required|string|max:255',
+            'business_type' => 'required|string|max:255',
+            'currency' => 'required|string|max:3',
+            'reporting_year' => 'required|string|in:January - December,April - March,July - June'
+        ]);
+
+        if ($validator->fails()) {
+            throw new \Illuminate\Validation\ValidationException($validator);
+        }
+
+        return $validator->validated();
     }
 
-    private function formatResponse(int $code, string $message, $data = null, $error = null): array
+    private function response(int $code, string $message, $data = null, $error = null): array
     {
         return [
             'code' => $code,
             'message' => $message,
             'data' => $data,
-            'error' => $error
+            'error' => $error,
         ];
     }
 }
