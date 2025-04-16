@@ -40,4 +40,9 @@ class Ledger extends Model
     {
         return $this->belongsTo(BookkeepingLedger::class);
     }
+
+    public function payment()
+    {
+        return $this->hasOne(LedgerPayment::class);
+    }
 }

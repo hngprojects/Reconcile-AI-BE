@@ -22,6 +22,7 @@ use App\Http\Controllers\CustomerFeedbackController;
 use App\Http\Controllers\BookkeepingLedgerController;
 use App\Http\Controllers\OutboundMarketingController;
 use App\Http\Controllers\BillingTransactionController;
+use App\Http\Controllers\LedgerEntryController;
 
 Route::prefix('v1')->group(function () {
     Route::get('/', function () {
@@ -61,6 +62,11 @@ Route::prefix('v1')->group(function () {
         Route::put('payment-plan', [PaymentPlanController::class, 'update'])->name('payment-plan.update');
         // Optional: Payment history route if you implement it later
         Route::get('payment-plan/history', [BillingTransactionController::class, 'history'])->name('payment-plan.history');
+
+        Route::post('/ledger-entries', [LedgerEntryController::class, 'store']);
+        Route::get('/ledger-entries', [LedgerEntryController::class, 'index']);
+        Route::get('/ledger-entries/{id}', [LedgerEntryController::class, 'show']);
+        Route::put('/ledger-entries/{id}', [LedgerEntryController::class, 'update']);
 
         Route::get('/bookkeeping-ledgers', [BookkeepingLedgerController::class, 'index']);
         Route::post('/bookkeeping-ledgers', [BookkeepingLedgerController::class, 'store']);
