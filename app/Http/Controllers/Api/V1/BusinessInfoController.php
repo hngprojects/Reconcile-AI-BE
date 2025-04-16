@@ -106,4 +106,49 @@ class BusinessInfoController extends Controller
         $result = $this->businessInfoService->setupBusinessInfo($request);
         return response()->json($result, $result['code']);
     }
+
+    /**
+     * @OA\Put(
+     *     path="/api/v1/business-info/{id}",
+     *     summary="Update business information",
+     *     tags={"Business"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="Business info ID",
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(ref="#/components/schemas/BusinessInfoRequest")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Business info updated successfully",
+     *         @OA\JsonContent(ref="#/components/schemas/BusinessInfoResponse")
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Validation error",
+     *         @OA\JsonContent(ref="#/components/schemas/ValidationErrorResponse")
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Business info not found",
+     *         @OA\JsonContent(ref="#/components/schemas/ServerErrorResponse")
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Server error",
+     *         @OA\JsonContent(ref="#/components/schemas/ServerErrorResponse")
+     *     )
+     * )
+     */
+    public function update(Request $request, string $id): JsonResponse
+    {
+        $result = $this->businessInfoService->updateBusinessInfo($id, $request);
+        return response()->json($result, $result['code']);
+    }
 }

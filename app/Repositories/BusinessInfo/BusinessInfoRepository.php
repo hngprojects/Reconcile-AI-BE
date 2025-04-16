@@ -8,4 +8,6 @@ use LaravelEasyRepository\Repository;
 interface BusinessInfoRepository extends Repository{
 
     public function createBusinessInfo(array $data): BusinessInfo;
+    public function findOne(string $id): ?BusinessInfo;
+    public function updateBusinessInfo(string $id, array $data): BusinessInfo;
 }

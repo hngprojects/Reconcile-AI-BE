@@ -86,6 +86,7 @@ Route::prefix('v1')->group(function () {
         });
         // busines info creation
         Route::post('/business-info', [BusinessInfoController::class, 'store']);
+        Route::put('/business-info/{id}', [BusinessInfoController::class, 'update']);
     });
     Route::prefix('newsletter')->name('newsletter.')->group(function () {
         Route::get('/unsubscribe/{email}', [NewsLetterController::class, 'oneClickUnsubscribe'])->name('one-click-unsubscribe');

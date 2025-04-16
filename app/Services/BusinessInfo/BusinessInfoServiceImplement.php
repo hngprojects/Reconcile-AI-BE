@@ -37,6 +37,32 @@ class BusinessInfoServiceImplement extends ServiceApi implements BusinessInfoSer
         }
     }
 
+    public function updateBusinessInfo(string $id, $request): array
+    {
+        try {
+            $validated = $this->validateRequest($request);
+
+            $businessInfo = $this->mainRepository->findOne($id);
+            if (!$businessInfo) {
+                return $this->response(404, 'Business info not found');
+            }
+
+            $updatedBusinessInfo = $this->mainRepository->updateBusinessInfo($id, [
+                'name' => $validated['business_name'],
+                'type' => $validated['business_type'],
+                'currency' => $validated['currency'],
+                'reporting_year' => $validated['reporting_year'],
+            ]);
+            
+            return $this->response(200, 'Business info updated successfully', $updatedBusinessInfo);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return $this->response(422, 'Validation error', null, $e->errors());
+        } catch (Exception $e) {
+            return $this->response(400, 'Failed to update business info', null, $e->getMessage());
+        }
+    }
+
     private function validateRequest($request): array
     {
         $validator = Validator::make($request->all(), [
