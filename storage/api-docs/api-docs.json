@@ -1250,6 +1250,62 @@
                 }
             }
         },
+        "/api/v1/business-info": {
+            "post": {
+                "tags": [
+                    "Business"
+                ],
+                "summary": "Create business information",
+                "operationId": "0bad05f6388fdf4c5b6e05447b39883a",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/BusinessInfoRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Business info created successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/BusinessInfoResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ValidationErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ServerErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/api/v1/bank-accounts": {
             "get": {
                 "tags": [
@@ -5360,6 +5416,125 @@
                 },
                 "type": "object"
             },
+            "BusinessInfoRequest": {
+                "required": [
+                    "business_name",
+                    "business_type",
+                    "currency",
+                    "reporting_year"
+                ],
+                "properties": {
+                    "business_name": {
+                        "type": "string",
+                        "example": "My Business"
+                    },
+                    "business_type": {
+                        "type": "string",
+                        "example": "Retail"
+                    },
+                    "currency": {
+                        "type": "string",
+                        "example": "NGN"
+                    },
+                    "reporting_year": {
+                        "type": "string",
+                        "enum": [
+                            "January - December",
+                            "April - March",
+                            "July - June"
+                        ],
+                        "example": "January - December"
+                    }
+                },
+                "type": "object"
+            },
+            "BusinessInfoResponse": {
+                "properties": {
+                    "code": {
+                        "type": "integer",
+                        "example": 201
+                    },
+                    "message": {
+                        "type": "string",
+                        "example": "Business info created successfully"
+                    },
+                    "data": {
+                        "$ref": "#/components/schemas/BusinessInfo"
+                    }
+                },
+                "type": "object"
+            },
+            "BusinessInfo": {
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "user_id": {
+                        "type": "integer"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "type": {
+                        "type": "string"
+                    },
+                    "currency": {
+                        "type": "string"
+                    },
+                    "reporting_year": {
+                        "type": "string"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object"
+            },
+            "ValidationErrorResponse": {
+                "properties": {
+                    "code": {
+                        "type": "integer",
+                        "example": 422
+                    },
+                    "message": {
+                        "type": "string",
+                        "example": "Validation error"
+                    },
+                    "error": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                },
+                "type": "object"
+            },
+            "ServerErrorResponse": {
+                "properties": {
+                    "code": {
+                        "type": "integer",
+                        "example": 500
+                    },
+                    "message": {
+                        "type": "string",
+                        "example": "Server error"
+                    },
+                    "error": {
+                        "type": "string",
+                        "example": "An unexpected error occurred"
+                    }
+                },
+                "type": "object"
+            },
             "AccountSetupRequest": {
                 "required": [
                     "business_name",
@@ -5433,6 +5608,10 @@
         {
             "name": "Account",
             "description": "Account setup operations"
+        },
+        {
+            "name": "Business",
+            "description": "Business Information Management"
         },
         {
             "name": "Authentication",
