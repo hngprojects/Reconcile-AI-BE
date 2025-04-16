@@ -5057,6 +5057,16 @@
                                         "type": "string",
                                         "example": "New York"
                                     },
+                                    "phone_number": {
+                                        "description": "User's phone number",
+                                        "type": "string",
+                                        "example": "09123456789"
+                                    },
+                                    "name": {
+                                        "description": "User's name",
+                                        "type": "string",
+                                        "example": "New York"
+                                    },
                                     "avatar": {
                                         "description": "User's profile picture (JPEG, PNG, JPG, GIF up to 2MB)",
                                         "type": "string",
@@ -5113,6 +5123,10 @@
                                                 "avatar": {
                                                     "type": "string",
                                                     "example": "avatars/user123.jpg"
+                                                },
+                                                "phone_number": {
+                                                    "type": "string",
+                                                    "example": "09123456789"
                                                 },
                                                 "created_at": {
                                                     "type": "string",

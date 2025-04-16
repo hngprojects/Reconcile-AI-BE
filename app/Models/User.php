@@ -43,7 +43,8 @@ class User extends Authenticatable implements JWTSubject, CanResetPasswordContra
         'password',
         'avatar',
         'country',
-        'city'
+        'city',
+        'phone_number',
 
     ];
 
@@ -99,8 +100,8 @@ class User extends Authenticatable implements JWTSubject, CanResetPasswordContra
     public function currentPaymentPlan()
     {
         return $this->hasOne(PaymentPlan::class)
-                ->where('is_active', true)
-                ->with('plan');
+            ->where('is_active', true)
+            ->with('plan');
     }
 
     public function bankAccounts(): HasMany
@@ -118,7 +119,8 @@ class User extends Authenticatable implements JWTSubject, CanResetPasswordContra
         return $this->hasMany(BookkeepingLedger::class);
     }
 
-    public function user(): HasMany {
+    public function user(): HasMany
+    {
         return $this->hasMany(ChartAccountCategory::class, 'user_chart_categories', 'user_id', 'account_chart_category_id');
     }
 }

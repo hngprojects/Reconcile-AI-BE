@@ -22,6 +22,8 @@ class UserController extends Controller
      *             @OA\Schema(
      *                 @OA\Property(property="country", type="string", example="United States", description="User's country"),
      *                 @OA\Property(property="city", type="string", example="New York", description="User's city"),
+     *                 @OA\Property(property="phone_number", type="string", example="09123456789", description="User's phone number"),
+     *                 @OA\Property(property="name", type="string", example="New York", description="User's name"),
      *                 @OA\Property(property="avatar", type="string", format="binary", description="User's profile picture (JPEG, PNG, JPG, GIF up to 2MB)")
      *             )
      *         )
@@ -42,6 +44,7 @@ class UserController extends Controller
      *                 @OA\Property(property="country", type="string", example="United States"),
      *                 @OA\Property(property="city", type="string", example="New York"),
      *                 @OA\Property(property="avatar", type="string", example="avatars/user123.jpg"),
+     *                 @OA\Property(property="phone_number", type="string", example="09123456789"),
      *                 @OA\Property(property="created_at", type="string", format="date-time"),
      *                 @OA\Property(property="updated_at", type="string", format="date-time")
      *             )
@@ -87,7 +90,9 @@ class UserController extends Controller
             $validator = validator($request->all(), [
                 'country' => 'nullable|string|max:255',
                 'city' => 'nullable|string|max:255',
-                'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
+                'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+                'name' => 'nullable|string|max:255',
+                'phone_number' => 'nullable|string|max:11'
             ]);
 
             if ($validator->fails()) {
@@ -100,7 +105,7 @@ class UserController extends Controller
             }
 
             $user = Auth::user();
-            $data = $request->only(['country', 'city']);
+            $data = $request->only(['country', 'city', 'name', 'phone_number']);
 
             if ($request->hasFile('avatar')) {
                 if ($user->avatar) {
