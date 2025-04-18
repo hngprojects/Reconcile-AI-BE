@@ -8,7 +8,7 @@ use App\Models\Ledger;
 
 interface LedgerRepository extends Repository{
     public function store(array $data);
-    public function storeMany(array $ledgers, Reconciliation $reconciliation);
+    public function storeMany(array $ledgers);
     public function findAll(Reconciliation $reconciliation);
     public function findById(string $id);
     public function addVector(Ledger $ledger, array $data);
