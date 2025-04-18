@@ -5513,25 +5513,21 @@
                     "content": {
                         "multipart/form-data": {
                             "schema": {
-                                "required": [
-                                    "bank_statements",
-                                    "ledgers"
-                                ],
                                 "properties": {
-                                    "bank_statements": {
-                                        "description": "Array of Bank Statement CSV files",
-                                        "type": "array",
-                                        "items": {
-                                            "type": "string",
-                                            "format": "binary"
-                                        }
+                                    "bank_statements[0][file]": {
+                                        "type": "string",
+                                        "format": "binary"
                                     },
-                                    "ledgers": {
-                                        "description": "Array of Ledger CSV files",
+                                    "bank_statements[0][bank_account]": {
+                                        "type": "string"
+                                    },
+                                    "bank_statements[0][period]": {
+                                        "type": "string"
+                                    },
+                                    "ledgers[]": {
                                         "type": "array",
                                         "items": {
-                                            "type": "string",
-                                            "format": "binary"
+                                            "type": "string"
                                         }
                                     }
                                 },
@@ -5715,7 +5711,7 @@
                     "User"
                 ],
                 "summary": "Update user profile",
-                "description": "Updates the authenticated user's profile information including country, city, and avatar",
+                "description": "Updates the authenticated user's profile information including name, phone_number, country, city, and avatar",
                 "operationId": "006dbcde275036cbe65b0f07db20a1a7",
                 "requestBody": {
                     "required": false,
@@ -5723,6 +5719,16 @@
                         "multipart/form-data": {
                             "schema": {
                                 "properties": {
+                                    "name": {
+                                        "description": "User's full name",
+                                        "type": "string",
+                                        "example": "John Doe"
+                                    },
+                                    "phone_number": {
+                                        "description": "User's phone number",
+                                        "type": "string",
+                                        "example": "+1234567890"
+                                    },
                                     "country": {
                                         "description": "User's country",
                                         "type": "string",
@@ -5734,7 +5740,7 @@
                                         "example": "New York"
                                     },
                                     "avatar": {
-                                        "description": "User's profile picture (JPEG, PNG, JPG, GIF up to 2MB)",
+                                        "description": "User's profile picture (JPEG, PNG, JPG, GIF up to 5MB)",
                                         "type": "string",
                                         "format": "binary"
                                     }
@@ -5777,6 +5783,10 @@
                                                 "email": {
                                                     "type": "string",
                                                     "example": "john@example.com"
+                                                },
+                                                "phone_number": {
+                                                    "type": "string",
+                                                    "example": "+1234567890"
                                                 },
                                                 "country": {
                                                     "type": "string",
@@ -5836,6 +5846,62 @@
                                                 }
                                             },
                                             "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden - User not authorized to update profile",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "example": "error"
+                                        },
+                                        "status_code": {
+                                            "type": "integer",
+                                            "example": 403
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "You are not authorized to update this profile"
+                                        },
+                                        "data": {
+                                            "type": "null",
+                                            "example": null
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "User not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "example": "error"
+                                        },
+                                        "status_code": {
+                                            "type": "integer",
+                                            "example": 404
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "User not found"
+                                        },
+                                        "data": {
+                                            "type": "null",
+                                            "example": null
                                         }
                                     },
                                     "type": "object"

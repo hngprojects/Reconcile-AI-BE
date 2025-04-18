@@ -354,27 +354,27 @@ class ReconciliationController extends Controller
      *         @OA\MediaType(
      *             mediaType="multipart/form-data",
      *             @OA\Schema(
-     *                 required={"bank_statements", "ledgers"},
+     *                 type="object",
      *                 @OA\Property(
-     *                     property="bank_statements",
-     *                     type="array",
-     *                     @OA\Items(
-     *                         type="string",
-     *                         format="binary"
-     *                     ),
-     *                     description="Array of Bank Statement CSV files"
+     *                     property="bank_statements[0][file]",
+     *                     type="string",
+     *                     format="binary"
      *                 ),
      *                 @OA\Property(
-     *                     property="ledgers",
+     *                     property="bank_statements[0][bank_account]",
+     *                     type="string"
+     *                 ),
+     *                 @OA\Property(
+     *                     property="bank_statements[0][period]",
+     *                     type="string"
+     *                 ),
+     *                 @OA\Property(
+     *                     property="ledgers[]",
      *                     type="array",
-     *                     @OA\Items(
-     *                         type="string",
-     *                         format="binary"
-     *                     ),
-     *                     description="Array of Ledger CSV files"
+     *                     @OA\Items(type="string")
      *                 )
-     *             )
-     *         )
+     *              ),
+     *          )
      *     ),
      *     @OA\Response(
      *         response=200,
@@ -427,58 +427,47 @@ class ReconciliationController extends Controller
     public function testEmbeddings(Request $request): JsonResponse
     {
         $request->validate([
+            'title' => 'required|string',
             'bank_statements' => 'required|array',
             'ledgers' => 'required|array',
-            'bank_statements.*' => 'required|file|mimes:csv|max:2048',
-            'ledgers.*' => 'required|file|mimes:csv|max:2048',
+            'bank_statements.*.file' => 'required|file|mimes:csv|max:2048',
+            'bank_statements.*.bank_account' => 'required|uuid|exists:bank_accounts,id',
+            'bank_statements.*.period' => 'required|string',
+            'ledgers.*' => 'required|string|exists:bookkeeping_ledgers,id',
         ], [
-            'bank_statements.*.mimes' => 'Bank Statement must be a CSV.',
-            'ledgers.*.mimes' => 'Ledger must be a CSV.',
-            'bank_statements.*.max' => 'Bank statement must not be larger than 2MB.',
-            'ledgers.*.max' => 'Ledger must not be larger than 2MB.',
+            'bank_statements.*.file.mimes' => 'Bank Statement must be a CSV.',
+            'bank_statements.*.file.max' => 'Bank statement must not be larger than 2MB.',
         ]);
 
         try {
-            Log::info('Uploaded bank statements:', ['files' => $request->file('bank_statements')]);
-            Log::info('Uploaded ledgers:', ['files' => $request->file('ledgers')]);
-
             $statements = [];
-            $ledgers = [];
+            $ledgers = $request->input('ledgers');
 
-            foreach ($request->file('bank_statements') as $file) {
-                Log::info('File', ['file' => $file]);
+            foreach ($request->input('bank_statements') as $index => $statementData) {
+                $file = $request->file("bank_statements.$index.file");
+                $bankAccount = $statementData['bank_account'];
+                $period = $statementData['period'];
+
+                if (!$file) {
+                    return response()->json(['error' => "Missing file for bank_statements[$index]."], 422);
+                }
+
                 $statementPath = $file->store('uploads');
                 $statementFullPath = Storage::path($statementPath);
-                Log::info('Stored bank statement:', ['path' => $statementFullPath]);
 
                 if (!$this->isValidFileFormat($statementFullPath)) {
                     Storage::delete([$statementPath]);
                     return response()->json(['error' => 'One of the files is not in the correct format.'], 422);
                 }
 
-                $statements[] = $statementFullPath;
+                $statements[] = [
+                    'path' => $statementFullPath,
+                    'bank_account_id' => $bankAccount,
+                    'period' => $period,
+                ];
             }
 
-            foreach ($request->file('ledgers') as $file) {
-                $ledgerPath = $file->store('uploads');
-                $ledgerFullPath = Storage::path($ledgerPath);
-                Log::info('Stored ledger:', ['path' => $ledgerFullPath]);
-
-                if (!$this->isValidFileFormat($ledgerFullPath)) {
-                    Storage::delete([$ledgerPath]);
-                    return response()->json(['error' => 'One of the files is not in the correct format.'], 422);
-                }
-
-                $ledgers[] = $ledgerFullPath;
-            }
-
-            Log::info('Dispatching reconciliation job:', [
-                'statements' => $statements,
-                'ledgers' => $ledgers,
-                'user' => $request->user(),
-            ]);
-
-            $reconciliation = $this->testService->storeReconciliation($statements, $ledgers,  $request->user()->id);
+            $reconciliation = $this->testService->storeReconciliation($statements, $ledgers,  $request->input('title'), $request->user()->id);
             ProcessReconciliation::dispatch($statements, $ledgers, $request->user(), $reconciliation);
 
             return response()->json([
