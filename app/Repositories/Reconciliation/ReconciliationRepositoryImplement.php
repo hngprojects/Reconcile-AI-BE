@@ -28,7 +28,7 @@ class ReconciliationRepositoryImplement extends Eloquent implements Reconciliati
         $reconciliation = new Reconciliation();
         $reconciliation->id = Str::uuid();
         $reconciliation->user_id = $data['user_id'];
-        $reconciliation->option = $data['option'];
+        $reconciliation->title = $data['title'];
         $reconciliation->save();
 
         return $reconciliation;

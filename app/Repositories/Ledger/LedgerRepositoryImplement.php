@@ -52,13 +52,25 @@ class LedgerRepositoryImplement extends Eloquent implements LedgerRepository{
         return $this->model->where('reconciliation_id', '=', $reconciliation->id)->get();
     }
 
+    public function findAllByType(array $types){
+        $ledgers = [];
+        foreach ($types as $type) {
+            $typeLedgers = $this->model->where('bookkeeping_ledger_id', '=', $type)->get();
+            $ledgers = [...$ledgers, ...$typeLedgers];
+        }
+
+        return collect($ledgers);
+    }
+
     public function findById(string $id){
         return $this->model->where('id', '=', $id)->first();
     }
 
     public function addVector(Ledger $ledger, array $data){
-        $ledger->embedding = new Vector($data);
-        $ledger->save();
+        if($ledger->embedding == null){
+            $ledger->embedding = new Vector($data);
+            $ledger->save();
+        }
 
         return $ledger;
     }
