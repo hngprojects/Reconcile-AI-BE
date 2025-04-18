@@ -100,7 +100,6 @@ class LedgerEntryControllerTest extends TestCase
         $response = $this->actingAs($this->user)
             ->postJson('/api/v1/ledger-entries', $data);
 
-        dd($response);
         $response->assertStatus(201)
             ->assertJsonStructure([
                 'status_code',
