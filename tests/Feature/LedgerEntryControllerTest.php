@@ -23,9 +23,9 @@ class LedgerEntryControllerTest extends TestCase
     public function setUp(): void
     {
         parent::setUp();
-        
+
         Storage::fake('public');
-        
+
         $this->user = User::factory()->create();
         $this->bookkeepingLedger = BookkeepingLedger::factory()->create();
 
@@ -150,7 +150,6 @@ class LedgerEntryControllerTest extends TestCase
             'date' => $data['transaction_date'],
             'person' => $data['description'],
             'amount' => $data['amount'],
-            'reconciliation_id' => $data['reconciliation_id']
         ]);
     }
 }

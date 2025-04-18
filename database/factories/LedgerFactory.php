@@ -21,7 +21,7 @@ class LedgerFactory extends Factory
             'person' => fake()->name(),
             'other_information' => fake()->sentence(),
             'amount' => fake()->randomNumber(),
-            'transaction_type' => fake()->word(),
+            'transaction_type' => 'Expense',
             'bookkeeping_ledger_id' => \App\Models\BookkeepingLedger::factory()
         ];
     }
