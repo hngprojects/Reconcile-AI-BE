@@ -114,7 +114,6 @@ class LedgerEntryController extends Controller
                 'date' => $data['transaction_date'],
                 'person' => $data['description'],
                 'amount' => $data['amount'],
-                'reconciliation_id' => $data['reconciliation_id']
             ]);
 
             $attachmentPath = null;
