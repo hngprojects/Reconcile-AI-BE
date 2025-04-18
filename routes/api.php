@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\WaitListController;
 use App\Http\Controllers\GoogleAuthController;
 use App\Http\Controllers\BankAccountController;
+use App\Http\Controllers\LedgerEntryController;
 use App\Http\Controllers\PaymentPlanController;
 use App\Http\Controllers\AccountSetupController;
 use App\Http\Middleware\ThrottleUnauthenticated;
@@ -21,6 +22,8 @@ use App\Http\Controllers\CustomerFeedbackController;
 use App\Http\Controllers\BookkeepingLedgerController;
 use App\Http\Controllers\OutboundMarketingController;
 use App\Http\Controllers\BillingTransactionController;
+use App\Http\Controllers\Api\V1\BusinessInfoController;
+use App\Http\Controllers\AccountChartCategoryController;
 
 Route::prefix('v1')->group(function () {
     Route::get('/', function () {
@@ -61,6 +64,11 @@ Route::prefix('v1')->group(function () {
         // Optional: Payment history route if you implement it later
         Route::get('payment-plan/history', [BillingTransactionController::class, 'history'])->name('payment-plan.history');
 
+        Route::post('/ledger-entries', [LedgerEntryController::class, 'store']);
+        Route::get('/ledger-entries', [LedgerEntryController::class, 'index']);
+        Route::get('/ledger-entries/{id}', [LedgerEntryController::class, 'show']);
+        Route::put('/ledger-entries/{id}', [LedgerEntryController::class, 'update']);
+
         Route::get('/bookkeeping-ledgers', [BookkeepingLedgerController::class, 'index']);
         Route::post('/bookkeeping-ledgers', [BookkeepingLedgerController::class, 'store']);
         Route::put('/bookkeeping-ledgers/{ledger}/toggle', [BookkeepingLedgerController::class, 'toggle']);
@@ -71,6 +79,14 @@ Route::prefix('v1')->group(function () {
 
         // account setup
         Route::post('/account/setup', AccountSetupController::class)->name('account.setup');
+        // chart account categories
+        Route::prefix('chart-account-categories')->name('chart-account-categories.')->group(function () {
+            Route::get('/', [AccountChartCategoryController::class, 'index'])->name('chart-account-categories');
+            Route::put('/{id}/toggle', [AccountChartCategoryController::class, 'toggle_category'])->name('update-chart-account-categories');
+        });
+        // busines info creation
+        Route::post('/business-info', [BusinessInfoController::class, 'store']);
+        Route::put('/business-info/{id}', [BusinessInfoController::class, 'update']);
     });
     Route::prefix('newsletter')->name('newsletter.')->group(function () {
         Route::get('/unsubscribe/{email}', [NewsLetterController::class, 'oneClickUnsubscribe'])->name('one-click-unsubscribe');

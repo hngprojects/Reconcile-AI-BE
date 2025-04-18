@@ -11,6 +11,226 @@
         }
     ],
     "paths": {
+        "/api/v1/chart-account-categories": {
+            "get": {
+                "tags": [
+                    "Chart Account Categories"
+                ],
+                "summary": "Get all chart account categories",
+                "description": "Retrieves a list of all chart account categories",
+                "operationId": "005e8716cfd5cc06a283c285c3abd541",
+                "responses": {
+                    "200": {
+                        "description": "Chart account categories retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Chart account categories retrieved successfully"
+                                        },
+                                        "status": {
+                                            "type": "string",
+                                            "example": "success"
+                                        },
+                                        "status_code": {
+                                            "type": "integer",
+                                            "example": 200
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "integer",
+                                                        "example": 1
+                                                    },
+                                                    "name": {
+                                                        "type": "string",
+                                                        "example": "Category Name"
+                                                    },
+                                                    "is_active": {
+                                                        "type": "boolean",
+                                                        "example": true
+                                                    },
+                                                    "is_required": {
+                                                        "type": "boolean",
+                                                        "example": false
+                                                    },
+                                                    "created_at": {
+                                                        "type": "string",
+                                                        "format": "date-time",
+                                                        "example": "2023-01-01T00:00:00.000000Z"
+                                                    },
+                                                    "updated_at": {
+                                                        "type": "string",
+                                                        "format": "date-time",
+                                                        "example": "2023-01-01T00:00:00.000000Z"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Unauthenticated"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/chart-account-categories/{id}/toggle": {
+            "put": {
+                "tags": [
+                    "Chart Account Categories"
+                ],
+                "summary": "Toggle a chart account category",
+                "description": "Toggles the active status of a chart account category",
+                "operationId": "adbf09f643573a915f370e3e5be2c36a",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID of the chart account category to toggle",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Chart account category updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Chart account category updated successfully"
+                                        },
+                                        "status": {
+                                            "type": "string",
+                                            "example": "success"
+                                        },
+                                        "status_code": {
+                                            "type": "integer",
+                                            "example": 200
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "string",
+                                                    "format": "uuid",
+                                                    "example": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+                                                },
+                                                "name": {
+                                                    "type": "string",
+                                                    "example": "Category Name"
+                                                },
+                                                "is_active": {
+                                                    "type": "boolean",
+                                                    "example": true
+                                                },
+                                                "is_required": {
+                                                    "type": "boolean",
+                                                    "example": false
+                                                },
+                                                "created_at": {
+                                                    "type": "string",
+                                                    "format": "date-time",
+                                                    "example": "2023-01-01T00:00:00.000000Z"
+                                                },
+                                                "updated_at": {
+                                                    "type": "string",
+                                                    "format": "date-time",
+                                                    "example": "2023-01-01T00:00:00.000000Z"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Category is required and cannot be disabled",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Category is required and cannot be disabled"
+                                        },
+                                        "status": {
+                                            "type": "string",
+                                            "example": "error"
+                                        },
+                                        "status_code": {
+                                            "type": "integer",
+                                            "example": 403
+                                        },
+                                        "data": {
+                                            "type": "null",
+                                            "example": null
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Unauthenticated"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/api/v1/account/setup": {
             "post": {
                 "tags": [
@@ -1028,6 +1248,140 @@
                         }
                     }
                 }
+            }
+        },
+        "/api/v1/business-info": {
+            "post": {
+                "tags": [
+                    "Business"
+                ],
+                "summary": "Create business information",
+                "operationId": "0bad05f6388fdf4c5b6e05447b39883a",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/BusinessInfoRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Business info created successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/BusinessInfoResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ValidationErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ServerErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/business-info/{id}": {
+            "put": {
+                "tags": [
+                    "Business"
+                ],
+                "summary": "Update business information",
+                "operationId": "86887a6aeb5e35ea2c83ea7b2bfbd819",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Business info ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/BusinessInfoRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Business info updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/BusinessInfoResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ValidationErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Business info not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ServerErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ServerErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
             }
         },
         "/api/v1/bank-accounts": {
@@ -3447,6 +3801,548 @@
                 }
             }
         },
+        "/api/v1/ledger-entries": {
+            "get": {
+                "tags": [
+                    "Ledger Entries"
+                ],
+                "summary": "Get all ledger entries",
+                "description": "Retrieves all ledger entries for the authenticated user",
+                "operationId": "56f5a20576d6702925a19871192486f5",
+                "responses": {
+                    "200": {
+                        "description": "Ledger entries retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status_code": {
+                                            "type": "integer",
+                                            "example": 200
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Ledger entries retrieved successfully"
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "string",
+                                                        "format": "uuid"
+                                                    },
+                                                    "bookkeeping_ledger_id": {
+                                                        "type": "string",
+                                                        "format": "uuid"
+                                                    },
+                                                    "transaction_type": {
+                                                        "type": "string",
+                                                        "enum": [
+                                                            "Income",
+                                                            "Expense",
+                                                            "Payable",
+                                                            "Receivable"
+                                                        ]
+                                                    },
+                                                    "date": {
+                                                        "type": "string",
+                                                        "format": "date"
+                                                    },
+                                                    "person": {
+                                                        "type": "string"
+                                                    },
+                                                    "amount": {
+                                                        "type": "number",
+                                                        "format": "float"
+                                                    },
+                                                    "reconciliation_id": {
+                                                        "type": "string",
+                                                        "format": "uuid"
+                                                    },
+                                                    "payment": {
+                                                        "properties": {
+                                                            "payment_status": {
+                                                                "type": "string",
+                                                                "enum": [
+                                                                    "paid",
+                                                                    "unpaid",
+                                                                    "partial"
+                                                                ]
+                                                            },
+                                                            "due_date": {
+                                                                "type": "string",
+                                                                "format": "date"
+                                                            },
+                                                            "amount_paid": {
+                                                                "type": "number",
+                                                                "format": "float"
+                                                            },
+                                                            "bank_account_id": {
+                                                                "type": "string",
+                                                                "format": "uuid"
+                                                            },
+                                                            "account_chart_id": {
+                                                                "type": "string",
+                                                                "format": "uuid"
+                                                            },
+                                                            "reference": {
+                                                                "type": "string"
+                                                            },
+                                                            "attachment": {
+                                                                "type": "string"
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Ledger Entries"
+                ],
+                "summary": "Create a new ledger entry",
+                "description": "Creates a new ledger entry for the authenticated user",
+                "operationId": "2535011423d8baf2eacde627f67af105",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "bookkeeping_ledger_id",
+                                    "transaction_type",
+                                    "transaction_date",
+                                    "description",
+                                    "amount",
+                                    "paid_status",
+                                    "amount_paid",
+                                    "bank_account_id",
+                                    "account_chart_id",
+                                    "reconciliation_id"
+                                ],
+                                "properties": {
+                                    "bookkeeping_ledger_id": {
+                                        "type": "string",
+                                        "format": "uuid",
+                                        "example": "550e8400-e29b-41d4-a716-446655440000"
+                                    },
+                                    "transaction_type": {
+                                        "type": "string",
+                                        "enum": [
+                                            "Income",
+                                            "Expense",
+                                            "Payable",
+                                            "Receivable"
+                                        ],
+                                        "example": "Income"
+                                    },
+                                    "transaction_date": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2024-01-15"
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "example": "Monthly service payment"
+                                    },
+                                    "amount": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 1000
+                                    },
+                                    "paid_status": {
+                                        "type": "string",
+                                        "enum": [
+                                            "paid",
+                                            "unpaid",
+                                            "partial"
+                                        ],
+                                        "example": "paid"
+                                    },
+                                    "due_date": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2024-02-15"
+                                    },
+                                    "amount_paid": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 1000
+                                    },
+                                    "bank_account_id": {
+                                        "type": "string",
+                                        "format": "uuid",
+                                        "example": "550e8400-e29b-41d4-a716-446655440000"
+                                    },
+                                    "account_chart_id": {
+                                        "type": "string",
+                                        "format": "uuid",
+                                        "example": "550e8400-e29b-41d4-a716-446655440000"
+                                    },
+                                    "reference": {
+                                        "type": "string",
+                                        "example": "INV-2024-001"
+                                    },
+                                    "attachment": {
+                                        "type": "file",
+                                        "format": "binary"
+                                    },
+                                    "reconciliation_id": {
+                                        "type": "string",
+                                        "format": "uuid",
+                                        "example": "550e8400-e29b-41d4-a716-446655440000"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Ledger entry created successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status_code": {
+                                            "type": "integer",
+                                            "example": 201
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Ledger entry created successfully"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "ledger": {
+                                                    "type": "object"
+                                                },
+                                                "payment": {
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status_code": {
+                                            "type": "integer",
+                                            "example": 422
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Validation failed"
+                                        },
+                                        "errors": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/ledger-entries/{id}": {
+            "get": {
+                "tags": [
+                    "Ledger Entries"
+                ],
+                "summary": "Get a specific ledger entry",
+                "description": "Retrieves a specific ledger entry by ID for the authenticated user",
+                "operationId": "b790bab07e1d60565badf936dd3d72b2",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Ledger entry ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Ledger entry retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status_code": {
+                                            "type": "integer",
+                                            "example": 200
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Ledger entry retrieved successfully"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "string",
+                                                    "format": "uuid"
+                                                },
+                                                "bookkeeping_ledger_id": {
+                                                    "type": "string",
+                                                    "format": "uuid"
+                                                },
+                                                "transaction_type": {
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "Income",
+                                                        "Expense",
+                                                        "Payable",
+                                                        "Receivable"
+                                                    ]
+                                                },
+                                                "date": {
+                                                    "type": "string",
+                                                    "format": "date"
+                                                },
+                                                "person": {
+                                                    "type": "string"
+                                                },
+                                                "amount": {
+                                                    "type": "number",
+                                                    "format": "float"
+                                                },
+                                                "reconciliation_id": {
+                                                    "type": "string",
+                                                    "format": "uuid"
+                                                },
+                                                "payment": {
+                                                    "properties": {
+                                                        "payment_status": {
+                                                            "type": "string",
+                                                            "enum": [
+                                                                "paid",
+                                                                "unpaid",
+                                                                "partial"
+                                                            ]
+                                                        },
+                                                        "due_date": {
+                                                            "type": "string",
+                                                            "format": "date"
+                                                        },
+                                                        "amount_paid": {
+                                                            "type": "number",
+                                                            "format": "float"
+                                                        },
+                                                        "bank_account_id": {
+                                                            "type": "string",
+                                                            "format": "uuid"
+                                                        },
+                                                        "account_chart_id": {
+                                                            "type": "string",
+                                                            "format": "uuid"
+                                                        },
+                                                        "reference": {
+                                                            "type": "string"
+                                                        },
+                                                        "attachment": {
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Ledger entry not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status_code": {
+                                            "type": "integer",
+                                            "example": 404
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Ledger entry not found"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Ledger Entries"
+                ],
+                "summary": "Update a ledger entry",
+                "description": "Updates a specific ledger entry and its payment details",
+                "operationId": "17d5f72b1cf0e646a4618a93b15fdb8a",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Ledger ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "bookkeeping_ledger_id": {
+                                        "type": "string",
+                                        "format": "uuid"
+                                    },
+                                    "transaction_type": {
+                                        "type": "string",
+                                        "enum": [
+                                            "Income",
+                                            "Expense",
+                                            "Payable",
+                                            "Receivable"
+                                        ]
+                                    },
+                                    "transaction_date": {
+                                        "type": "string",
+                                        "format": "date"
+                                    },
+                                    "description": {
+                                        "type": "string"
+                                    },
+                                    "amount": {
+                                        "type": "number",
+                                        "format": "float"
+                                    },
+                                    "paid_status": {
+                                        "type": "string",
+                                        "enum": [
+                                            "paid",
+                                            "unpaid",
+                                            "partial"
+                                        ]
+                                    },
+                                    "due_date": {
+                                        "type": "string",
+                                        "format": "date"
+                                    },
+                                    "amount_paid": {
+                                        "type": "number",
+                                        "format": "float"
+                                    },
+                                    "bank_account_id": {
+                                        "type": "string",
+                                        "format": "uuid"
+                                    },
+                                    "account_chart_id": {
+                                        "type": "string",
+                                        "format": "uuid"
+                                    },
+                                    "reference": {
+                                        "type": "string"
+                                    },
+                                    "attachment": {
+                                        "type": "file",
+                                        "format": "binary"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Ledger entry updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status_code": {
+                                            "type": "integer",
+                                            "example": 200
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Ledger entry updated successfully"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "ledger": {
+                                                    "type": "object"
+                                                },
+                                                "payment": {
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/api/v1/outbound-marketing": {
             "post": {
                 "tags": [
@@ -4815,7 +5711,7 @@
                     "User"
                 ],
                 "summary": "Update user profile",
-                "description": "Updates the authenticated user's profile information including country, city, and avatar",
+                "description": "Updates the authenticated user's profile information including name, phone_number, country, city, and avatar",
                 "operationId": "006dbcde275036cbe65b0f07db20a1a7",
                 "requestBody": {
                     "required": false,
@@ -4823,6 +5719,16 @@
                         "multipart/form-data": {
                             "schema": {
                                 "properties": {
+                                    "name": {
+                                        "description": "User's full name",
+                                        "type": "string",
+                                        "example": "John Doe"
+                                    },
+                                    "phone_number": {
+                                        "description": "User's phone number",
+                                        "type": "string",
+                                        "example": "+1234567890"
+                                    },
                                     "country": {
                                         "description": "User's country",
                                         "type": "string",
@@ -4834,7 +5740,7 @@
                                         "example": "New York"
                                     },
                                     "avatar": {
-                                        "description": "User's profile picture (JPEG, PNG, JPG, GIF up to 2MB)",
+                                        "description": "User's profile picture (JPEG, PNG, JPG, GIF up to 5MB)",
                                         "type": "string",
                                         "format": "binary"
                                     }
@@ -4877,6 +5783,10 @@
                                                 "email": {
                                                     "type": "string",
                                                     "example": "john@example.com"
+                                                },
+                                                "phone_number": {
+                                                    "type": "string",
+                                                    "example": "+1234567890"
                                                 },
                                                 "country": {
                                                     "type": "string",
@@ -4936,6 +5846,62 @@
                                                 }
                                             },
                                             "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden - User not authorized to update profile",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "example": "error"
+                                        },
+                                        "status_code": {
+                                            "type": "integer",
+                                            "example": 403
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "You are not authorized to update this profile"
+                                        },
+                                        "data": {
+                                            "type": "null",
+                                            "example": null
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "User not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "example": "error"
+                                        },
+                                        "status_code": {
+                                            "type": "integer",
+                                            "example": 404
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "User not found"
+                                        },
+                                        "data": {
+                                            "type": "null",
+                                            "example": null
                                         }
                                     },
                                     "type": "object"
@@ -5136,6 +6102,125 @@
                 },
                 "type": "object"
             },
+            "BusinessInfoRequest": {
+                "required": [
+                    "business_name",
+                    "business_type",
+                    "currency",
+                    "reporting_year"
+                ],
+                "properties": {
+                    "business_name": {
+                        "type": "string",
+                        "example": "My Business"
+                    },
+                    "business_type": {
+                        "type": "string",
+                        "example": "Retail"
+                    },
+                    "currency": {
+                        "type": "string",
+                        "example": "NGN"
+                    },
+                    "reporting_year": {
+                        "type": "string",
+                        "enum": [
+                            "January - December",
+                            "April - March",
+                            "July - June"
+                        ],
+                        "example": "January - December"
+                    }
+                },
+                "type": "object"
+            },
+            "BusinessInfoResponse": {
+                "properties": {
+                    "code": {
+                        "type": "integer",
+                        "example": 201
+                    },
+                    "message": {
+                        "type": "string",
+                        "example": "Business info created successfully"
+                    },
+                    "data": {
+                        "$ref": "#/components/schemas/BusinessInfo"
+                    }
+                },
+                "type": "object"
+            },
+            "BusinessInfo": {
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "user_id": {
+                        "type": "integer"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "type": {
+                        "type": "string"
+                    },
+                    "currency": {
+                        "type": "string"
+                    },
+                    "reporting_year": {
+                        "type": "string"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object"
+            },
+            "ValidationErrorResponse": {
+                "properties": {
+                    "code": {
+                        "type": "integer",
+                        "example": 422
+                    },
+                    "message": {
+                        "type": "string",
+                        "example": "Validation error"
+                    },
+                    "error": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                },
+                "type": "object"
+            },
+            "ServerErrorResponse": {
+                "properties": {
+                    "code": {
+                        "type": "integer",
+                        "example": 500
+                    },
+                    "message": {
+                        "type": "string",
+                        "example": "Server error"
+                    },
+                    "error": {
+                        "type": "string",
+                        "example": "An unexpected error occurred"
+                    }
+                },
+                "type": "object"
+            },
             "AccountSetupRequest": {
                 "required": [
                     "business_name",
@@ -5211,6 +6296,10 @@
             "description": "Account setup operations"
         },
         {
+            "name": "Business",
+            "description": "Business Information Management"
+        },
+        {
             "name": "Authentication",
             "description": "API Endpoints for User Authentication"
         },
@@ -5221,6 +6310,10 @@
         {
             "name": "Reconciliation",
             "description": "API Endpoints for file reconciliation"
+        },
+        {
+            "name": "Chart Account Categories",
+            "description": "Chart Account Categories"
         },
         {
             "name": "Newsletter",
@@ -5257,6 +6350,10 @@
         {
             "name": "Job Applications",
             "description": "Job Applications"
+        },
+        {
+            "name": "Ledger Entries",
+            "description": "Ledger Entries"
         },
         {
             "name": "Marketing",

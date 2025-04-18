@@ -23,4 +23,16 @@ class BusinessInfoRepositoryImplement extends Eloquent implements BusinessInfoRe
     {
         return $this->model->create($data);
     }
+
+    public function findOne(string $id): ?BusinessInfo
+    {
+        return $this->model->find($id);
+    }
+
+    public function updateBusinessInfo(string $id, array $data): BusinessInfo
+    {
+        $businessInfo = $this->model->findOrFail($id);
+        $businessInfo->update($data);
+        return $businessInfo->fresh();
+    }
 }

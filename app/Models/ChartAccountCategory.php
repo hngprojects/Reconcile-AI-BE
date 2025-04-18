@@ -13,10 +13,13 @@ class ChartAccountCategory extends Model
     protected $fillable = [
         'title',
         'description',
+        'is_active',
+        'is_required',
     ];
 
-    public function user(): HasMany {
+
+    public function user(): HasMany
+    {
         return $this->hasMany(User::class, 'user_chart_categories', 'account_chart_category_id', 'user_id');
     }
-
 }
