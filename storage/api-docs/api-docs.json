@@ -5577,25 +5577,21 @@
                     "content": {
                         "multipart/form-data": {
                             "schema": {
-                                "required": [
-                                    "bank_statements",
-                                    "ledgers"
-                                ],
                                 "properties": {
-                                    "bank_statements": {
-                                        "description": "Array of Bank Statement CSV files",
-                                        "type": "array",
-                                        "items": {
-                                            "type": "string",
-                                            "format": "binary"
-                                        }
+                                    "bank_statements[0][file]": {
+                                        "type": "string",
+                                        "format": "binary"
                                     },
-                                    "ledgers": {
-                                        "description": "Array of Ledger CSV files",
+                                    "bank_statements[0][bank_account]": {
+                                        "type": "string"
+                                    },
+                                    "bank_statements[0][period]": {
+                                        "type": "string"
+                                    },
+                                    "ledgers[]": {
                                         "type": "array",
                                         "items": {
-                                            "type": "string",
-                                            "format": "binary"
+                                            "type": "string"
                                         }
                                     }
                                 },

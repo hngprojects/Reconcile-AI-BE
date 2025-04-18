@@ -7,10 +7,12 @@ use App\Repositories\Reconciliation\ReconciliationRepository;
 use App\Repositories\UserFile\UserFileRepository;
 use App\Repositories\Ledger\LedgerRepository;
 use App\Repositories\Statement\StatementRepository;
+use App\Repositories\StatementFile\StatementFileRepository;
 use App\Repositories\MatchingTransaction\MatchingTransactionRepository;
 use App\Repositories\LedgerPayment\LedgerPaymentRepository;
 use App\Models\Reconciliation;
 use App\Models\Statement;
+use App\Models\StatementFile;
 use App\Models\Ledger;
 use App\Models\User;
 use App\Http\Resources\TransactionResource;
@@ -48,6 +50,7 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
     protected LedgerRepository $ledgerRepository;
     protected LedgerPaymentRepository $ledgerPaymentRepository;
     protected StatementRepository $statementRepository;
+    protected StatementFileRepository $statementFileRepository;
     protected MatchingTransactionRepository $matchedRepository;
 
     public function __construct(
@@ -56,6 +59,7 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
         LedgerRepository $ledgerRepository,
         LedgerPaymentRepository $ledgerPaymentRepository,
         StatementRepository $statementRepository,
+        StatementFileRepository $statementFileRepository,
         MatchingTransactionRepository $matchedRepository
     )
     {
@@ -64,6 +68,7 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
         $this->ledgerRepository = $ledgerRepository;
         $this->ledgerPaymentRepository = $ledgerPaymentRepository;
         $this->statementRepository = $statementRepository;
+        $this->statementFileRepository = $statementFileRepository;
         $this->matchedRepository = $matchedRepository;
     }
 
@@ -106,33 +111,50 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
         return $data;
     }
 
-    public function storeReconciliation($statements, $ledgers, $user){
+    public function storeReconciliation($statements, $ledgers, $title, $userId)
+    {
         DB::beginTransaction();
 
         $reconciliation = $this->mainRepository->store([
-            'user_id' => $user,
-            'option' => 'reconcile_with_Gemini'
+            'user_id' => $userId,
+            'title' => $title
         ]);
 
-        foreach ($statements as $key => $value) {
-            $statement = $this->fileRepository->store([
-                'user_id' => $user,
-                'file_name' => $value,
-                'type' => 'Bank Statement'
+        $statementFileIds = [];
+
+        foreach ($statements as $statementData) {
+            $savedFile = $this->fileRepository->store([
+                'user_id' => $userId,
+                'file_name' => $statementData['path'],
+                'type' => 'Statement'
             ]);
+
+            $statementFile = $this->statementFileRepository->store([
+                'user_file_id' => $savedFile->id,
+                ...$statementData
+            ]);
+
+            $statementFileIds[] = $statementFile->id;
         }
 
-        foreach ($ledgers as $key => $value) {
-            $ledger = $this->fileRepository->store([
-                'user_id' => $user,
-                'file_name' => $value,
-                'type' => 'Ledger'
-            ]);
-        }
+        $reconciliation->statementFiles()->attach($statementFileIds);
+
+        $ledgerIds = Ledger::whereIn('id', $ledgers)->pluck('id');
+        $reconciliation->ledgers()->sync($ledgerIds);
 
         DB::commit();
 
         return $reconciliation;
+    }
+
+
+    public function saveLedger(string $filePath)
+    {
+        $ledger = $this->fileRepository->store([
+            'user_id' => $user,
+            'file_name' => $value,
+            'type' => 'Ledger'
+        ]);
     }
 
     protected function callGemini(string $prompt)
@@ -245,7 +267,7 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
         return false;
     }
 
-    protected function generateEmbeddings(Collection $statements){
+    protected function generateStatementEmbeddings(Collection $statements){
         $statements->map(function (Statement $statement) {
             $formattedDate = date('Y-m-d', strtotime($statement->date));
             $amt = NumConvert::word($statement->amount);
@@ -253,7 +275,6 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
             $embedding = $this->getEmbedding($combinedText);
             $this->statementRepository->addVector($statement, $embedding);
         });
-
     }
 
     protected function generateLedgerEmbeddings(Collection $ledgers){
@@ -355,15 +376,14 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
     public function usingEmbeddings(array $statements, array $ledgers, User $user, Reconciliation $reconciliation)
     {
         $structuredStatements = $this->structuringData($statements);
-        $structuredLedgers = $this->structuringData($ledgers);
 
         $this->savingStatements($structuredStatements, $reconciliation);
         $this->savingLedgers($structuredLedgers);
 
         $savedStatements = $this->statementRepository->findAll($reconciliation);
-        $savedLedgers = $this->ledgerRepository->findAll($reconciliation);
+        $savedLedgers = $this->ledgerRepository->findAllByType($ledgers);
 
-        $this->generateEmbeddings($savedStatements);
+        $this->generateStatementEmbeddings($savedStatements);
         $this->generateLedgerEmbeddings($savedLedgers);
 
         $response = $this->matchUsingEmbeddings($savedStatements, $savedLedgers);

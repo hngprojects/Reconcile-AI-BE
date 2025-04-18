@@ -21,7 +21,7 @@ class ReconciliationFactory extends Factory
         return [
             'id' => Str::uuid(),
             'user_id' => User::factory()->create(),
-            'option' => 'reconcile_with_Gemini'
+            'title' => fake()->word()
         ];
     }
 }

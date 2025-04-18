@@ -73,4 +73,9 @@ class BookkeepingLedger extends Model
     {
         return $this->belongsTo(BusinessInfo::class);
     }
+
+    public function reconciliations()
+    {
+        return $this->belongsToMany(Reconciliation::class, 'reconciliation_ledgers');
+    }
 }
