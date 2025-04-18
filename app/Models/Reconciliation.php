@@ -17,7 +17,7 @@ class Reconciliation extends Model
 
     protected $fillable = [
         'user_id',
-        'option'
+        'title',
     ];
     protected $keyType = 'string';
 
@@ -47,4 +47,16 @@ class Reconciliation extends Model
     {
         return $this->hasOne(ReconciledRecord::class);
     }
+
+    public function statementFiles()
+    {
+        return $this->belongsToMany(StatementFile::class, 'reconciliation_statement_files');
+    }
+
+    public function ledgers()
+    {
+        return $this->belongsToMany(Ledger::class, 'reconciliation_ledgers');
+    }
+
+
 }
