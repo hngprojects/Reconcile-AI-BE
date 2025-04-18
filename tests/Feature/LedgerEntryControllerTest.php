@@ -23,50 +23,16 @@ class LedgerEntryControllerTest extends TestCase
     public function setUp(): void
     {
         parent::setUp();
-        
+
         Storage::fake('public');
-        
+
         $this->user = User::factory()->create();
         $this->bookkeepingLedger = BookkeepingLedger::factory()->create();
 
         DB::table('reconciliations')->insert([
             'id' => '550e8400-e29b-41d4-a716-446655440004',
             'user_id' => $this->user->id,
-            'option' => 'manual',
-            'created_at' => now(),
-            'updated_at' => now()
-        ]);
-
-        $ledgerFileId = DB::table('user_files')->insertGetId([
-            'id' => '550e8400-e29b-41d4-a716-446655440005',
-            'file_name' => 'test-ledger.csv',
-            'user_id' => $this->user->id,
-            'type' => 'ledger',
-            'created_at' => now(),
-            'updated_at' => now()
-        ]);
-
-        $statementFileId = DB::table('user_files')->insertGetId([
-            'id' => '550e8400-e29b-41d4-a716-446655440006',
-            'file_name' => 'test-statement.csv',
-            'user_id' => $this->user->id,
-            'type' => 'statement',
-            'created_at' => now(),
-            'updated_at' => now()
-        ]);
-
-        DB::table('reconciliation_files')->insert([
-            'id' => '550e8400-e29b-41d4-a716-446655440007',
-            'reconciliation_id' => '550e8400-e29b-41d4-a716-446655440004',
-            'file_id' => '550e8400-e29b-41d4-a716-446655440005',
-            'created_at' => now(),
-            'updated_at' => now()
-        ]);
-
-        DB::table('reconciliation_files')->insert([
-            'id' => '550e8400-e29b-41d4-a716-446655440008',
-            'reconciliation_id' => '550e8400-e29b-41d4-a716-446655440004',
-            'file_id' => '550e8400-e29b-41d4-a716-446655440006',
+            'title' => 'Test Reconciliation',
             'created_at' => now(),
             'updated_at' => now()
         ]);
@@ -134,6 +100,7 @@ class LedgerEntryControllerTest extends TestCase
         $response = $this->actingAs($this->user)
             ->postJson('/api/v1/ledger-entries', $data);
 
+        dd($response);
         $response->assertStatus(201)
             ->assertJsonStructure([
                 'status_code',
