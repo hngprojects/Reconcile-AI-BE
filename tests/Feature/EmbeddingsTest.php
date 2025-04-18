@@ -9,8 +9,11 @@ use App\Repositories\Reconciliation\ReconciliationRepository;
 use App\Repositories\UserFile\UserFileRepository;
 use App\Repositories\Ledger\LedgerRepository;
 use App\Repositories\Statement\StatementRepository;
+use App\Repositories\StatementFile\StatementFileRepository;
 use App\Repositories\MatchingTransaction\MatchingTransactionRepository;
 use App\Models\Reconciliation;
+use App\Models\BookkeepingLedger;
+use App\Models\BankAccount;
 use App\Models\User;
 use App\Models\PaymentPlan;
 use App\Models\Plan;
@@ -26,6 +29,7 @@ class EmbeddingsTest extends TestCase
     protected $userFileRepository;
     protected $ledgerRepository;
     protected $statementRepository;
+    protected $statementFileRepository;
     protected $matchedRepository;
 
     protected $user;
@@ -39,6 +43,7 @@ class EmbeddingsTest extends TestCase
         $this->userFileRepository = Mockery::mock(UserFileRepository::class);
         $this->ledgerRepository = Mockery::mock(LedgerRepository::class);
         $this->statementRepository = Mockery::mock(StatementRepository::class);
+        $this->statementFileRepository = Mockery::mock(StatementFileRepository::class);
         $this->matchedRepository = Mockery::mock(MatchingTransactionRepository::class);
 
         $this->service = new NewReconciliationServiceImplement(
@@ -46,6 +51,7 @@ class EmbeddingsTest extends TestCase
             $this->userFileRepository,
             $this->ledgerRepository,
             $this->statementRepository,
+            $this->statementFileRepository,
             $this->matchedRepository
         );
 
@@ -64,7 +70,6 @@ class EmbeddingsTest extends TestCase
     public function test_reconcile_embeddings_successful()
     {
         $statementFile = UploadedFile::fake()->create('statement.csv');
-        $ledgerFile = UploadedFile::fake()->create('ledger.csv');
 
         PaymentPlan::factory()->create([
             'user_id' => $this->user->id,
@@ -91,17 +96,26 @@ class EmbeddingsTest extends TestCase
             ->andReturn(collect([]));
 
         $this->ledgerRepository
-            ->shouldReceive('findAll')
+            ->shouldReceive('findAllByType')
             ->andReturn(collect([]));
 
         $this->mock(Gemini::class, function ($mock) {
             $mock->shouldReceive('embeddingModel->embedContent')
                 ->andReturn((object) ['embedding' => (object) ['values' => [0.1, 0.2, 0.3]]]);
         });
+        $ledg = BookkeepingLedger::factory()->create();
+        $acc = BankAccount::factory()->create();
 
         $response = $this->actingAs($this->user)->postJson('/api/v1/reconcile-embeddings', [
-            'bank_statements' => [$statementFile],
-            'ledgers' => [$ledgerFile],
+            'bank_statements' => [
+                [
+                'file' => $statementFile,
+                'bank_account' => $acc->id,
+                'period' => 'Jan 2025 - Mar 2025'
+                ]
+            ],
+            'ledgers' => [$ledg->id],
+            'title' => 'Reconciliation Test'
         ]);
 
         // Assert the job was dispatched

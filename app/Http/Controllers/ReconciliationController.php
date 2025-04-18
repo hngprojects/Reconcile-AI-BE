@@ -431,6 +431,8 @@ class ReconciliationController extends Controller
             'bank_statements' => 'required|array',
             'ledgers' => 'required|array',
             'bank_statements.*.file' => 'required|file|mimes:csv|max:2048',
+            'bank_statements.*.bank_account' => 'required|uuid|exists:bank_accounts,id',
+            'bank_statements.*.period' => 'required|string',
             'ledgers.*' => 'required|string|exists:bookkeeping_ledgers,id',
         ], [
             'bank_statements.*.file.mimes' => 'Bank Statement must be a CSV.',

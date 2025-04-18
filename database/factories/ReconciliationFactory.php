@@ -21,7 +21,7 @@ class ReconciliationFactory extends Factory
         return [
             'id' => Str::uuid(),
             'user_id' => User::factory()->create(),
-            'title' => fake()->word();
+            'title' => fake()->word()
         ];
     }
 }
