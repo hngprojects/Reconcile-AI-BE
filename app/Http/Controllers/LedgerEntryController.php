@@ -10,9 +10,16 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
+use App\Services\NewReconciliation\NewReconciliationService;
 
 class LedgerEntryController extends Controller
 {
+    protected $reconciliationService;
+
+    public function __construct(NewReconciliationService $reconciliationService)
+    {
+        $this->reconciliationService = $reconciliationService;
+    }
     /**
      * @OA\Post(
      *     path="/api/v1/ledger-entries",
@@ -102,7 +109,7 @@ class LedgerEntryController extends Controller
             $data = $validator->validated();
 
             $ledger = Ledger::create([
-                'bookkeeping_ledger_id' => $data['bookkeeping_ledger_id'], 
+                'bookkeeping_ledger_id' => $data['bookkeeping_ledger_id'],
                 'transaction_type' => $data['transaction_type'],
                 'date' => $data['transaction_date'],
                 'person' => $data['description'],
@@ -432,6 +439,60 @@ class LedgerEntryController extends Controller
                 'status_code' => 500,
                 'message' => 'Failed to update ledger entry',
                 'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Upload ledger CSV
+     *
+     * @OA\Post(
+     *     path="/api/v1/ledger-entries/upload",
+     *     summary="Upload ledger CSV",
+     *     description="Uploads the ledger and saves the entries",
+     *     tags={"Ledger Entries"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\MediaType(
+     *             mediaType="multipart/form-data",
+     *             @OA\Schema(
+     *                required={"ledger", "ledger_file"},
+     *                @OA\Property(property="ledger", type="string", format="uuid"),
+     *                @OA\Property(property="ledger_file", type="string", format="binary"),
+     *         )
+     *       )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Ledger CSV successfully uploaded",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="string", example="success"),
+     *             @OA\Property(property="message", type="string", example="Ledger CSV successfully uploaded and saved."),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="object",
+     *             )
+     *         )
+     *     )
+     * )
+     */
+
+    public function uploadLedger(Request $request){
+        try {
+            $validated = $request->validate([
+                'ledger_file' => 'required|file|mimes:csv|max:2048',
+                'ledger' => 'required|uuid|exists:bookkeeping_ledgers,id'
+            ]);
+            return $this->reconciliationService->uploadLedger($validated);
+        } catch(\Exception $e) {
+            return response()->json([
+                "message" => "Failed to upload ledger",
+                "status" => "error",
+                "status_code" => 500,
+                'data' => [
+                    'error' => $e->getMessage()
+                ]
             ], 500);
         }
     }
