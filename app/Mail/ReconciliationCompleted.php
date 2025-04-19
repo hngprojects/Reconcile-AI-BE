@@ -17,9 +17,8 @@ class ReconciliationCompleted extends Mailable
     /**
      * Create a new message instance.
      */
-    public function __construct($reconciliation, $filePath, $user)
+    public function __construct($reconciliation, $user)
     {
-        $this->filePath = $filePath;
         $this->user = $user;
         $this->url = env('FRONTEND_URL', 'https://reconxi.com') . '/reconciliation/' . $reconciliation->id;
     }

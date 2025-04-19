@@ -14,6 +14,7 @@ use App\Http\Requests\ManualReconciliationRequest;
 use App\Jobs\ProcessReconciliation;
 use App\Jobs\ProcessRecoxReconciliation;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Cache;
 
 /**
  * @OA\Tag(
@@ -372,6 +373,10 @@ class ReconciliationController extends Controller
      *                     property="ledgers[]",
      *                     type="array",
      *                     @OA\Items(type="string")
+     *                 ),
+     *                 @OA\Property(
+     *                     property="title",
+     *                     type="string",
      *                 )
      *              ),
      *          )
@@ -527,5 +532,4 @@ class ReconciliationController extends Controller
         $extension = pathinfo($filePath, PATHINFO_EXTENSION);
         return in_array(strtolower($extension), ['csv', 'xls', 'xlsx']);
     }
-
 }

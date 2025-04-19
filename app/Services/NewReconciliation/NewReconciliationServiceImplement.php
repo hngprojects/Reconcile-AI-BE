@@ -26,6 +26,7 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Sleep;
 use Illuminate\Support\Facades\Response;
 use NumConvert;
+use App\Events\ReconciliationProgressUpdate;
 
 class NewReconciliationServiceImplement extends ServiceApi implements NewReconciliationService{
 
@@ -375,26 +376,32 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
 
     public function usingEmbeddings(array $statements, array $ledgers, User $user, Reconciliation $reconciliation)
     {
+        event(new ReconciliationProgressUpdated($reconciliationId, 'Structuring bank statements...'));
         $structuredStatements = $this->structuringData($statements);
 
+        event(new ReconciliationProgressUpdated($reconciliationId, 'Saving bank statements...'));
         $this->savingStatements($structuredStatements, $reconciliation);
-        $this->savingLedgers($structuredLedgers);
 
+        event(new ReconciliationProgressUpdated($reconciliationId, 'Fetching ledger entries...'));
         $savedStatements = $this->statementRepository->findAll($reconciliation);
         $savedLedgers = $this->ledgerRepository->findAllByType($ledgers);
 
+        event(new ReconciliationProgressUpdated($reconciliationId, 'Preparation for AI matching...'));
         $this->generateStatementEmbeddings($savedStatements);
         $this->generateLedgerEmbeddings($savedLedgers);
 
+        event(new ReconciliationProgressUpdated($reconciliationId, 'AI matching in progress...'));
         $response = $this->matchUsingEmbeddings($savedStatements, $savedLedgers);
 
+        $this->pushProgress($key, );
+        event(new ReconciliationProgressUpdated($reconciliationId, 'Compiling response...'));
         $record = $this->mainRepository->storeResponse([
             'reconciliation_id' => $reconciliation->id,
             'data' => $response
         ]);
 
-        $file = $this->generateCSV($response);
-        Mail::to($user->email)->send(new ReconciliationCompleted($reconciliation, $file, $user));
+        Mail::to($user->email)->send(new ReconciliationCompleted($reconciliation, $user));
+        event(new ReconciliationProgressUpdated($reconciliationId, 'Reconciliation completed successfully!'));
 
         return [
             'reconciliation_id' => $reconciliation->id,
@@ -615,6 +622,5 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
                 ]
             ], 500);
         }
-
     }
 }

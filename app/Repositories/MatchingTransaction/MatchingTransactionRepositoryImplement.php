@@ -104,6 +104,7 @@ class MatchingTransactionRepositoryImplement extends Eloquent implements Matchin
                 ORDER BY cosine_similarity DESC
             ", [$reconciliation->id]);
 
+        /*
         $saved = [];
 
         foreach ($matches as $match) {
@@ -114,7 +115,7 @@ class MatchingTransactionRepositoryImplement extends Eloquent implements Matchin
                 'score' => (int) ceil((float)$match->cosine_similarity * 100)
             ]);
         }
-
+        */
         // Log::info('Matching results', ['matches' => $saved]);
         return $matches;
     }
