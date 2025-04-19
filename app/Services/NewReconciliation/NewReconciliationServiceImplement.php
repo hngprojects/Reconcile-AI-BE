@@ -240,6 +240,30 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
         return $structured;
     }
 
+    protected function mappingData(array $files, array $mapper){
+        $mapped = [];
+
+        foreach ($files as $file) {
+            $data = $this->loadComplexCsv($file);
+            if (($handle = fopen($filePath, 'r')) !== false) {
+                while (($row = fgetcsv($handle)) !== false) {
+                    $mapped[] = [
+                        'Date' => $row[$mapper['date']],
+                        'Description' => $row[$mapper['description']],
+                        'Amount' => $row[$mapper['amount']],
+                        'Other Information' => collect($row)->except([
+                                                    $mapper['date'],
+                                                    $mapper['description'],
+                                                    $mapper['amount']
+                                                ])->toArray(),
+                    ];
+                }
+            }
+        }
+
+        return $mapped;
+    }
+
     protected function savingStatements(array $statements, Reconciliation $reconciliation){
         $this->statementRepository->storeMany($statements, $reconciliation);
     }
@@ -374,10 +398,10 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
         ];
     }
 
-    public function usingEmbeddings(array $statements, array $ledgers, User $user, Reconciliation $reconciliation)
+    public function usingEmbeddings(array $statements, array $ledgers, array $mapper, User $user, Reconciliation $reconciliation)
     {
         event(new ReconciliationProgressUpdated($reconciliationId, 'Structuring bank statements...'));
-        $structuredStatements = $this->structuringData($statements);
+        $structuredStatements = $this->mappingData($statements, $mapper);
 
         event(new ReconciliationProgressUpdated($reconciliationId, 'Saving bank statements...'));
         $this->savingStatements($structuredStatements, $reconciliation);
