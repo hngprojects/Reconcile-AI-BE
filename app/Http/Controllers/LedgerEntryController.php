@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use App\Services\NewReconciliation\NewReconciliationService;
+use Illuminate\Validation\ValidationException;
 
 class LedgerEntryController extends Controller
 {
@@ -484,6 +485,16 @@ class LedgerEntryController extends Controller
                 'ledger' => 'required|uuid|exists:bookkeeping_ledgers,id'
             ]);
             return $this->reconciliationService->uploadLedger($validated);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'message' => 'Validation failed',
+                'status' => 'error',
+                'status_code' => 422,
+                'data' => [
+                    'errors' => $e->errors()
+                ]
+            ], 422);
+
         } catch(\Exception $e) {
             return response()->json([
                 "message" => "Failed to upload ledger",
