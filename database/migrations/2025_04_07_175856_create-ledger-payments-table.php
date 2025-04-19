@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('ledger_payments', function(BLueprint $table){
+        Schema::create('ledger_payments', function(Blueprint $table){
             $table->uuid('id')->primary();
             $table->string('payment_status');
             $table->dateTime('due_date');

@@ -64,6 +64,7 @@ Route::prefix('v1')->group(function () {
         // Optional: Payment history route if you implement it later
         Route::get('payment-plan/history', [BillingTransactionController::class, 'history'])->name('payment-plan.history');
 
+        Route::post('/ledger-entries/upload', [LedgerEntryController::class, 'uploadLedger']);
         Route::post('/ledger-entries', [LedgerEntryController::class, 'store']);
         Route::get('/ledger-entries', [LedgerEntryController::class, 'index']);
         Route::get('/ledger-entries/{id}', [LedgerEntryController::class, 'show']);
@@ -73,7 +74,7 @@ Route::prefix('v1')->group(function () {
         Route::post('/bookkeeping-ledgers', [BookkeepingLedgerController::class, 'store']);
         Route::put('/bookkeeping-ledgers/{ledger}/toggle', [BookkeepingLedgerController::class, 'toggle']);
 
-        // bank account 
+        // bank account
         Route::apiResource('bank-accounts', BankAccountController::class);
         Route::patch('bank-accounts/{bankAccount}/toggle-default', [BankAccountController::class, 'toggleDefault']);
 

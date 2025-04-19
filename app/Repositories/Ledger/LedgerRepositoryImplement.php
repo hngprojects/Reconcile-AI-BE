@@ -25,7 +25,8 @@ class LedgerRepositoryImplement extends Eloquent implements LedgerRepository{
 
     public function store(array $data){
         return $this->model->firstOrCreate([
-            'reconciliation_id' => $data['reconciliation_id'],
+            'bookkeeping_ledger_id' => $data['bookkeeping_ledger_id'],
+            'transaction_type' => $data['transaction_type'],
             'person' => $data['Person'],
             'amount' => $data['Amount'],
             'other_information' => array_key_exists('Other Information', $data) ? json_encode($data['Other Information']) : null,
@@ -33,11 +34,12 @@ class LedgerRepositoryImplement extends Eloquent implements LedgerRepository{
         ]);
     }
 
-    public function storeMany(array $ledgers, Reconciliation $reconciliation){
+    public function storeMany(array $ledgers){
         // Log::info('Storing ledgers in db');
         foreach ($ledgers as $ledger) {
-            $this->model->firstOrCreate([
-                'reconciliation_id' => $reconciliation->id,
+                $this->model->firstOrCreate([
+                'bookkeeping_ledger_id' => $ledger['bookkeeping_ledger_id'],
+                'transaction_type' => $ledger['Transaction Type'],
                 'person' => $ledger['Person'],
                 'amount' => (string) $ledger['Amount'],
                 'other_information' => array_key_exists('Other Information', $ledger) ? json_encode($ledger['Other Information']) : null,

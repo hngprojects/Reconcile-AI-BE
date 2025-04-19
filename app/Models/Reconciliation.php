@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use App\Models\User;
 use App\Models\UserFile;
 use App\Models\ReconciledRecord;
+use App\Models\StatementFile;
+use App\Models\BookkeepingLedger;
 use Illuminate\Support\Str;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
@@ -55,7 +57,7 @@ class Reconciliation extends Model
 
     public function ledgers()
     {
-        return $this->belongsToMany(Ledger::class, 'reconciliation_ledgers');
+        return $this->belongsToMany(BookkeepingLedger::class, 'reconciliation_ledgers');
     }
 
 

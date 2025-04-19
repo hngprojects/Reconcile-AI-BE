@@ -41,14 +41,20 @@ class MatchingTransactionRepositoryImplement extends Eloquent implements Matchin
     }
 
     public function getMatches(string $reconciliationId) {
-        return $this->model->whereHas('statement', function ($query) use ($reconciliationId) {
-                $query->where('reconciliation_id', $reconciliationId);
-            })
-            ->orWhereHas('ledger', function ($query) use ($reconciliationId) {
-                $query->where('reconciliation_id', $reconciliationId);
-            })
-            ->with(['statement', 'ledger'])
-            ->select(['matched_statements.statement_id', 'matched_statements.ledger_id', 'matched_statements.score'])->get();
+        return $this->model
+                    ->whereHas('statement', function ($query) use ($reconciliationId) {
+                        $query->where('reconciliation_id', $reconciliationId);
+                    })
+                    ->orWhereHas('ledger.ledgerType.reconciliations', function ($query) use ($reconciliationId) {
+                        $query->where('reconciliation_id', $reconciliationId);
+                    })
+                    ->with(['statement', 'ledger.bookkeepingLedger.reconciliations'])
+                    ->select([
+                        'matched_statements.statement_id',
+                        'matched_statements.ledger_id',
+                        'matched_statements.score'
+                    ])
+                    ->get();
     }
 
     public function remove(Ledger $ledger, Statement $statement){

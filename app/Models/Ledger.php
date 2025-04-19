@@ -38,7 +38,7 @@ class Ledger extends Model
 
     public function ledgerType(): BelongsTO
     {
-        return $this->belongsTo(BookkeepingLedger::class);
+        return $this->belongsTo(BookkeepingLedger::class, 'bookkeeping_ledger_id');
     }
 
     public function payment()

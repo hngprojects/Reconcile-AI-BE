@@ -8,6 +8,7 @@ use App\Services\NewReconciliation\NewReconciliationServiceImplement;
 use App\Repositories\Reconciliation\ReconciliationRepository;
 use App\Repositories\UserFile\UserFileRepository;
 use App\Repositories\Ledger\LedgerRepository;
+use App\Repositories\LedgerPayment\LedgerPaymentRepository;
 use App\Repositories\Statement\StatementRepository;
 use App\Repositories\StatementFile\StatementFileRepository;
 use App\Repositories\MatchingTransaction\MatchingTransactionRepository;
@@ -28,6 +29,7 @@ class EmbeddingsTest extends TestCase
     protected $reconciliationRepository;
     protected $userFileRepository;
     protected $ledgerRepository;
+    protected $ledgerPaymentRepository;
     protected $statementRepository;
     protected $statementFileRepository;
     protected $matchedRepository;
@@ -42,6 +44,7 @@ class EmbeddingsTest extends TestCase
         $this->reconciliationRepository = Mockery::mock(ReconciliationRepository::class);
         $this->userFileRepository = Mockery::mock(UserFileRepository::class);
         $this->ledgerRepository = Mockery::mock(LedgerRepository::class);
+        $this->ledgerPaymentRepository = Mockery::mock(LedgerPaymentRepository::class);
         $this->statementRepository = Mockery::mock(StatementRepository::class);
         $this->statementFileRepository = Mockery::mock(StatementFileRepository::class);
         $this->matchedRepository = Mockery::mock(MatchingTransactionRepository::class);
@@ -50,6 +53,7 @@ class EmbeddingsTest extends TestCase
             $this->reconciliationRepository,
             $this->userFileRepository,
             $this->ledgerRepository,
+            $this->ledgerPaymentRepository,
             $this->statementRepository,
             $this->statementFileRepository,
             $this->matchedRepository

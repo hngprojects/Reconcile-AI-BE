@@ -116,7 +116,90 @@ class LedgerEntryControllerTest extends TestCase
             'date' => $data['transaction_date'],
             'person' => $data['description'],
             'amount' => $data['amount'],
-            'reconciliation_id' => $data['reconciliation_id']
         ]);
+    }
+
+    public function test_user_can_upload_valid_ledger_csv()
+    {
+        $user = User::factory()->create();
+        $ledger = BookkeepingLedger::factory()->create();
+
+        $file = UploadedFile::fake()->create('ledger.csv', 100, 'text/csv');
+
+        $response = $this->actingAs($user, 'api')->postJson('/api/v1/ledger-entries/upload', [
+            'ledger_file' => $file,
+            'ledger' => $ledger->id,
+        ]);
+
+        $response->assertStatus(200);
+        $response->assertJson([
+            'status' => 'success',
+        ]);
+    }
+
+    public function test_upload_fails_with_missing_file()
+    {
+        $user = User::factory()->create();
+        $ledger = BookkeepingLedger::factory()->create();
+
+        $response = $this->actingAs($user, 'api')->postJson('/api/v1/ledger-entries/upload', [
+            'ledger' => $ledger->id,
+        ]);
+
+        $response->assertStatus(422);
+        $response->assertJson([
+            'status' => 'error',
+            'message' => 'Validation failed'
+        ]);
+    }
+
+    public function test_upload_fails_with_invalid_ledger_id()
+    {
+        $user = User::factory()->create();
+
+        $file = UploadedFile::fake()->create('ledger.csv', 100, 'text/csv');
+
+        $response = $this->actingAs($user, 'api')->postJson('/api/v1/ledger-entries/upload', [
+            'ledger_file' => $file,
+            'ledger' => 'invalid-uuid-1234',
+        ]);
+
+        $response->assertStatus(422);
+        $response->assertJson([
+            'status' => 'error',
+            'message' => 'Validation failed'
+        ]);
+    }
+
+    public function test_upload_fails_with_wrong_file_format()
+    {
+        $user = User::factory()->create();
+        $ledger = BookkeepingLedger::factory()->create();
+
+        $file = UploadedFile::fake()->create('ledger.pdf', 100, 'application/pdf');
+
+        $response = $this->actingAs($user, 'api')->postJson('/api/v1/ledger-entries/upload', [
+            'ledger_file' => $file,
+            'ledger' => $ledger->id,
+        ]);
+
+        $response->assertStatus(422);
+        $response->assertJson([
+            'status' => 'error',
+            'message' => 'Validation failed'
+        ]);
+    }
+
+    public function test_unauthenticated_users_cannot_upload()
+    {
+        $ledger = BookkeepingLedger::factory()->create();
+        $file = UploadedFile::fake()->create('ledger.csv', 100, 'text/csv');
+
+        $response = $this->postJson('/api/v1/ledger-entries/upload', [
+            'ledger_file' => $file,
+            'ledger' => $ledger->id,
+        ]);
+
+        $response->assertStatus(401); // unauthorized
     }
 }
