@@ -11,6 +11,7 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use App\Models\User;
 use App\Models\Reconciliation;
 use Illuminate\Support\Facades\Log;
+use Throwable;
 
 class ProcessReconciliation implements ShouldQueue
 {
@@ -18,6 +19,7 @@ class ProcessReconciliation implements ShouldQueue
 
     protected $statements;
     protected $ledgers;
+    protected $mapper;
     protected $user;
     protected $reconciliation;
     public $tries = 3;
@@ -37,8 +39,16 @@ class ProcessReconciliation implements ShouldQueue
         try{
             $service->usingEmbeddings($this->statements, $this->ledgers, $this->mapper, $this->user, $this->reconciliation);
         }catch(Throwable $e){
-            \Log::error("ProcessReconciliation Job Failed: " . $e->getMessage());
+            Log::error("ProcessReconciliation Job Failed: " . $e->getMessage());
             $this->fail($e);
         }
     }
+
+        /**
+         * Handle a job failure.
+         */
+        public function failed(Throwable $e): void
+        {
+            Log::error("ProcessReconciliation Job Failed: " . $e->getMessage());
+        }
 }

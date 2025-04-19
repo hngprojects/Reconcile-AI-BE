@@ -26,7 +26,7 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Sleep;
 use Illuminate\Support\Facades\Response;
 use NumConvert;
-use App\Events\ReconciliationProgressUpdate;
+use App\Events\ReconciliationProgressUpdated;
 
 class NewReconciliationServiceImplement extends ServiceApi implements NewReconciliationService{
 
@@ -244,20 +244,19 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
         $mapped = [];
 
         foreach ($files as $file) {
-            $data = $this->loadComplexCsv($file);
-            if (($handle = fopen($filePath, 'r')) !== false) {
-                while (($row = fgetcsv($handle)) !== false) {
-                    $mapped[] = [
-                        'Date' => $row[$mapper['date']],
-                        'Description' => $row[$mapper['description']],
-                        'Amount' => $row[$mapper['amount']],
-                        'Other Information' => collect($row)->except([
-                                                    $mapper['date'],
-                                                    $mapper['description'],
-                                                    $mapper['amount']
-                                                ])->toArray(),
-                    ];
-                }
+            $data = $this->loadComplexCsv($file['path']);
+            foreach ($data as $row) {
+                Log::info('Statement: ', ['data' => $row]);
+                $mapped[] = [
+                    'Date' => $row[$mapper['date']],
+                    'Person' => $row[$mapper['description']],
+                    'Amount' => $row[$mapper['amount']],
+                    'Other Information' => collect($row)->except([
+                                                $mapper['date'],
+                                                $mapper['description'],
+                                                $mapper['amount']
+                                            ])->toArray(),
+                ];
             }
         }
 
@@ -400,37 +399,44 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
 
     public function usingEmbeddings(array $statements, array $ledgers, array $mapper, User $user, Reconciliation $reconciliation)
     {
-        event(new ReconciliationProgressUpdated($reconciliationId, 'Structuring bank statements...'));
-        $structuredStatements = $this->mappingData($statements, $mapper);
+        try{
+            event(new ReconciliationProgressUpdated($reconciliation->id, 'Structuring bank statements...'));
+            $structuredStatements = $this->mappingData($statements, $mapper);
 
-        event(new ReconciliationProgressUpdated($reconciliationId, 'Saving bank statements...'));
-        $this->savingStatements($structuredStatements, $reconciliation);
+            event(new ReconciliationProgressUpdated($reconciliation->id, 'Saving bank statements...'));
+            $this->savingStatements($structuredStatements, $reconciliation);
 
-        event(new ReconciliationProgressUpdated($reconciliationId, 'Fetching ledger entries...'));
-        $savedStatements = $this->statementRepository->findAll($reconciliation);
-        $savedLedgers = $this->ledgerRepository->findAllByType($ledgers);
+            event(new ReconciliationProgressUpdated($reconciliation->id, 'Fetching ledger entries...'));
+            $savedStatements = $this->statementRepository->findAll($reconciliation);
+            $ledgers = $reconciliation->ledgers->pluck('id')->toArray();
+            $savedLedgers = $this->ledgerRepository->findAllByType($ledgers);
 
-        event(new ReconciliationProgressUpdated($reconciliationId, 'Preparation for AI matching...'));
-        $this->generateStatementEmbeddings($savedStatements);
-        $this->generateLedgerEmbeddings($savedLedgers);
+            event(new ReconciliationProgressUpdated($reconciliation->id, 'Preparation for AI matching...'));
+            $this->generateStatementEmbeddings($savedStatements);
+            $this->generateLedgerEmbeddings($savedLedgers);
 
-        event(new ReconciliationProgressUpdated($reconciliationId, 'AI matching in progress...'));
-        $response = $this->matchUsingEmbeddings($savedStatements, $savedLedgers);
+            event(new ReconciliationProgressUpdated($reconciliation->id, 'AI matching in progress...'));
+            $response = $this->matchUsingEmbeddings($savedStatements, $savedLedgers);
 
-        $this->pushProgress($key, );
-        event(new ReconciliationProgressUpdated($reconciliationId, 'Compiling response...'));
-        $record = $this->mainRepository->storeResponse([
-            'reconciliation_id' => $reconciliation->id,
-            'data' => $response
-        ]);
+            event(new ReconciliationProgressUpdated($reconciliation->id, 'Compiling response...'));
+            $record = $this->mainRepository->storeResponse([
+                'reconciliation_id' => $reconciliation->id,
+                'data' => $response
+            ]);
 
-        Mail::to($user->email)->send(new ReconciliationCompleted($reconciliation, $user));
-        event(new ReconciliationProgressUpdated($reconciliationId, 'Reconciliation completed successfully!'));
+            Mail::to($user->email)->send(new ReconciliationCompleted($reconciliation, $user));
+            event(new ReconciliationProgressUpdated($reconciliation->id, 'Reconciliation completed successfully!'));
+            Log::info('Reconciliation: ', ['status' => 'done!']);
 
-        return [
-            'reconciliation_id' => $reconciliation->id,
-            ...$response
-        ];
+            return [
+                'reconciliation_id' => $reconciliation->id,
+                ...$response
+            ];
+        } catch(\Exception $e){
+            Log::error('Failed to run job', ['error' =>  $e]);
+            event(new ReconciliationProgressUpdated($reconciliation->id, 'Reconciliation failed. Please try again!'));
+            throw $e;
+        }
     }
 
     public function export(Reconciliation $reconciliation){
