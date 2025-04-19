@@ -453,7 +453,8 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
 
     public function fetchResults(Reconciliation $reconciliation){
         $savedStatements = $this->statementRepository->findAll($reconciliation);
-        $savedLedgers = $this->ledgerRepository->findAll($reconciliation);
+        $ledgerTypes = $reconciliation->ledgers->pluck('id')->toArray();
+        $savedLedgers = $this->ledgerRepository->findAllByType($ledgerTypes);
 
         $matched = $this->matchedRepository->getMatches($reconciliation->id);
 
