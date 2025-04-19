@@ -5588,11 +5588,23 @@
                                     "bank_statements[0][period]": {
                                         "type": "string"
                                     },
+                                    "mapper[date]": {
+                                        "type": "string"
+                                    },
+                                    "mapper[description]": {
+                                        "type": "string"
+                                    },
+                                    "mapper[amount]": {
+                                        "type": "string"
+                                    },
                                     "ledgers[]": {
                                         "type": "array",
                                         "items": {
                                             "type": "string"
                                         }
+                                    },
+                                    "title": {
+                                        "type": "string"
                                     }
                                 },
                                 "type": "object"

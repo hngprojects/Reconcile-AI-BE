@@ -111,6 +111,11 @@ class EmbeddingsTest extends TestCase
         $acc = BankAccount::factory()->create();
 
         $response = $this->actingAs($this->user)->postJson('/api/v1/reconcile-embeddings', [
+            'mapper' => [
+                'date' => 'Date',
+                'description' => 'Description',
+                'amount' => 'Amount'
+            ],
             'bank_statements' => [
                 [
                 'file' => $statementFile,

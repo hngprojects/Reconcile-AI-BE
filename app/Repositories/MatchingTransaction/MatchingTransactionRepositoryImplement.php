@@ -83,26 +83,34 @@ class MatchingTransactionRepositoryImplement extends Eloquent implements Matchin
 
     public function matchTransactions(Reconciliation $reconciliation){
         $matches = DB::select("
-                WITH ranked_matches AS (
-                  SELECT
+            WITH reconciliation_ledgers AS (
+                SELECT l.id AS ledger_id
+                FROM ledgers l
+                JOIN bookkeeping_ledgers bl ON l.bookkeeping_ledger_id = bl.id
+                JOIN reconciliation_ledgers blr ON blr.bookkeeping_ledger_id = bl.id
+                WHERE blr.reconciliation_id = ?
+            ),
+            ranked_matches AS (
+                SELECT
                     s.id AS statement_id,
                     l.id AS ledger_id,
                     1 - (s.embedding <=> l.embedding) AS cosine_similarity,
                     ROW_NUMBER() OVER (PARTITION BY s.id ORDER BY 1 - (s.embedding <=> l.embedding) DESC) AS statement_rank,
                     ROW_NUMBER() OVER (PARTITION BY l.id ORDER BY 1 - (s.embedding <=> l.embedding) DESC) AS ledger_rank
-                  FROM statements s
-                  JOIN ledgers l ON s.reconciliation_id = l.reconciliation_id
-                  WHERE s.reconciliation_id = ?
-                    AND 1 - (s.embedding <=> l.embedding) > 0.82
-                )
-                SELECT
-                  statement_id,
-                  ledger_id,
-                  cosine_similarity
-                FROM ranked_matches
-                WHERE statement_rank = 1 AND ledger_rank = 1
-                ORDER BY cosine_similarity DESC
-            ", [$reconciliation->id]);
+                FROM statements s
+                JOIN reconciliation_ledgers rl ON TRUE
+                JOIN ledgers l ON rl.ledger_id = l.id
+                WHERE s.reconciliation_id = ?
+                  AND 1 - (s.embedding <=> l.embedding) > 0.82
+            )
+            SELECT
+                statement_id,
+                ledger_id,
+                cosine_similarity
+            FROM ranked_matches
+            WHERE statement_rank = 1 AND ledger_rank = 1
+            ORDER BY cosine_similarity DESC
+        ", [$reconciliation->id, $reconciliation->id]);
 
         /*
         $saved = [];
