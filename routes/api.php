@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ChartOfAccountController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PlanController;
@@ -87,6 +88,11 @@ Route::prefix('v1')->group(function () {
         // busines info creation
         Route::post('/business-info', [BusinessInfoController::class, 'store']);
         Route::put('/business-info/{id}', [BusinessInfoController::class, 'update']);
+
+        // Assuming this is inside a route file that already has the api/v1 prefix
+        Route::prefix('chart-accounts')->group(function () {
+            Route::post('/', [ChartOfAccountController::class, 'store']);
+        });
     });
     Route::prefix('newsletter')->name('newsletter.')->group(function () {
         Route::get('/unsubscribe/{email}', [NewsLetterController::class, 'oneClickUnsubscribe'])->name('one-click-unsubscribe');
