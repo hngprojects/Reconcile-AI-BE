@@ -14,6 +14,7 @@ use App\Http\Requests\ManualReconciliationRequest;
 use App\Jobs\ProcessReconciliation;
 use App\Jobs\ProcessRecoxReconciliation;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Cache;
 
 /**
  * @OA\Tag(
@@ -369,9 +370,25 @@ class ReconciliationController extends Controller
      *                     type="string"
      *                 ),
      *                 @OA\Property(
+     *                     property="mapper[date]",
+     *                     type="string"
+     *                 ),
+     *                 @OA\Property(
+     *                     property="mapper[description]",
+     *                     type="string"
+     *                 ),
+     *                 @OA\Property(
+     *                     property="mapper[amount]",
+     *                     type="string"
+     *                 ),
+     *                 @OA\Property(
      *                     property="ledgers[]",
      *                     type="array",
      *                     @OA\Items(type="string")
+     *                 ),
+     *                 @OA\Property(
+     *                     property="title",
+     *                     type="string",
      *                 )
      *              ),
      *          )
@@ -430,6 +447,10 @@ class ReconciliationController extends Controller
             'title' => 'required|string',
             'bank_statements' => 'required|array',
             'ledgers' => 'required|array',
+            'mapper' => 'required',
+            'mapper.date' => 'required|string',
+            'mapper.description' => 'required|string',
+            'mapper.amount' => 'required|string',
             'bank_statements.*.file' => 'required|file|mimes:csv|max:2048',
             'bank_statements.*.bank_account' => 'required|uuid|exists:bank_accounts,id',
             'bank_statements.*.period' => 'required|string',
@@ -468,7 +489,7 @@ class ReconciliationController extends Controller
             }
 
             $reconciliation = $this->testService->storeReconciliation($statements, $ledgers,  $request->input('title'), $request->user()->id);
-            ProcessReconciliation::dispatch($statements, $ledgers, $request->user(), $reconciliation);
+            ProcessReconciliation::dispatch($statements, $ledgers, $request->input('mapper'), $request->user(), $reconciliation);
 
             return response()->json([
                 "message" => "Reconciliation initiated successfully",
@@ -527,5 +548,4 @@ class ReconciliationController extends Controller
         $extension = pathinfo($filePath, PATHINFO_EXTENSION);
         return in_array(strtolower($extension), ['csv', 'xls', 'xlsx']);
     }
-
 }

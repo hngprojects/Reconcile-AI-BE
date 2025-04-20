@@ -65,6 +65,7 @@ Route::prefix('v1')->group(function () {
         // Optional: Payment history route if you implement it later
         Route::get('payment-plan/history', [BillingTransactionController::class, 'history'])->name('payment-plan.history');
 
+        Route::post('/ledger-entries/upload', [LedgerEntryController::class, 'uploadLedger']);
         Route::post('/ledger-entries', [LedgerEntryController::class, 'store']);
         Route::get('/ledger-entries', [LedgerEntryController::class, 'index']);
         Route::get('/ledger-entries/{id}', [LedgerEntryController::class, 'show']);
@@ -74,7 +75,7 @@ Route::prefix('v1')->group(function () {
         Route::post('/bookkeeping-ledgers', [BookkeepingLedgerController::class, 'store']);
         Route::put('/bookkeeping-ledgers/{ledger}/toggle', [BookkeepingLedgerController::class, 'toggle']);
 
-        // bank account 
+        // bank account
         Route::apiResource('bank-accounts', BankAccountController::class);
         Route::patch('bank-accounts/{bankAccount}/toggle-default', [BankAccountController::class, 'toggleDefault']);
 
@@ -115,12 +116,17 @@ Route::prefix('v1')->group(function () {
 
     // partners
     Route::post('/partners', [PartnerController::class, 'submit'])->name('partners');
+
+    // reconciliations
+    Route::get('/reconciliations/{reconciliation}/progress', [ReconciliationController::class, 'streamProgress']);
     Route::post('/reconcile', [ReconciliationController::class, 'reconcile'])->name('reconcile')->middleware([ThrottleUnauthenticated::class, CheckReconciliationLimit::class]);
     Route::middleware('auth:api')->get('/reconciliations/{reconciliation}', [ReconciliationController::class, 'getReconciledRecords'])->whereUuid('reconciliation')->name('reconciled-records');
     Route::middleware('auth:api')->get('/reconciliations', [ReconciliationController::class, 'listUserReconciliations'])->name('list');
     Route::get('/reconciliations/{reconciliation}/export', [ReconciliationController::class, 'export'])->name('export');
     Route::middleware('auth:api')->post('/reconcile-embeddings', [ReconciliationController::class, 'testEmbeddings'])->middleware([CheckReconciliationLimit::class])->name('embeddings');
     Route::post('/reconcile/{reconciliation}', [ReconciliationController::class, 'matchUnmatch'])->whereUuid('reconciliation')->name('manual-reconciliation');
+
+
     Route::post('/wait-list', [WaitListController::class, 'store'])->name('wait-list');
     Route::post('/contact', [ContactController::class, 'contact'])->name('contact');
 

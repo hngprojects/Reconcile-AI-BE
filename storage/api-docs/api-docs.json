@@ -4526,6 +4526,70 @@
                 ]
             }
         },
+        "/api/v1/ledger-entries/upload": {
+            "post": {
+                "tags": [
+                    "Ledger Entries"
+                ],
+                "summary": "Upload ledger CSV",
+                "description": "Uploads the ledger and saves the entries",
+                "operationId": "68e14ee95276173877e58426cbd6316f",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "required": [
+                                    "ledger",
+                                    "ledger_file"
+                                ],
+                                "properties": {
+                                    "ledger": {
+                                        "type": "string",
+                                        "format": "uuid"
+                                    },
+                                    "ledger_file": {
+                                        "type": "string",
+                                        "format": "binary"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Ledger CSV successfully uploaded",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "example": "success"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Ledger CSV successfully uploaded and saved."
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/api/v1/outbound-marketing": {
             "post": {
                 "tags": [
@@ -5707,11 +5771,23 @@
                                     "bank_statements[0][period]": {
                                         "type": "string"
                                     },
+                                    "mapper[date]": {
+                                        "type": "string"
+                                    },
+                                    "mapper[description]": {
+                                        "type": "string"
+                                    },
+                                    "mapper[amount]": {
+                                        "type": "string"
+                                    },
                                     "ledgers[]": {
                                         "type": "array",
                                         "items": {
                                             "type": "string"
                                         }
+                                    },
+                                    "title": {
+                                        "type": "string"
                                     }
                                 },
                                 "type": "object"
