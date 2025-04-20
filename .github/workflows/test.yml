@@ -77,6 +77,9 @@ jobs:
 
           # Run migrations
           # php artisan migrate --force
+          php artisan reverb:install
+          php artisan reverb:start
+
 
           # Run Laravel tests
           php artisan test
