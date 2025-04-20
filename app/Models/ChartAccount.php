@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class ChartAccount extends Model
 {
     use HasUuids;
-    protected $table = 'chart_accounts';
+    protected $table = 'account_charts';
     protected $fillable = [
         'user_id',
         'account_chart_category_id',
@@ -19,11 +19,13 @@ class ChartAccount extends Model
         'balance'
     ];
 
-    public function user(): BelongsTo {
+    public function user(): BelongsTo
+    {
         return $this->belongsTo(User::class);
     }
 
-    public function category(): BelongsTo {
-        return $this->belongsTo(ChartAccountCategory);
+    public function category(): BelongsTo
+    {
+        return $this->belongsTo(ChartAccountCategory::class, 'account_chart_category_id');
     }
 }

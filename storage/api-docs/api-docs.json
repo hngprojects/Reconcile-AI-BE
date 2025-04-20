@@ -2825,6 +2825,189 @@
                 ]
             }
         },
+        "/api/v1/chart-accounts": {
+            "post": {
+                "tags": [
+                    "Chart Accounts"
+                ],
+                "summary": "Create a new chart account",
+                "description": "Creates a new chart account for the authenticated user",
+                "operationId": "a40225823cc12d54e4d2294f5a4ee563",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "account_number",
+                                    "account_name",
+                                    "balance",
+                                    "account_chart_category_id"
+                                ],
+                                "properties": {
+                                    "account_number": {
+                                        "description": "Account number",
+                                        "type": "string",
+                                        "example": "1234567890"
+                                    },
+                                    "account_name": {
+                                        "description": "Name of the account",
+                                        "type": "string",
+                                        "example": "Operating Expenses"
+                                    },
+                                    "balance": {
+                                        "description": "Account balance",
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 1000
+                                    },
+                                    "description": {
+                                        "description": "Account description",
+                                        "type": "string",
+                                        "example": "For tracking operating expenses"
+                                    },
+                                    "user_id": {
+                                        "description": "User ID",
+                                        "type": "string",
+                                        "format": "uuid",
+                                        "example": "550e8400-e29b-41d4-a716-446655440000"
+                                    },
+                                    "account_chart_category_id": {
+                                        "description": "Chart category ID",
+                                        "type": "string",
+                                        "format": "uuid",
+                                        "example": "550e8400-e29b-41d4-a716-446655440001"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Chart account created successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Chart account created successfully"
+                                        },
+                                        "status": {
+                                            "type": "string",
+                                            "example": "success"
+                                        },
+                                        "status_code": {
+                                            "type": "integer",
+                                            "example": 201
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "string",
+                                                    "format": "uuid",
+                                                    "example": "550e8400-e29b-41d4-a716-446655440000"
+                                                },
+                                                "user_id": {
+                                                    "type": "string",
+                                                    "format": "uuid",
+                                                    "example": "550e8400-e29b-41d4-a716-446655440000"
+                                                },
+                                                "account_number": {
+                                                    "type": "string",
+                                                    "example": "1234567890"
+                                                },
+                                                "account_name": {
+                                                    "type": "string",
+                                                    "example": "Operating Expenses"
+                                                },
+                                                "balance": {
+                                                    "type": "number",
+                                                    "format": "float",
+                                                    "example": 1000
+                                                },
+                                                "description": {
+                                                    "type": "string",
+                                                    "example": "For tracking operating expenses"
+                                                },
+                                                "account_chart_category_id": {
+                                                    "type": "string",
+                                                    "format": "uuid",
+                                                    "example": "550e8400-e29b-41d4-a716-446655440001"
+                                                },
+                                                "created_at": {
+                                                    "type": "string",
+                                                    "format": "date-time",
+                                                    "example": "2023-01-01T00:00:00.000000Z"
+                                                },
+                                                "updated_at": {
+                                                    "type": "string",
+                                                    "format": "date-time",
+                                                    "example": "2023-01-01T00:00:00.000000Z"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "The given data was invalid."
+                                        },
+                                        "errors": {
+                                            "properties": {
+                                                "account_number": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string",
+                                                        "example": "The account number field is required."
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Unauthenticated."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/api/v1/contact": {
             "post": {
                 "tags": [
@@ -6406,6 +6589,10 @@
         {
             "name": "Bookkeeping Ledgers",
             "description": "Bookkeeping Ledgers"
+        },
+        {
+            "name": "Chart Accounts",
+            "description": "Chart Accounts"
         },
         {
             "name": "Contact",
