@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Laravel\Sanctum\HasApiTokens;
 use Tymon\JWTAuth\Contracts\JWTSubject;
 use Illuminate\Notifications\Notifiable;
@@ -99,8 +100,8 @@ class User extends Authenticatable implements JWTSubject, CanResetPasswordContra
     public function currentPaymentPlan()
     {
         return $this->hasOne(PaymentPlan::class)
-                ->where('is_active', true)
-                ->with('plan');
+            ->where('is_active', true)
+            ->with('plan');
     }
 
     public function bankAccounts(): HasMany
@@ -117,8 +118,14 @@ class User extends Authenticatable implements JWTSubject, CanResetPasswordContra
     {
         return $this->hasMany(BookkeepingLedger::class);
     }
-
-    public function user(): HasMany {
-        return $this->hasMany(ChartAccountCategory::class, 'user_chart_categories', 'user_id', 'account_chart_category_id');
+    // Add this with your other relationships in User.php
+    public function accountChartCategories(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            ChartAccountCategory::class,  // Related model
+            'user_chart_categories',      // Pivot table name
+            'user_id',                    // Foreign key on pivot table
+            'account_chart_category_id'   // Related key on pivot table
+        );
     }
 }

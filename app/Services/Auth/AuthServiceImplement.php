@@ -2,6 +2,7 @@
 
 namespace App\Services\Auth;
 
+use App\Models\ChartAccountCategory;
 use App\Models\User;
 use App\Models\Plan;
 use Illuminate\Http\JsonResponse;
@@ -154,6 +155,13 @@ class AuthServiceImplement extends ServiceApi implements AuthService
                 'expire_date'   => now()->addDays($basicPlan->plan_length),
             ]);
 
+
+            // attach required chart account categories
+            $categoryIds = ChartAccountCategory::where('is_required', true)
+                ->pluck('id')
+                ->toArray();
+
+            $user->accountChartCategories()->attach($categoryIds);
             $token = JWTAuth::fromUser($user);
 
             return $this->setCode(200)
