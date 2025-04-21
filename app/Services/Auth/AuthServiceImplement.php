@@ -6,7 +6,9 @@ use App\Models\ChartAccountCategory;
 use App\Models\User;
 use App\Models\Plan;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Tymon\JWTAuth\Exceptions\JWTException;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use App\Http\Resources\UserResource;
@@ -129,6 +131,8 @@ class AuthServiceImplement extends ServiceApi implements AuthService
      */
     public function register($request)
     {
+        DB::beginTransaction();
+
         try {
             $validated = $request->validated();
             $user = $this->mainRepository->register($validated);
@@ -156,13 +160,26 @@ class AuthServiceImplement extends ServiceApi implements AuthService
             ]);
 
 
-            // attach required chart account categories
-            $categoryIds = ChartAccountCategory::where('is_required', true)
-                ->pluck('id')
-                ->toArray();
+            // Get all the REQUIRED categories 
+            $requiredCategories = ChartAccountCategory::where('is_required', true)->get();
 
-            $user->accountChartCategories()->attach($categoryIds);
+            // Create an array of pivot data with UUIDs
+            $pivotData = [];
+            foreach ($requiredCategories as $category) {
+                $pivotData[$category->id] = [
+                    'id' => Str::uuid()->toString(),
+                    'user_id' => $user->id,
+                    'account_chart_category_id' => $category->id,
+                    'created_at' => now(),
+                    'updated_at' => now()
+                ];
+            }
+
+            // Attach categories with pivot data
+            $user->accountChartCategories()->attach($pivotData);
+
             $token = JWTAuth::fromUser($user);
+            DB::commit();
 
             return $this->setCode(200)
                 ->setMessage("User account registration successful")
@@ -172,6 +189,11 @@ class AuthServiceImplement extends ServiceApi implements AuthService
                     'token' => $token
                 ]);
         } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Registration failed', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
             return $this->setCode(400)
                 ->setMessage("User account registration failed")
                 ->setError($e->getMessage());

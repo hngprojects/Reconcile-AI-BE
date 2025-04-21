@@ -3,6 +3,7 @@
 namespace App\Repositories\GoogleAuth;
 
 use App\Models\ChartAccountCategory;
+use Illuminate\Support\Str;
 use LaravelEasyRepository\Implementations\Eloquent;
 use App\Models\User;
 use App\Models\Plan;
@@ -100,16 +101,24 @@ class GoogleAuthRepositoryImplement extends Eloquent implements GoogleAuthReposi
 
 
         try {
+
             // Get all the REQUIRED categories 
             $requiredCategories = ChartAccountCategory::where('is_required', true)->get();
 
-            // Connect them to our new user
-            $user->accountChartCategories()->attach($requiredCategories);
+            // Create an array of pivot data with UUIDs
+            $pivotData = [];
+            foreach ($requiredCategories as $category) {
+                $pivotData[$category->id] = [
+                    'id' => Str::uuid()->toString(),
+                    'user_id' => $user->id,
+                    'account_chart_category_id' => $category->id,
+                    'created_at' => now(),
+                    'updated_at' => now()
+                ];
+            }
 
-            Log::info('Added default categories to new user', [
-                'user_id' => $user->id,
-                'categories_added' => $requiredCategories->pluck('name')
-            ]);
+            // Attach categories with pivot data
+            $user->accountChartCategories()->attach($pivotData);
         } catch (\Exception $e) {
             // If something goes wrong, log the error (but don't stop the user registration)
             Log::error('Failed to add default categories', [
