@@ -16,19 +16,17 @@ return new class extends Migration
             $table->string('title');
             $table->string('description');
             $table->timestamps();
-
         });
-    //
-    //
 
-        Schema::create('user_chart_categories', function(Blueprint $table){
+
+        Schema::create('user_chart_categories', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->foreignUuid('account_chart_category_id')->constrained()->cascadeOnDelete();
             $table->timestamps();
         });
 
-        Schema::create('account_charts', function (Blueprint $table){
+        Schema::create('account_charts', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->foreignUuid('account_chart_category_id')->constrained()->cascadeOnDelete();

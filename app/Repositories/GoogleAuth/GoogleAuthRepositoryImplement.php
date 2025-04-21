@@ -2,6 +2,8 @@
 
 namespace App\Repositories\GoogleAuth;
 
+use App\Models\ChartAccountCategory;
+use Illuminate\Support\Str;
 use LaravelEasyRepository\Implementations\Eloquent;
 use App\Models\User;
 use App\Models\Plan;
@@ -9,13 +11,14 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Tymon\JWTAuth\Facades\JWTAuth;
 
-class GoogleAuthRepositoryImplement extends Eloquent implements GoogleAuthRepository{
+class GoogleAuthRepositoryImplement extends Eloquent implements GoogleAuthRepository
+{
 
     /**
-    * Model class to be used in this repository for the common methods inside Eloquent
-    * Don't remove or change $this->model variable name
-    * @property Model|mixed $model;
-    */
+     * Model class to be used in this repository for the common methods inside Eloquent
+     * Don't remove or change $this->model variable name
+     * @property Model|mixed $model;
+     */
     protected User $model;
 
     public function __construct(User $model)
@@ -27,17 +30,17 @@ class GoogleAuthRepositoryImplement extends Eloquent implements GoogleAuthReposi
     {
         $response = Http::get("https://www.googleapis.com/oauth2/v3/tokeninfo?id_token={$idToken}");
         Log::info('Google token validation response', ['data' => $response]);
-        
+
         if (!$response->successful()) {
             return null;
         }
-        
+
         $payload = $response->json();
-        
+
         if (!isset($payload['sub']) || !isset($payload['email'])) {
             return null;
         }
-        
+
         return $payload;
     }
 
@@ -45,7 +48,7 @@ class GoogleAuthRepositoryImplement extends Eloquent implements GoogleAuthReposi
     {
         $email = $payload['email'];
         $user = User::where('email', $email)->first();
-        
+
         if ($user) {
             return ['user' => $user, 'is_new_user' => false];
         }
@@ -58,7 +61,8 @@ class GoogleAuthRepositoryImplement extends Eloquent implements GoogleAuthReposi
         ]);
 
         $this->assignBasicPlan($user);
-
+        // add the default account chart categories
+        $this->assignDefaultAccountCategories($user);
         return ['user' => $user, 'is_new_user' => true];
     }
 
@@ -88,5 +92,39 @@ class GoogleAuthRepositoryImplement extends Eloquent implements GoogleAuthReposi
             'start_date' => now(),
             'expire_date' => now()->addDays($basicPlan->plan_length),
         ]);
+    }
+    /**
+     * Assign default account chart categories to new user
+     */
+    protected function assignDefaultAccountCategories(User $user): void
+    {
+
+
+        try {
+
+            // Get all the REQUIRED categories 
+            $requiredCategories = ChartAccountCategory::where('is_required', true)->get();
+
+            // Create an array of pivot data with UUIDs
+            $pivotData = [];
+            foreach ($requiredCategories as $category) {
+                $pivotData[$category->id] = [
+                    'id' => Str::uuid()->toString(),
+                    'user_id' => $user->id,
+                    'account_chart_category_id' => $category->id,
+                    'created_at' => now(),
+                    'updated_at' => now()
+                ];
+            }
+
+            // Attach categories with pivot data
+            $user->accountChartCategories()->attach($pivotData);
+        } catch (\Exception $e) {
+            // If something goes wrong, log the error (but don't stop the user registration)
+            Log::error('Failed to add default categories', [
+                'user_id' => $user->id,
+                'error' => $e->getMessage()
+            ]);
+        }
     }
 }
