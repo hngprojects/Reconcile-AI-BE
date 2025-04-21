@@ -93,11 +93,6 @@ class ChartOfAccountController extends Controller
         // Add user_id to the validated data
         $validated['user_id'] = Auth::id();
 
-        // If this is the first account for the user, make it default
-        // $accountCount = BankAccount::where('user_id', Auth::id())->count();
-        // if ($accountCount === 0) {
-        //     $validated['is_default'] = true;
-        // }
 
         $bankAccount = ChartAccount::create($validated);
 
