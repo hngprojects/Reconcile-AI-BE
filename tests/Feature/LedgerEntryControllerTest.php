@@ -29,14 +29,6 @@ class LedgerEntryControllerTest extends TestCase
         $this->user = User::factory()->create();
         $this->bookkeepingLedger = BookkeepingLedger::factory()->create();
 
-        DB::table('reconciliations')->insert([
-            'id' => '550e8400-e29b-41d4-a716-446655440004',
-            'user_id' => $this->user->id,
-            'title' => 'Test Reconciliation',
-            'created_at' => now(),
-            'updated_at' => now()
-        ]);
-
         DB::table('account_chart_categories')->insert([
             'id' => '550e8400-e29b-41d4-a716-446655440002',
             'title' => 'Test Category',
@@ -93,8 +85,7 @@ class LedgerEntryControllerTest extends TestCase
             'bank_account_id' => '550e8400-e29b-41d4-a716-446655440001',
             'account_chart_id' => '550e8400-e29b-41d4-a716-446655440000',
             'reference' => 'INV-2024-001',
-            'attachment' => UploadedFile::fake()->image('receipt.jpg'),
-            'reconciliation_id' => '550e8400-e29b-41d4-a716-446655440004'
+            'attachment' => UploadedFile::fake()->image('receipt.jpg')
         ];
 
         $response = $this->actingAs($this->user)
@@ -126,7 +117,7 @@ class LedgerEntryControllerTest extends TestCase
 
         $file = UploadedFile::fake()->create('ledger.csv', 100, 'text/csv');
 
-        $response = $this->actingAs($user, 'api')->postJson('/api/v1/ledger-entries/upload', [
+        $response = $this->actingAs($this->user)->postJson('/api/v1/ledger-entries/upload', [
             'ledger_file' => $file,
             'ledger' => $ledger->id,
         ]);
@@ -142,7 +133,7 @@ class LedgerEntryControllerTest extends TestCase
         $user = User::factory()->create();
         $ledger = BookkeepingLedger::factory()->create();
 
-        $response = $this->actingAs($user, 'api')->postJson('/api/v1/ledger-entries/upload', [
+        $response = $this->actingAs($this->user, 'api')->postJson('/api/v1/ledger-entries/upload', [
             'ledger' => $ledger->id,
         ]);
 
@@ -159,7 +150,7 @@ class LedgerEntryControllerTest extends TestCase
 
         $file = UploadedFile::fake()->create('ledger.csv', 100, 'text/csv');
 
-        $response = $this->actingAs($user, 'api')->postJson('/api/v1/ledger-entries/upload', [
+        $response = $this->actingAs($this->user, 'api')->postJson('/api/v1/ledger-entries/upload', [
             'ledger_file' => $file,
             'ledger' => 'invalid-uuid-1234',
         ]);
@@ -178,7 +169,7 @@ class LedgerEntryControllerTest extends TestCase
 
         $file = UploadedFile::fake()->create('ledger.pdf', 100, 'application/pdf');
 
-        $response = $this->actingAs($user, 'api')->postJson('/api/v1/ledger-entries/upload', [
+        $response = $this->actingAs($this->user, 'api')->postJson('/api/v1/ledger-entries/upload', [
             'ledger_file' => $file,
             'ledger' => $ledger->id,
         ]);

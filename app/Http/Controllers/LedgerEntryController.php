@@ -31,7 +31,7 @@ class LedgerEntryController extends Controller
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
-     *             required={"bookkeeping_ledger_id","transaction_type","transaction_date","description","amount","paid_status","amount_paid","bank_account_id","account_chart_id","reconciliation_id"},
+     *             required={"bookkeeping_ledger_id","transaction_type","transaction_date","description","amount","paid_status","amount_paid","bank_account_id","account_chart_id"},
      *             @OA\Property(property="bookkeeping_ledger_id", type="string", format="uuid", example="550e8400-e29b-41d4-a716-446655440000"),
      *             @OA\Property(property="transaction_type", type="string", enum={"Income","Expense","Payable","Receivable"}, example="Income"),
      *             @OA\Property(property="transaction_date", type="string", format="date", example="2024-01-15"),
@@ -43,8 +43,7 @@ class LedgerEntryController extends Controller
      *             @OA\Property(property="bank_account_id", type="string", format="uuid", example="550e8400-e29b-41d4-a716-446655440000"),
      *             @OA\Property(property="account_chart_id", type="string", format="uuid", example="550e8400-e29b-41d4-a716-446655440000"),
      *             @OA\Property(property="reference", type="string", example="INV-2024-001"),
-     *             @OA\Property(property="attachment", type="file", format="binary"),
-     *             @OA\Property(property="reconciliation_id", type="string", format="uuid", example="550e8400-e29b-41d4-a716-446655440000")
+     *             @OA\Property(property="attachment", type="file", format="binary")
      *         )
      *     ),
      *     @OA\Response(
@@ -95,8 +94,7 @@ class LedgerEntryController extends Controller
                 'bank_account_id' => 'required|uuid|exists:bank_accounts,id',
                 'account_chart_id' => 'required|uuid|exists:account_charts,id',
                 'reference' => 'nullable|string|max:255',
-                'attachment' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
-                'reconciliation_id' => 'required|uuid|exists:reconciliations,id'
+                'attachment' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048'
             ]);
 
             if ($validator->fails()) {
