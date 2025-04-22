@@ -25,7 +25,6 @@ class ChartOfAccountController extends Controller
      *             @OA\Property(property="account_name", type="string", example="Operating Expenses", description="Name of the account"),
      *             @OA\Property(property="balance", type="number", format="float", example=1000.00, description="Account balance"),
      *             @OA\Property(property="description", type="string", example="For tracking operating expenses", description="Account description"),
-     *             @OA\Property(property="user_id", type="string", format="uuid", example="550e8400-e29b-41d4-a716-446655440000", description="User ID"),
      *             @OA\Property(property="account_chart_category_id", type="string", format="uuid", example="550e8400-e29b-41d4-a716-446655440001", description="Chart category ID")
      *         )
      *     ),
@@ -86,7 +85,6 @@ class ChartOfAccountController extends Controller
             'account_name' => 'required|string|max:255',
             'balance' => 'required|numeric|min:0',
             'description' => 'nullable|string|max:255',
-            'user_id' => 'required|uuid|string',
             'account_chart_category_id' => 'required|string|uuid',
         ]);
 
