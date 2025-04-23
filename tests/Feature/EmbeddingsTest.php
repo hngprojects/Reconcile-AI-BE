@@ -13,11 +13,14 @@ use App\Repositories\Statement\StatementRepository;
 use App\Repositories\StatementFile\StatementFileRepository;
 use App\Repositories\MatchingTransaction\MatchingTransactionRepository;
 use App\Models\Reconciliation;
+use App\Models\ReconciledRecord;
 use App\Models\BookkeepingLedger;
 use App\Models\BankAccount;
 use App\Models\User;
 use App\Models\PaymentPlan;
 use App\Models\Plan;
+use App\Models\Ledger;
+use App\Models\Statement;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\UploadedFile;
@@ -110,7 +113,7 @@ class EmbeddingsTest extends TestCase
         $ledg = BookkeepingLedger::factory()->create();
         $acc = BankAccount::factory()->create();
 
-        $response = $this->actingAs($this->user)->postJson('/api/v1/reconcile-embeddings', [
+        $response = $this->actingAs($this->user)->postJson('/api/v1/reconcile', [
             'mapper' => [
                 'date' => 'Date',
                 'description' => 'Description',
@@ -145,11 +148,122 @@ class EmbeddingsTest extends TestCase
         $user = User::factory()->create();
         $plan = PaymentPlan::factory()->create(['user_id' => $user->id]);
 
-        $response = $this->actingAs($user)->postJson('/api/v1/reconcile-embeddings', [
+        $response = $this->actingAs($user)->postJson('/api/v1/reconcile', [
             'statement' => $invalidFile,
             'ledger' => $invalidFile,
         ]);
 
         $response->assertStatus(422);
     }
+
+    public function test_export_generation(): void
+    {
+        $record = ReconciledRecord::factory()->create();
+        $response = $this->get("/api/v1/reconciliations/{$record->reconciliation->id}/export");
+        // $file = "reconciled-data-" . now()->format('Y-m-d_H-i-s') . ".csv";
+        // $response->assertStatus(200);
+        // $response->assertHeader('Content-Type', 'text/plain; charset=UTF-8');
+        // $response->assertHeader('Content-Disposition', "attachment; filename=$file");
+
+        // $response->assertDownload($file);
+
+        // Assert response status
+        $response->assertStatus(200);
+
+        // Assert content type
+        $response->assertHeader('Content-Type', 'text/plain; charset=UTF-8');
+
+        // Check Content-Disposition header dynamically
+        $response->assertHeader('Content-Disposition');
+        $headerValue = $response->headers->get('Content-Disposition');
+
+        // Extract actual filename from header
+        preg_match('/filename=(.*)/', $headerValue, $matches);
+        $actualFilename = trim($matches[1] ?? '');
+
+        // Ensure filename starts with expected format, ignoring seconds
+        $expectedPrefix = 'reconciled-data-' . now()->format('Y-m-d_H-i');
+        $this->assertStringStartsWith($expectedPrefix, $actualFilename);
+    }
+
+    public function test_reconcile_match_transaction()
+    {
+        // Create test reconciliation
+        $reconciliation = Reconciliation::factory()->createOne();
+        $statement = Statement::factory()->create();
+        $ledger = Ledger::factory()->create();
+        $record = ReconciledRecord::factory()->createOne([
+            'reconciliation_id' => $reconciliation->id
+        ]);
+
+        // Prepare test request data
+        $payload = [
+            'ledgers' => [$ledger->id],
+            'statements' => [$statement->id],
+            'action' => 'match'
+        ];
+
+        // Send request
+        $response = $this->postJson("/api/v1/reconcile/{$reconciliation->id}", $payload);
+
+        // Assert response
+        $response->assertStatus(200)
+            ->assertJson([
+                'status' => 'success',
+                'status_code' => 200,
+                'message' => 'Reconciliation updated successfully',
+            ]);
+    }
+
+    public function test_unmatch_transactions_successfully()
+    {
+        $reconciliation = Reconciliation::factory()->create();
+        $statement = Statement::factory()->create();
+        $ledger = Ledger::factory()->create();
+        $record = ReconciledRecord::factory()->createOne([
+            'reconciliation_id' => $reconciliation->id
+        ]);
+
+        $data = [
+            'ledgers' => [$ledger->id],
+            'statements' => [$statement->id],
+            'action' => 'unmatch'
+        ];
+
+        $response = $this->postJson("/api/v1/reconcile/{$reconciliation->id}", $data);
+
+        $response->assertStatus(200);
+        $response->assertJsonStructure([
+            'status',
+            'status_code',
+            'message',
+            'data'
+        ]);
+    }
+
+    public function test_invalid_action_returns_error()
+    {
+        $reconciliation = Reconciliation::factory()->create();
+        $statement = Statement::factory()->create();
+        $ledger = Ledger::factory()->create();
+
+        $data = [
+            'ledgers' => [$ledger->id],
+            'statements' => [$statement->id],
+            'action' => 'invalid_action'
+        ];
+
+        $response = $this->postJson("/api/v1/reconcile/{$reconciliation->id}", $data);
+
+        $response->assertStatus(422);
+        $response->assertJson([
+            "message" => "The selected action is invalid.",
+            "errors" => [
+                "action"=> [
+                    "The selected action is invalid."
+                ]
+            ]
+        ]);
+    }
+
 }

@@ -129,6 +129,12 @@ class LedgerEntryControllerTest extends TestCase
         $response = $this->actingAs($user, 'api')->postJson('/api/v1/ledger-entries/upload', [
             'ledger_file' => $file,
             'ledger' => $ledger->id,
+            'transaction_type' => 'Expense',
+            'mapper' => [
+                'date' => 'Date',
+                'description' => 'Description',
+                'amount' => 'Amount'
+            ],
         ]);
 
         $response->assertStatus(200);
@@ -144,6 +150,12 @@ class LedgerEntryControllerTest extends TestCase
 
         $response = $this->actingAs($user, 'api')->postJson('/api/v1/ledger-entries/upload', [
             'ledger' => $ledger->id,
+            'transaction_type' => 'Expense',
+            'mapper' => [
+                'date' => 'Date',
+                'description' => 'Description',
+                'amount' => 'Amount'
+            ],
         ]);
 
         $response->assertStatus(422);
@@ -162,6 +174,12 @@ class LedgerEntryControllerTest extends TestCase
         $response = $this->actingAs($user, 'api')->postJson('/api/v1/ledger-entries/upload', [
             'ledger_file' => $file,
             'ledger' => 'invalid-uuid-1234',
+            'transaction_type' => 'Expense',
+            'mapper' => [
+                'date' => 'Date',
+                'description' => 'Description',
+                'amount' => 'Amount'
+            ],
         ]);
 
         $response->assertStatus(422);
@@ -181,6 +199,12 @@ class LedgerEntryControllerTest extends TestCase
         $response = $this->actingAs($user, 'api')->postJson('/api/v1/ledger-entries/upload', [
             'ledger_file' => $file,
             'ledger' => $ledger->id,
+            'transaction_type' => 'Expense',
+            'mapper' => [
+                'date' => 'Date',
+                'description' => 'Description',
+                'amount' => 'Amount'
+            ],
         ]);
 
         $response->assertStatus(422);
@@ -198,6 +222,12 @@ class LedgerEntryControllerTest extends TestCase
         $response = $this->postJson('/api/v1/ledger-entries/upload', [
             'ledger_file' => $file,
             'ledger' => $ledger->id,
+            'transaction_type' => 'Expense',
+            'mapper' => [
+                'date' => 'Date',
+                'description' => 'Description',
+                'amount' => 'Amount'
+            ],
         ]);
 
         $response->assertStatus(401); // unauthorized

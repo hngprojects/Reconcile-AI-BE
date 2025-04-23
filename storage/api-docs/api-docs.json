@@ -4368,6 +4368,18 @@
                                     "ledger_file": {
                                         "type": "string",
                                         "format": "binary"
+                                    },
+                                    "transaction_type": {
+                                        "type": "string"
+                                    },
+                                    "mapper[date]": {
+                                        "type": "string"
+                                    },
+                                    "mapper[description]": {
+                                        "type": "string"
+                                    },
+                                    "mapper[amount]": {
+                                        "type": "string"
                                     }
                                 },
                                 "type": "object"
@@ -5173,129 +5185,6 @@
                 }
             }
         },
-        "/api/v1/reconcile": {
-            "post": {
-                "tags": [
-                    "Reconciliation"
-                ],
-                "summary": "Reconcile two CSV or Excel files",
-                "description": "Upload and compare two files using various reconciliation methods",
-                "operationId": "4901856bb5a62aa674d08ea00562ea29",
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "multipart/form-data": {
-                            "schema": {
-                                "required": [
-                                    "file1",
-                                    "file2"
-                                ],
-                                "properties": {
-                                    "file1": {
-                                        "description": "First CSV or Excel file",
-                                        "type": "string",
-                                        "format": "binary"
-                                    },
-                                    "file2": {
-                                        "description": "Second CSV or Excel file",
-                                        "type": "string",
-                                        "format": "binary"
-                                    },
-                                    "reconcile_option": {
-                                        "description": "Reconciliation method to use",
-                                        "type": "string",
-                                        "enum": [
-                                            "reconcile_with_Gemini",
-                                            "reconcile_with_recox_ai",
-                                            "reconcile_with_openAI",
-                                            "reconcile_with_deepSeek"
-                                        ]
-                                    }
-                                },
-                                "type": "object"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "Successful reconciliation",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Reconciliation successful"
-                                        },
-                                        "status": {
-                                            "type": "string",
-                                            "example": "success"
-                                        },
-                                        "status_code": {
-                                            "type": "integer",
-                                            "example": 200
-                                        },
-                                        "data": {
-                                            "properties": {
-                                                "matches": {
-                                                    "type": "integer",
-                                                    "example": 5
-                                                },
-                                                "only_in_file1": {
-                                                    "type": "array",
-                                                    "items": {
-                                                        "type": "object"
-                                                    }
-                                                },
-                                                "only_in_file2": {
-                                                    "type": "array",
-                                                    "items": {
-                                                        "type": "object"
-                                                    }
-                                                }
-                                            },
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Bad request",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    },
-                    "422": {
-                        "description": "Validation error",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
         "/api/v1/reconciliations/{reconciliation}/export": {
             "post": {
                 "tags": [
@@ -5564,14 +5453,14 @@
                 }
             }
         },
-        "/api/v1/reconcile-embeddings": {
+        "/api/v1/reconcile": {
             "post": {
                 "tags": [
                     "Reconciliation"
                 ],
                 "summary": "New Reconciliation Approach - Embeddings",
                 "description": "Upload and compare two sets of files using various reconciliation methods",
-                "operationId": "357758e138c508a39157384f25da02e7",
+                "operationId": "a5930ee4e7cc530b4e40f4ac46b2d3f3",
                 "requestBody": {
                     "required": true,
                     "content": {
