@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\ChartAccount;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Validator;
 
 class ChartOfAccountController extends Controller
 {
@@ -80,7 +81,7 @@ class ChartOfAccountController extends Controller
      */
     public function store(Request $request)
     {
-        $validated = $request->validate([
+        $validator = Validator::make($request->all(), [
             'account_number' => 'required|string|max:50',
             'account_name' => 'required|string|max:255',
             'balance' => 'required|numeric|min:0',
@@ -88,7 +89,17 @@ class ChartOfAccountController extends Controller
             'account_chart_category_id' => 'required|string|uuid',
         ]);
 
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Validation failed',
+                'status' => 'error',
+                'status_code' => 422,
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
         // Add user_id to the validated data
+        $validated = $validator->validated();
         $validated['user_id'] = Auth::id();
 
 
@@ -100,5 +111,155 @@ class ChartOfAccountController extends Controller
             'status_code' => 201,
             'data' => $bankAccount
         ], 201);
+    }
+
+    /**
+     * Update a chart account
+     *
+     * @OA\Patch(
+     *     path="/api/v1/chart-accounts/{id}",
+     *     summary="Update a chart account",
+     *     description="Updates specific fields of an existing chart account",
+     *     tags={"Chart Accounts"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="Chart account ID",
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             @OA\Property(property="account_number", type="string", example="1234567890"),
+     *             @OA\Property(property="account_name", type="string", example="Operating Expenses"),
+     *             @OA\Property(property="balance", type="number", format="float", example=1000.00),
+     *             @OA\Property(property="description", type="string", example="For tracking operating expenses"),
+     *             @OA\Property(property="account_chart_category_id", type="string", format="uuid")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Chart account updated successfully"
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Chart account not found"
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Validation error"
+     *     )
+     * )
+     */
+    public function update(Request $request, $id)
+    {
+        $validator = Validator::make($request->all(), [
+            'account_number' => 'sometimes|required|string|max:50',
+            'account_name' => 'sometimes|required|string|max:255',
+            'balance' => 'sometimes|required|numeric|min:0',
+            'description' => 'sometimes|nullable|string|max:255',
+            'account_chart_category_id' => 'sometimes|required|string|uuid',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Validation failed',
+                'status' => 'error',
+                'status_code' => 422,
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        $account = ChartAccount::where('id', $id)
+            ->where('user_id', Auth::id())
+            ->first();
+
+        if (!$account) {
+            return response()->json([
+                'message' => 'Chart account not found',
+                'status' => 'error',
+                'status_code' => 404,
+                'data' => null
+            ], 404);
+        }
+
+        $validated = $validator->validated();
+        $account->update($validated);
+
+        return response()->json([
+            'message' => 'Chart account updated successfully',
+            'status' => 'success',
+            'status_code' => 200,
+            'data' => $account
+        ], 200);
+    }
+
+    /**
+     * Get all chart accounts for authenticated user
+     *
+     * @OA\Get(
+     *     path="/api/v1/chart-accounts",
+     *     summary="Get all chart accounts",
+     *     description="Returns all chart accounts for the authenticated user",
+     *     tags={"Chart Accounts"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="per_page",
+     *         in="query",
+     *         required=false,
+     *         description="Number of items per page",
+     *         @OA\Schema(type="integer", default=15)
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="List of chart accounts",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Chart accounts retrieved successfully"),
+     *             @OA\Property(property="status", type="string", example="success"),
+     *             @OA\Property(property="status_code", type="integer", example=200),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="object",
+     *                 @OA\Property(
+     *                     property="accounts",
+     *                     type="array",
+     *                     @OA\Items(
+     *                         type="object",
+     *                         @OA\Property(property="id", type="string", format="uuid"),
+     *                         @OA\Property(property="account_number", type="string"),
+     *                         @OA\Property(property="account_name", type="string"),
+     *                         @OA\Property(property="balance", type="number", format="float"),
+     *                         @OA\Property(property="description", type="string"),
+     *                         @OA\Property(property="created_at", type="string", format="date-time"),
+     *                         @OA\Property(property="updated_at", type="string", format="date-time")
+     *                     )
+     *                 ),
+     *                 @OA\Property(property="current_page", type="integer"),
+     *                 @OA\Property(property="total", type="integer"),
+     *                 @OA\Property(property="per_page", type="integer")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthenticated"
+     *     )
+     * )
+     */
+    public function index(Request $request)
+    {
+
+        $accounts = ChartAccount::with('category')
+            ->where('user_id', Auth::id())
+            ->get();
+
+        return response()->json([
+            'message' => 'Chart accounts retrieved successfully',
+            'status' => 'success',
+            'status_code' => 200,
+            'data' => $accounts
+        ], 200);
     }
 }
