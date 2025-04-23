@@ -205,13 +205,6 @@ class ChartOfAccountController extends Controller
      *     description="Returns all chart accounts for the authenticated user",
      *     tags={"Chart Accounts"},
      *     security={{"bearerAuth":{}}},
-     *     @OA\Parameter(
-     *         name="per_page",
-     *         in="query",
-     *         required=false,
-     *         description="Number of items per page",
-     *         @OA\Schema(type="integer", default=15)
-     *     ),
      *     @OA\Response(
      *         response=200,
      *         description="List of chart accounts",
@@ -221,24 +214,19 @@ class ChartOfAccountController extends Controller
      *             @OA\Property(property="status_code", type="integer", example=200),
      *             @OA\Property(
      *                 property="data",
-     *                 type="object",
-     *                 @OA\Property(
-     *                     property="accounts",
-     *                     type="array",
-     *                     @OA\Items(
-     *                         type="object",
-     *                         @OA\Property(property="id", type="string", format="uuid"),
-     *                         @OA\Property(property="account_number", type="string"),
-     *                         @OA\Property(property="account_name", type="string"),
-     *                         @OA\Property(property="balance", type="number", format="float"),
-     *                         @OA\Property(property="description", type="string"),
-     *                         @OA\Property(property="created_at", type="string", format="date-time"),
-     *                         @OA\Property(property="updated_at", type="string", format="date-time")
-     *                     )
-     *                 ),
-     *                 @OA\Property(property="current_page", type="integer"),
-     *                 @OA\Property(property="total", type="integer"),
-     *                 @OA\Property(property="per_page", type="integer")
+     *                 type="array",
+     *                 @OA\Items(
+     *                     type="object",
+     *                     @OA\Property(property="id", type="string", format="uuid"),
+     *                     @OA\Property(property="account_number", type="string"),
+     *                     @OA\Property(property="account_name", type="string"),
+     *                     @OA\Property(property="balance", type="number", format="float"),
+     *                     @OA\Property(property="description", type="string"),
+     *                     @OA\Property(property="account_chart_category_id", type="string", format="uuid"),
+     *                     @OA\Property(property="category", type="object"),
+     *                     @OA\Property(property="created_at", type="string", format="date-time"),
+     *                     @OA\Property(property="updated_at", type="string", format="date-time")
+     *                 )
      *             )
      *         )
      *     ),
