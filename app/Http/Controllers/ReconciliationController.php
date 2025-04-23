@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\ReconciliationService;
 use App\Services\NewReconciliation\NewReconciliationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -25,141 +24,10 @@ use Illuminate\Support\Facades\Cache;
 class ReconciliationController extends Controller
 {
     protected $reconciliationService;
-    protected $testService;
 
-    public function __construct(ReconciliationService $reconciliationService, NewReconciliationService $testService)
+    public function __construct(NewReconciliationService $reconciliationService)
     {
         $this->reconciliationService = $reconciliationService;
-        $this->testService = $testService;
-    }
-
-    /**
-     * @OA\Post(
-     *     path="/api/v1/reconcile",
-     *     summary="Reconcile two CSV or Excel files",
-     *     description="Upload and compare two files using various reconciliation methods",
-     *     tags={"Reconciliation"},
-     *     @OA\RequestBody(
-     *         required=true,
-     *         @OA\MediaType(
-     *             mediaType="multipart/form-data",
-     *             @OA\Schema(
-     *                 required={"file1", "file2"},
-     *                 @OA\Property(
-     *                     property="file1",
-     *                     type="string",
-     *                     format="binary",
-     *                     description="First CSV or Excel file"
-     *                 ),
-     *                 @OA\Property(
-     *                     property="file2",
-     *                     type="string",
-     *                     format="binary",
-     *                     description="Second CSV or Excel file"
-     *                 ),
-     *                 @OA\Property(
-     *                     property="reconcile_option",
-     *                     type="string",
-     *                     enum={
-     *                         "reconcile_with_Gemini",
-     *                         "reconcile_with_recox_ai",
-     *                         "reconcile_with_openAI",
-     *                         "reconcile_with_deepSeek"
-     *                     },
-     *                     description="Reconciliation method to use"
-     *                 )
-     *             )
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Successful reconciliation",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="message", type="string", example="Reconciliation successful"),
-     *             @OA\Property(property="status", type="string", example="success"),
-     *             @OA\Property(property="status_code", type="integer", example=200),
-     *             @OA\Property(
-     *                 property="data",
-     *                 type="object",
-     *                 @OA\Property(property="matches", type="integer", example=5),
-     *                 @OA\Property(property="only_in_file1", type="array", @OA\Items(type="object")),
-     *                 @OA\Property(property="only_in_file2", type="array", @OA\Items(type="object"))
-     *             )
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=400,
-     *         description="Bad request",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="error", type="string")
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=422,
-     *         description="Validation error",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="error", type="string")
-     *         )
-     *     )
-     * )
-     */
-    public function reconcile(Request $request): JsonResponse
-    {
-        $request->validate([
-            'file1' => 'required|file|mimes:csv|max:2048',
-            'file2' => 'required|file|mimes:csv|max:2048',
-            'reconcile_option' => 'nullable|in:reconcile_with_recox_ai,reconcile_with_openAI,reconcile_with_deepSeek,reconcile_with_Gemini',
-        ], [
-            'file1.mimes' => 'File 1 must be a CSV.',
-            'file2.mimes' => 'File 2 must be a CSV.',
-            'file1.max' => 'File 1 must not be larger than 2MB.',
-            'file2.max' => 'File 2 must not be larger than 2MB.',
-        ]);
-
-        try {
-            $file1Path = $request->file('file1')->store('uploads');
-            $file2Path = $request->file('file2')->store('uploads');
-
-            $file1FullPath = Storage::path($file1Path);
-            $file2FullPath = Storage::path($file2Path);
-
-            if (!$this->isValidFileFormat($file1FullPath) || !$this->isValidFileFormat($file2FullPath)) {
-                Storage::delete([$file1Path, $file2Path]);
-                return response()->json(['error' => 'One or both files are not in the correct format.'], 422);
-            }
-
-            $reconcileOption = $request->input('reconcile_option', 'reconcile_with_Gemini');
-
-            $result = match ($reconcileOption) {
-                'reconcile_with_recox_ai' => $this->reconciliationService->reconcileWithRecox($file1FullPath, $file2FullPath),
-                'reconcile_with_openAI' => $this->reconciliationService->reconcileWithOpenAI($file1FullPath, $file2FullPath),
-                'reconcile_with_deepSeek' => $this->reconciliationService->reconcileWithDeepSeek($file1FullPath, $file2FullPath),
-                default => $this->reconciliationService->reconcileWithGemini($file1FullPath, $file2FullPath),
-            };
-
-            $reconciliation = $this->reconciliationService->store([
-                'user' => Auth::id(),
-                'statement' => $file1FullPath,
-                'ledger' => $file2FullPath,
-                'ai' => $reconcileOption,
-                'response' => $result
-            ]);
-
-            return response()->json([
-                "message" => "Reconciliation successful",
-                "status" => "success",
-                "status_code" => 200,
-                'data' => [
-                    'reconciliation_id' => $reconciliation->id,
-                    ...$result
-                ]
-            ], 200);
-        } catch (\Exception $e) {
-            if (isset($file1Path, $file2Path)) {
-                Storage::delete([$file1Path, $file2Path]);
-            }
-            return response()->json(['error' => $e->getMessage()], 400);
-        }
     }
 
     /**
@@ -185,7 +53,7 @@ class ReconciliationController extends Controller
      */
     public function export(Reconciliation $reconciliation){
         try {
-            return $this->testService->export($reconciliation);
+            return $this->reconciliationService->export($reconciliation);
         } catch(\Exception $e) {
             return response()->json([
                 "message" => "Failed to generate report",
@@ -246,7 +114,7 @@ class ReconciliationController extends Controller
             ], 401);
         }
 
-        $records = $this->testService->fetchResults($reconciliation, $user);
+        $records = $this->reconciliationService->fetchResults($reconciliation, $user);
 
         return response()->json([
             'message' => 'Reconciled records fetched successfully',
@@ -333,7 +201,7 @@ class ReconciliationController extends Controller
     public function matchUnmatch(ManualReconciliationRequest $request, Reconciliation $reconciliation){
         $validated = $request->validated();
 
-        $res = $this->testService->matchUnmatch($reconciliation, $validated['statements'], $validated['ledgers'], $validated['action']);
+        $res = $this->reconciliationService->matchUnmatch($reconciliation, $validated['statements'], $validated['ledgers'], $validated['action']);
 
         return response()->json([
             'message' => 'Reconciliation updated successfully',
@@ -345,7 +213,7 @@ class ReconciliationController extends Controller
 
     /**
      * @OA\Post(
-     *     path="/api/v1/reconcile-embeddings",
+     *     path="/api/v1/reconcile",
      *     summary="New Reconciliation Approach - Embeddings",
      *     description="Upload and compare two sets of files using various reconciliation methods",
      *     tags={"Reconciliation"},
@@ -363,7 +231,8 @@ class ReconciliationController extends Controller
      *                 ),
      *                 @OA\Property(
      *                     property="bank_statements[0][bank_account]",
-     *                     type="string"
+     *                     type="string",
+     *                     format="uuid"
      *                 ),
      *                 @OA\Property(
      *                     property="bank_statements[0][period]",
@@ -384,7 +253,7 @@ class ReconciliationController extends Controller
      *                 @OA\Property(
      *                     property="ledgers[]",
      *                     type="array",
-     *                     @OA\Items(type="string")
+     *                     @OA\Items(type="string", format="uuid")
      *                 ),
      *                 @OA\Property(
      *                     property="title",
@@ -488,7 +357,7 @@ class ReconciliationController extends Controller
                 ];
             }
 
-            $reconciliation = $this->testService->storeReconciliation($statements, $ledgers,  $request->input('title'), $request->user()->id);
+            $reconciliation = $this->reconciliationService->storeReconciliation($statements, $ledgers,  $request->input('title'), $request->user()->id);
             ProcessReconciliation::dispatch($statements, $ledgers, $request->input('mapper'), $request->user(), $reconciliation);
 
             return response()->json([
@@ -539,7 +408,7 @@ class ReconciliationController extends Controller
      * )
      */
     public function listUserReconciliations(Request $request){
-        return $this->testService->fetchUserReconciliations($request->user());
+        return $this->reconciliationService->fetchUserReconciliations($request->user());
     }
 
 

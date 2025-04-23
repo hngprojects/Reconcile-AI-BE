@@ -8,11 +8,15 @@ use App\Models\User;
 use App\Models\PaymentPlan;
 use App\Models\Plan;
 use App\Models\Reconciliation;
+use App\Models\BookkeepingLedger;
+use App\Models\BankAccount;
 use Carbon\Carbon;
 use Illuminate\Http\UploadedFile;
 use PHPUnit\Framework\Attributes\Test;
 use Mockery;
-use App\Services\ReconciliationService;
+use App\Services\NewReconciliationService;
+use App\Repositories\Reconciliation\ReconciliationRepository;
+use App\Repositories\UserFile\UserFileRepository;
 
 class CheckReconciliationLimitTest extends TestCase
 {
@@ -22,6 +26,8 @@ class CheckReconciliationLimitTest extends TestCase
     protected $planStarter;
     protected $planBusiness;
     protected $mockService;
+    protected $reconciliationRepository;
+    protected $userFileRepository;
 
     public function setUp(): void
     {
@@ -42,11 +48,13 @@ class CheckReconciliationLimitTest extends TestCase
         ]);
 
         // Mock the reconciliation service
-        $this->mockService = Mockery::mock(ReconciliationService::class);
-        $this->app->instance(ReconciliationService::class, $this->mockService);
+        $this->mockService = Mockery::mock(NewReconciliationService::class);
+        $this->app->instance(NewReconciliationService::class, $this->mockService);
+        $this->reconciliationRepository = Mockery::mock(ReconciliationRepository::class);
+        $this->userFileRepository = Mockery::mock(UserFileRepository::class);
     }
 
-    protected function tearDown(): void 
+    protected function tearDown(): void
     {
         Mockery::close();
         parent::tearDown();
@@ -64,29 +72,37 @@ class CheckReconciliationLimitTest extends TestCase
             'is_active' => true
         ]);
 
-        // Setup mock expectations
-        $this->mockService->shouldReceive('reconcileWithGemini')
-            ->once()
-            ->andReturn([
-                'matches' => [],
-                'only_in_file1' => [],
-                'only_in_file2' => [],
-                'matchSummary' => []
-            ]);
-
-        $this->mockService->shouldReceive('store')
-            ->once()
+        $this->reconciliationRepository
+            ->shouldReceive('store')
             ->andReturn(new Reconciliation());
+
+        $this->userFileRepository
+            ->shouldReceive('store')
+            ->andReturnUsing(function ($data) {
+                return (object) ['file_name' => $data['file_name'], 'type' => $data['type']];
+            });
 
         // Mock file uploads
         $file1 = UploadedFile::fake()->create('file1.csv', 100);
-        $file2 = UploadedFile::fake()->create('file2.csv', 100);
+        $ledgerType  = BookkeepingLedger::factory()->create();
+        $acc  = BankAccount::factory()->create();
 
         $response = $this->actingAs($this->user)
             ->postJson(route('reconcile'), [
-                'file1'            => $file1,
-                'file2'            => $file2,
-                'reconcile_option' => 'reconcile_with_Gemini',
+                'mapper' => [
+                    'date' => 'Date',
+                    'description' => 'Description',
+                    'amount' => 'Amount'
+                ],
+                'bank_statements' => [
+                    [
+                    'file' => $file1,
+                    'bank_account' => $acc->id,
+                    'period' => 'Jan 2025 - Mar 2025'
+                    ]
+                ],
+                'ledgers' => [$ledgerType->id],
+                'title' => 'Reconciliation Test'
             ])
             ->assertStatus(200);
     }
@@ -110,13 +126,25 @@ class CheckReconciliationLimitTest extends TestCase
 
         // Mock file uploads
         $file1 = UploadedFile::fake()->create('file1.csv', 100);
-        $file2 = UploadedFile::fake()->create('file2.csv', 100);
+        $ledgerType  = BookkeepingLedger::factory()->create();
+        $acc  = BankAccount::factory()->create();
 
-        $this->actingAs($this->user)
+        $response = $this->actingAs($this->user)
             ->postJson(route('reconcile'), [
-                'file1'            => $file1,
-                'file2'            => $file2,
-                'reconcile_option' => 'reconcile_with_Gemini',
+                'mapper' => [
+                    'date' => 'Date',
+                    'description' => 'Description',
+                    'amount' => 'Amount'
+                ],
+                'bank_statements' => [
+                    [
+                    'file' => $file1,
+                    'bank_account' => $acc->id,
+                    'period' => 'Jan 2025 - Mar 2025'
+                    ]
+                ],
+                'ledgers' => [$ledgerType->id],
+                'title' => 'Reconciliation Test'
             ])
             ->assertStatus(429)
             ->assertJson(['message' => 'You have reached your reconciliation limit. Please upgrade your plan or wait until the next period.']);
@@ -135,18 +163,15 @@ class CheckReconciliationLimitTest extends TestCase
         ]);
 
         // Setup mock expectations
-        $this->mockService->shouldReceive('reconcileWithGemini')
-            ->once()
-            ->andReturn([
-                'matches' => [],
-                'only_in_file1' => [],
-                'only_in_file2' => [],
-                'matchSummary' => []
-            ]);
-
-        $this->mockService->shouldReceive('store')
-            ->once()
+        $this->reconciliationRepository
+            ->shouldReceive('store')
             ->andReturn(new Reconciliation());
+
+        $this->userFileRepository
+            ->shouldReceive('store')
+            ->andReturnUsing(function ($data) {
+                return (object) ['file_name' => $data['file_name'], 'type' => $data['type']];
+            });
 
         // Simulate 4 reconciliations (limit is 5)
         Reconciliation::factory()->count(4)->create([
@@ -156,13 +181,25 @@ class CheckReconciliationLimitTest extends TestCase
 
         // Mock file uploads
         $file1 = UploadedFile::fake()->create('file1.csv', 100);
-        $file2 = UploadedFile::fake()->create('file2.csv', 100);
+        $ledgerType  = BookkeepingLedger::factory()->create();
+        $acc  = BankAccount::factory()->create();
 
         $this->actingAs($this->user)
             ->postJson(route('reconcile'), [
-                'file1'            => $file1,
-                'file2'            => $file2,
-                'reconcile_option' => 'reconcile_with_Gemini',
+                'mapper' => [
+                    'date' => 'Date',
+                    'description' => 'Description',
+                    'amount' => 'Amount'
+                ],
+                'bank_statements' => [
+                    [
+                    'file' => $file1,
+                    'bank_account' => $acc->id,
+                    'period' => 'Jan 2025 - Mar 2025'
+                    ]
+                ],
+                'ledgers' => [$ledgerType->id],
+                'title' => 'Reconciliation Test'
             ])
             ->assertStatus(200);
     }
@@ -178,12 +215,24 @@ class CheckReconciliationLimitTest extends TestCase
 
         // Mock file uploads
         $file1 = UploadedFile::fake()->create('file1.csv', 100);
-        $file2 = UploadedFile::fake()->create('file2.csv', 100);
+        $ledgerType  = BookkeepingLedger::factory()->create();
+        $acc  = BankAccount::factory()->create();
 
         $response = $this->actingAs($user)->postJson(route('reconcile'), [
-            'file1'            => $file1,
-            'file2'            => $file2,
-            'reconcile_option' => 'reconcile_with_Gemini',
+            'mapper' => [
+                'date' => 'Date',
+                'description' => 'Description',
+                'amount' => 'Amount'
+            ],
+            'bank_statements' => [
+                [
+                'file' => $file1,
+                'bank_account' => $acc->id,
+                'period' => 'Jan 2025 - Mar 2025'
+                ]
+            ],
+            'ledgers' => [$ledgerType->id],
+            'title' => 'Reconciliation Test'
         ]);
 
         $response->assertStatus(429)
@@ -203,28 +252,37 @@ class CheckReconciliationLimitTest extends TestCase
         ]);
 
         // Setup mock expectations
-        $this->mockService->shouldReceive('reconcileWithGemini')
-            ->once()
-            ->andReturn([
-                'matches' => [],
-                'only_in_file1' => [],
-                'only_in_file2' => [],
-                'matchSummary' => []
-            ]);
-
-        $this->mockService->shouldReceive('store')
-            ->once()
+        $this->reconciliationRepository
+            ->shouldReceive('store')
             ->andReturn(new Reconciliation());
+
+        $this->userFileRepository
+            ->shouldReceive('store')
+            ->andReturnUsing(function ($data) {
+                return (object) ['file_name' => $data['file_name'], 'type' => $data['type']];
+            });
 
         // Mock file uploads
         $file1 = UploadedFile::fake()->create('file1.csv', 100);
-        $file2 = UploadedFile::fake()->create('file2.csv', 100);
+        $ledgerType  = BookkeepingLedger::factory()->create();
+        $acc  = BankAccount::factory()->create();
 
         $response = $this->actingAs($this->user)
             ->postJson(route('reconcile'), [
-                'file1'            => $file1,
-                'file2'            => $file2,
-                'reconcile_option' => 'reconcile_with_Gemini',
+            'mapper' => [
+                'date' => 'Date',
+                'description' => 'Description',
+                'amount' => 'Amount'
+            ],
+            'bank_statements' => [
+                [
+                'file' => $file1,
+                'bank_account' => $acc->id,
+                'period' => 'Jan 2025 - Mar 2025'
+                ]
+            ],
+            'ledgers' => [$ledgerType->id],
+            'title' => 'Reconciliation Test'
             ])
             ->assertStatus(200);
     }
@@ -242,13 +300,25 @@ class CheckReconciliationLimitTest extends TestCase
 
         // Mock file uploads
         $file1 = UploadedFile::fake()->create('file1.csv', 100);
-        $file2 = UploadedFile::fake()->create('file2.csv', 100);
+        $ledgerType  = BookkeepingLedger::factory()->create();
+        $acc  = BankAccount::factory()->create();
 
         $this->actingAs($this->user)
             ->postJson(route('reconcile'), [
-                'file1'            => $file1,
-                'file2'            => $file2,
-                'reconcile_option' => 'reconcile_with_Gemini',
+            'mapper' => [
+                'date' => 'Date',
+                'description' => 'Description',
+                'amount' => 'Amount'
+            ],
+            'bank_statements' => [
+                [
+                'file' => $file1,
+                'bank_account' => $acc->id,
+                'period' => 'Jan 2025 - Mar 2025'
+                ]
+            ],
+            'ledgers' => [$ledgerType->id],
+            'title' => 'Reconciliation Test'
             ])
             ->assertStatus(403)
             ->assertJson(['message' => 'No active plan found. Please subscribe.']);

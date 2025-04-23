@@ -119,11 +119,10 @@ Route::prefix('v1')->group(function () {
 
     // reconciliations
     Route::get('/reconciliations/{reconciliation}/progress', [ReconciliationController::class, 'streamProgress']);
-    Route::post('/reconcile', [ReconciliationController::class, 'reconcile'])->name('reconcile')->middleware([ThrottleUnauthenticated::class, CheckReconciliationLimit::class]);
     Route::middleware('auth:api')->get('/reconciliations/{reconciliation}', [ReconciliationController::class, 'getReconciledRecords'])->whereUuid('reconciliation')->name('reconciled-records');
     Route::middleware('auth:api')->get('/reconciliations', [ReconciliationController::class, 'listUserReconciliations'])->name('list');
     Route::get('/reconciliations/{reconciliation}/export', [ReconciliationController::class, 'export'])->name('export');
-    Route::middleware('auth:api')->post('/reconcile-embeddings', [ReconciliationController::class, 'testEmbeddings'])->middleware([CheckReconciliationLimit::class])->name('embeddings');
+    Route::middleware('auth:api')->post('/reconcile', [ReconciliationController::class, 'testEmbeddings'])->middleware([CheckReconciliationLimit::class])->name('reconcile');
     Route::post('/reconcile/{reconciliation}', [ReconciliationController::class, 'matchUnmatch'])->whereUuid('reconciliation')->name('manual-reconciliation');
 
 
