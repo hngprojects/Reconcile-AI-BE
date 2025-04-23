@@ -460,6 +460,19 @@ class LedgerEntryController extends Controller
      *                required={"ledger", "ledger_file"},
      *                @OA\Property(property="ledger", type="string", format="uuid"),
      *                @OA\Property(property="ledger_file", type="string", format="binary"),
+     *                @OA\Property(property="transaction_type", type="string"),
+     *                 @OA\Property(
+     *                     property="mapper[date]",
+     *                     type="string"
+     *                 ),
+     *                 @OA\Property(
+     *                     property="mapper[description]",
+     *                     type="string"
+     *                 ),
+     *                 @OA\Property(
+     *                     property="mapper[amount]",
+     *                     type="string"
+     *                 ),
      *         )
      *       )
      *     ),
@@ -482,7 +495,12 @@ class LedgerEntryController extends Controller
         try {
             $validated = $request->validate([
                 'ledger_file' => 'required|file|mimes:csv|max:2048',
-                'ledger' => 'required|uuid|exists:bookkeeping_ledgers,id'
+                'ledger' => 'required|uuid|exists:bookkeeping_ledgers,id',
+                'transaction_type' => 'required|string',
+                'mapper' => 'required',
+                'mapper.date' => 'required|string',
+                'mapper.description' => 'required|string',
+                'mapper.amount' => 'required|string',
             ]);
             return $this->reconciliationService->uploadLedger($validated);
         } catch (ValidationException $e) {

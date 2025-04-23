@@ -14,6 +14,7 @@ use App\Models\Reconciliation;
 use App\Models\Statement;
 use App\Models\StatementFile;
 use App\Models\Ledger;
+use App\Models\BookkeepingLedger;
 use App\Models\User;
 use App\Http\Resources\TransactionResource;
 use Illuminate\Support\Facades\DB;
@@ -140,7 +141,7 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
 
         $reconciliation->statementFiles()->attach($statementFileIds);
 
-        $ledgerIds = Ledger::whereIn('id', $ledgers)->pluck('id');
+        $ledgerIds = BookkeepingLedger::whereIn('id', $ledgers)->pluck('id');
         $reconciliation->ledgers()->sync($ledgerIds);
 
         DB::commit();
@@ -244,7 +245,7 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
         $mapped = [];
 
         foreach ($files as $file) {
-            $data = $this->loadComplexCsv($file['path']);
+            $data = $this->loadComplexCsv(gettype($file) == 'array' ? $file['path'] : $file);
             foreach ($data as $row) {
                 Log::info('Statement: ', ['data' => $row]);
                 $mapped[] = [
@@ -627,10 +628,11 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
 
     public function uploadLedger(array $data){
         try {
-            $structured = $this->structuringData([$data['ledger_file']]);
+            $structured = $this->mappingData([$data['ledger_file']], $data['mapper']);
             $formatted = collect($structured)->map(function($ledg) use ($data){
                 return [
                     ...$ledg,
+                    'Transaction Type' => $data['transaction_type'],
                     'bookkeeping_ledger_id' => $data['ledger']
                 ];
             });
