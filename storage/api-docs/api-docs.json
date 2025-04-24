@@ -19,6 +19,17 @@
                 "summary": "Get all chart account categories",
                 "description": "Retrieves a list of all chart account categories",
                 "operationId": "005e8716cfd5cc06a283c285c3abd541",
+                "parameters": [
+                    {
+                        "name": "name",
+                        "in": "query",
+                        "description": "Filter categories by name",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "Chart account categories retrieved successfully",
@@ -2826,6 +2837,99 @@
             }
         },
         "/api/v1/chart-accounts": {
+            "get": {
+                "tags": [
+                    "Chart Accounts"
+                ],
+                "summary": "Get all chart accounts",
+                "description": "Returns all chart accounts for the authenticated user",
+                "operationId": "d9131d050ba40c9fd2db2a270e58872c",
+                "parameters": [
+                    {
+                        "name": "category_name",
+                        "in": "query",
+                        "description": "Filter categories by title",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of chart accounts",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Chart accounts retrieved successfully"
+                                        },
+                                        "status": {
+                                            "type": "string",
+                                            "example": "success"
+                                        },
+                                        "status_code": {
+                                            "type": "integer",
+                                            "example": 200
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "string",
+                                                        "format": "uuid"
+                                                    },
+                                                    "account_number": {
+                                                        "type": "string"
+                                                    },
+                                                    "account_name": {
+                                                        "type": "string"
+                                                    },
+                                                    "balance": {
+                                                        "type": "number",
+                                                        "format": "float"
+                                                    },
+                                                    "description": {
+                                                        "type": "string"
+                                                    },
+                                                    "account_chart_category_id": {
+                                                        "type": "string",
+                                                        "format": "uuid"
+                                                    },
+                                                    "category": {
+                                                        "type": "object"
+                                                    },
+                                                    "created_at": {
+                                                        "type": "string",
+                                                        "format": "date-time"
+                                                    },
+                                                    "updated_at": {
+                                                        "type": "string",
+                                                        "format": "date-time"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
             "post": {
                 "tags": [
                     "Chart Accounts"
@@ -2865,12 +2969,6 @@
                                         "description": "Account description",
                                         "type": "string",
                                         "example": "For tracking operating expenses"
-                                    },
-                                    "user_id": {
-                                        "description": "User ID",
-                                        "type": "string",
-                                        "format": "uuid",
-                                        "example": "550e8400-e29b-41d4-a716-446655440000"
                                     },
                                     "account_chart_category_id": {
                                         "description": "Chart category ID",
@@ -2999,6 +3097,77 @@
                                 }
                             }
                         }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/chart-accounts/{id}": {
+            "patch": {
+                "tags": [
+                    "Chart Accounts"
+                ],
+                "summary": "Update a chart account",
+                "description": "Updates specific fields of an existing chart account",
+                "operationId": "f91fe516a5dbfc3c843cead7de5cf32d",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Chart account ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "account_number": {
+                                        "type": "string",
+                                        "example": "1234567890"
+                                    },
+                                    "account_name": {
+                                        "type": "string",
+                                        "example": "Operating Expenses"
+                                    },
+                                    "balance": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 1000
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "example": "For tracking operating expenses"
+                                    },
+                                    "account_chart_category_id": {
+                                        "type": "string",
+                                        "format": "uuid"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Chart account updated successfully"
+                    },
+                    "404": {
+                        "description": "Chart account not found"
+                    },
+                    "422": {
+                        "description": "Validation error"
                     }
                 },
                 "security": [
@@ -4116,8 +4285,7 @@
                                     "paid_status",
                                     "amount_paid",
                                     "bank_account_id",
-                                    "account_chart_id",
-                                    "reconciliation_id"
+                                    "account_chart_id"
                                 ],
                                 "properties": {
                                     "bookkeeping_ledger_id": {
@@ -4185,11 +4353,6 @@
                                     "attachment": {
                                         "type": "file",
                                         "format": "binary"
-                                    },
-                                    "reconciliation_id": {
-                                        "type": "string",
-                                        "format": "uuid",
-                                        "example": "550e8400-e29b-41d4-a716-446655440000"
                                     }
                                 },
                                 "type": "object"
@@ -5655,7 +5818,8 @@
                                         "format": "binary"
                                     },
                                     "bank_statements[0][bank_account]": {
-                                        "type": "string"
+                                        "type": "string",
+                                        "format": "uuid"
                                     },
                                     "bank_statements[0][period]": {
                                         "type": "string"
@@ -5672,7 +5836,8 @@
                                     "ledgers[]": {
                                         "type": "array",
                                         "items": {
-                                            "type": "string"
+                                            "type": "string",
+                                            "format": "uuid"
                                         }
                                     },
                                     "title": {

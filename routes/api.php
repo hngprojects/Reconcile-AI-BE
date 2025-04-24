@@ -91,8 +91,10 @@ Route::prefix('v1')->group(function () {
         Route::put('/business-info/{id}', [BusinessInfoController::class, 'update']);
 
         // Assuming this is inside a route file that already has the api/v1 prefix
-        Route::prefix('chart-accounts')->group(function () {
-            Route::post('/', [ChartOfAccountController::class, 'store']);
+        Route::controller(ChartOfAccountController::class)->group(function () {
+            Route::get('/chart-accounts', 'index');
+            Route::post('/chart-accounts', 'store');
+            Route::patch('/chart-accounts/{id}', 'update');
         });
     });
     Route::prefix('newsletter')->name('newsletter.')->group(function () {

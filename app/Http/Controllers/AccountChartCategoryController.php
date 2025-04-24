@@ -18,6 +18,13 @@ class AccountChartCategoryController extends Controller
      *     description="Retrieves a list of all chart account categories",
      *     tags={"Chart Account Categories"},
      *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="name",
+     *         in="query",
+     *         description="Filter categories by name",
+     *         required=false,
+     *         @OA\Schema(type="string")
+     *     ),
      *     @OA\Response(
      *         response=200,
      *         description="Chart account categories retrieved successfully",
@@ -48,7 +55,8 @@ class AccountChartCategoryController extends Controller
      *     )
      * )
      */
-    public function index()
+    public function index(Request $request)
+
     {
         $user =  Auth::user();
         if (!$user) {
@@ -61,8 +69,14 @@ class AccountChartCategoryController extends Controller
             ], 401);
         }
 
-        $categories = ChartAccountCategory::get();
+        $query = ChartAccountCategory::query();
 
+        // Filter by name if provided
+        if ($request->has('name')) {
+            $query->where('title', 'ILIKE', '%' . $request->name . '%');
+        }
+
+        $categories = $query->get();
         return response()->json([
             'message' => 'Chart account categories retrieved successfully',
             'status' => 'success',
