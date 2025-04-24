@@ -20,7 +20,7 @@ class ManualReconciliationRequest extends FormRequest
             'matches.*.statement' => 'required|string|uuid',
             'matches.*.matched_by' => 'required|string',
             'matches.*.score' => 'required|integer',
-            'matches.*.action' => 'required|string'
+            'matches.*.action' => ['required', Rule::in(['match', 'unmatch'])]
         ];
     }
 }

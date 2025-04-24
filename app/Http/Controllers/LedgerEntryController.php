@@ -14,6 +14,8 @@ use App\Services\NewReconciliation\NewReconciliationService;
 use Illuminate\Validation\ValidationException;
 use App\Repositories\MatchingTransaction\MatchingTransactionRepository;
 
+use function PHPUnit\Framework\arrayHasKey;
+
 class LedgerEntryController extends Controller
 {
     protected $reconciliationService;
@@ -22,8 +24,7 @@ class LedgerEntryController extends Controller
     public function __construct(
         NewReconciliationService $reconciliationService,
         MatchingTransactionRepository $matchedRepository
-    )
-    {
+    ) {
         $this->reconciliationService = $reconciliationService;
         $this->matchedRepository = $matchedRepository;
     }
@@ -123,7 +124,7 @@ class LedgerEntryController extends Controller
                 'amount' => $data['amount'],
             ]);
 
-            if($data['statement_id']){
+            if (array_key_exists('statement_id', $data)) {
                 $this->matchedRepository->storeByIds($ledger->id, $data['statement_id'], '100%', 'manual');
             }
 
@@ -500,7 +501,8 @@ class LedgerEntryController extends Controller
      *     )
      * )
      */
-    public function uploadLedger(Request $request){
+    public function uploadLedger(Request $request)
+    {
         try {
             $validated = $request->validate([
                 'ledger_file' => 'required|file|mimes:csv|max:2048',
@@ -521,8 +523,7 @@ class LedgerEntryController extends Controller
                     'errors' => $e->errors()
                 ]
             ], 422);
-
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
             return response()->json([
                 "message" => "Failed to upload ledger",
                 "status" => "error",
