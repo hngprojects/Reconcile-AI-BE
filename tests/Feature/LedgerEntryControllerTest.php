@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Models\Ledger;
 use App\Models\BookkeepingLedger;
 use App\Models\AccountChart;
+use App\Models\ChartAccountCategory;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Http\UploadedFile;
@@ -38,7 +39,6 @@ class LedgerEntryControllerTest extends TestCase
         ]);
 
         DB::table('user_chart_categories')->insert([
-            'id' => '550e8400-e29b-41d4-a716-446655440003',
             'user_id' => $this->user->id,
             'account_chart_category_id' => '550e8400-e29b-41d4-a716-446655440002',
             'created_at' => now(),
@@ -73,9 +73,10 @@ class LedgerEntryControllerTest extends TestCase
 
     public function test_can_create_ledger_entry()
     {
+        $category = ChartAccountCategory::first();
         $data = [
             'bookkeeping_ledger_id' => $this->bookkeepingLedger->id,
-            'transaction_type' => 'Income',
+            'transaction_type' => $category->title,
             'transaction_date' => '2024-01-15',
             'description' => 'Test transaction',
             'amount' => 1000.00,

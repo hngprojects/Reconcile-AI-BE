@@ -93,7 +93,7 @@ class LedgerEntryController extends Controller
             $validator = Validator::make($request->all(), [
                 'bookkeeping_ledger_id' => 'required|uuid|exists:bookkeeping_ledgers,id',
                 'statement_id' => 'nullable|uuid|exists:statements,id',
-                'transaction_type' => 'required|in:Income,Expense,Payable,Receivable',
+                'transaction_type' => 'required|exists:account_chart_categories,title',
                 'transaction_date' => 'required|date',
                 'description' => 'required|string',
                 'amount' => 'required|numeric|min:0',
