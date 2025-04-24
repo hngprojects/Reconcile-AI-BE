@@ -15,11 +15,12 @@ class ManualReconciliationRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'ledgers' => 'required|array',
-            'statements' => 'required|array',
-            'action' => ['required', Rule::in(['match', 'unmatch'])],
-            'ledgers.*' => 'string',
-            'statements.*' => 'string',
+            'matches' => 'required|array',
+            'matches.*.ledger' => 'required|string|uuid',
+            'matches.*.statement' => 'required|string|uuid',
+            'matches.*.matched_by' => 'required|string',
+            'matches.*.score' => 'required|integer',
+            'matches.*.action' => 'required|string'
         ];
     }
 }

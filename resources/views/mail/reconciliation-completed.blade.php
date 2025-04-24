@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,50 +13,61 @@
             background-color: #f5f5f5 !important;
             color: #333 !important;
         }
+
         .container {
             max-width: 600px;
             margin: 0 auto;
             background-color: #ffffff !important;
         }
+
         .header {
             background-color: #f5f5f5 !important;
             padding: 20px;
             text-align: center;
         }
+
         .content {
             padding: 20px 30px;
             text-align: center;
         }
+
         .text-content {
             text-align: left;
             padding: 10px 0;
         }
+
         .footer {
             background-color: #f5f5f5 !important;
             padding: 20px;
             text-align: center;
         }
+
         .divider {
             border-top: 1px dashed #e0e0e0;
             margin: 20px 0;
         }
+
         .social-links {
             margin: 15px 0;
         }
+
         .social-links a {
             margin: 0 10px;
             text-decoration: none;
         }
+
         .feature {
             text-align: left;
             margin: 15px 0;
             display: flex;
             align-items: flex-start;
         }
+
         .feature-icon {
             margin-right: 10px;
             color: #2c664f !important;
         }
+
         /* Notification Styles */
         .notification {
             display: none;
@@ -71,6 +83,7 @@
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <div class="header">
@@ -84,7 +97,7 @@
             <div class="text-content">
                 <p>Dear {{$user->name}},</p>
 
-                <p>Your reconciliation is complete and you can view the results <a href="{{$url}}">here</a></p>
+                <p>Your reconciliation is complete. Please log in to view the results on your dashboard.</p>
 
             </div>
         </div>
@@ -101,4 +114,5 @@
         </div>
     </div>
 </body>
+
 </html>

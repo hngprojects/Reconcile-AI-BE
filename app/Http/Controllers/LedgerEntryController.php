@@ -12,14 +12,20 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use App\Services\NewReconciliation\NewReconciliationService;
 use Illuminate\Validation\ValidationException;
+use App\Repositories\MatchingTransaction\MatchingTransactionRepository;
 
 class LedgerEntryController extends Controller
 {
     protected $reconciliationService;
+    protected MatchingTransactionRepository $matchedRepository;
 
-    public function __construct(NewReconciliationService $reconciliationService)
+    public function __construct(
+        NewReconciliationService $reconciliationService,
+        MatchingTransactionRepository $matchedRepository
+    )
     {
         $this->reconciliationService = $reconciliationService;
+        $this->matchedRepository = $matchedRepository;
     }
     /**
      * @OA\Post(
@@ -33,6 +39,7 @@ class LedgerEntryController extends Controller
      *         @OA\JsonContent(
      *             required={"bookkeeping_ledger_id","transaction_type","transaction_date","description","amount","paid_status","amount_paid","bank_account_id","account_chart_id"},
      *             @OA\Property(property="bookkeeping_ledger_id", type="string", format="uuid", example="550e8400-e29b-41d4-a716-446655440000"),
+     *             @OA\Property(property="statement_id", type="string", format="uuid", example="550e8400-e29b-41d4-a716-446655440000"),
      *             @OA\Property(property="transaction_type", type="string", enum={"Income","Expense","Payable","Receivable"}, example="Income"),
      *             @OA\Property(property="transaction_date", type="string", format="date", example="2024-01-15"),
      *             @OA\Property(property="description", type="string", example="Monthly service payment"),
@@ -84,6 +91,7 @@ class LedgerEntryController extends Controller
 
             $validator = Validator::make($request->all(), [
                 'bookkeeping_ledger_id' => 'required|uuid|exists:bookkeeping_ledgers,id',
+                'statement_id' => 'nullable|uuid|exists:statements,id',
                 'transaction_type' => 'required|in:Income,Expense,Payable,Receivable',
                 'transaction_date' => 'required|date',
                 'description' => 'required|string',
@@ -114,6 +122,10 @@ class LedgerEntryController extends Controller
                 'person' => $data['description'],
                 'amount' => $data['amount'],
             ]);
+
+            if($data['statement_id']){
+                $this->matchedRepository->storeByIds($ledger->id, $data['statement_id'], '100%', 'manual');
+            }
 
             $attachmentPath = null;
             if ($request->hasFile('attachment')) {
@@ -455,10 +467,10 @@ class LedgerEntryController extends Controller
      *         @OA\MediaType(
      *             mediaType="multipart/form-data",
      *             @OA\Schema(
-     *                required={"ledger", "ledger_file"},
-     *                @OA\Property(property="ledger", type="string", format="uuid"),
-     *                @OA\Property(property="ledger_file", type="string", format="binary"),
-     *                @OA\Property(property="transaction_type", type="string"),
+     *                 required={"ledger", "ledger_file", "mapper"},
+     *                 @OA\Property(property="ledger", type="string", format="uuid"),
+     *                 @OA\Property(property="ledger_file", type="string", format="binary"),
+     *                 @OA\Property(property="transaction_type", type="string"),
      *                 @OA\Property(
      *                     property="mapper[date]",
      *                     type="string"
@@ -470,9 +482,9 @@ class LedgerEntryController extends Controller
      *                 @OA\Property(
      *                     property="mapper[amount]",
      *                     type="string"
-     *                 ),
+     *                 )
+     *             )
      *         )
-     *       )
      *     ),
      *     @OA\Response(
      *         response=200,
@@ -482,13 +494,12 @@ class LedgerEntryController extends Controller
      *             @OA\Property(property="message", type="string", example="Ledger CSV successfully uploaded and saved."),
      *             @OA\Property(
      *                 property="data",
-     *                 type="object",
+     *                 type="object"
      *             )
      *         )
      *     )
      * )
      */
-
     public function uploadLedger(Request $request){
         try {
             $validated = $request->validate([

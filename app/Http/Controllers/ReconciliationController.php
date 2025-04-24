@@ -6,14 +6,11 @@ use App\Services\NewReconciliation\NewReconciliationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\JsonResponse;
-use App\Models\ReconciledRecord;
-use Illuminate\Support\Facades\Auth;
+use App\Repositories\Reconciliation\ReconciliationRepository;
 use App\Models\Reconciliation;
 use App\Http\Requests\ManualReconciliationRequest;
 use App\Jobs\ProcessReconciliation;
-use App\Jobs\ProcessRecoxReconciliation;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Cache;
 
 /**
  * @OA\Tag(
@@ -24,191 +21,12 @@ use Illuminate\Support\Facades\Cache;
 class ReconciliationController extends Controller
 {
     protected $reconciliationService;
+    protected $reconciliationRepository;
 
-    public function __construct(NewReconciliationService $reconciliationService)
+    public function __construct(NewReconciliationService $reconciliationService, ReconciliationRepository $reconciliationRepository)
     {
         $this->reconciliationService = $reconciliationService;
-    }
-
-    /**
-     * @OA\Post(
-     *     path="/api/v1/reconciliations/{reconciliation}/export",
-     *     summary="Export reconciled data as a CSV file",
-     *     description="Generates a CSV file containing matched and unmatched transactions from reconciliation.",
-     *     tags={"Reconciliation"},
-     *     @OA\Parameter(
-     *         name="reconciliation",
-     *         in="path",
-     *         required=true,
-     *         description="Reconciliation ID",
-     *         @OA\Schema(type="string")
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="CSV file generated successfully",
-     *         @OA\Header(header="Content-Disposition", description="attachment; filename=reconciled-data.csv", @OA\Schema(type="string"))
-     *     ),
-     *     @OA\Response(response=500, description="Server error while generating CSV file")
-     * )
-     */
-    public function export(Reconciliation $reconciliation){
-        try {
-            return $this->reconciliationService->export($reconciliation);
-        } catch(\Exception $e) {
-            return response()->json([
-                "message" => "Failed to generate report",
-                "status" => "error",
-                "status_code" => 500,
-                'data' => [
-                    'error' => $e->getMessage()
-                ]
-            ], 500);
-        }
-    }
-
-    /**
-     * @OA\Get(
-     *     path="/api/v1/reconciliations/{reconciliation}",
-     *     summary="Get reconciled records",
-     *     description="Fetch reconciled records for the logged-in user",
-     *     tags={"Reconciliation"},
-     *     @OA\Parameter(
-     *         name="reconciliation",
-     *         in="path",
-     *         required=true,
-     *         description="Reconciliation ID",
-     *         @OA\Schema(type="string")
-     *     ),
-     *     security={{ "bearerAuth":{} }},
-     *     @OA\Response(
-     *         response=200,
-     *         description="Reconciled records fetched successfully",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="message", type="string", example="Reconciled records fetched successfully"),
-     *             @OA\Property(property="status", type="string", example="success"),
-     *             @OA\Property(property="status_code", type="integer", example=200),
-     *             @OA\Property(property="data", type="array", @OA\Items(type="object"))
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=401,
-     *         description="Unauthorized",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="error", type="string", example="Unauthorized")
-     *         )
-     *     )
-     * )
-     */
-    public function getReconciledRecords(Request $request, Reconciliation $reconciliation)
-    {
-        $user = $request->user();
-
-        if($reconciliation->user->id != $user->id){
-            return response()->json([
-                'message' => 'Failed to authenticate',
-                'status' => 'error',
-                'status_code' => 401,
-                'data' => [
-                    'error' => 'Please contact the owner to view this'
-                ]
-            ], 401);
-        }
-
-        $records = $this->reconciliationService->fetchResults($reconciliation, $user);
-
-        return response()->json([
-            'message' => 'Reconciled records fetched successfully',
-            'status' => 'success',
-            'status_code' => 200,
-            'data' => $records
-        ], 200);
-    }
-
-    /**
-     * @OA\Post(
-     *     path="/api/v1/reconcile/{reconciliation}",
-     *     summary="Reconcile a ledger and a statement",
-     *     description="Perform reconciliation between a ledger and a statement based on specified action",
-     *     tags={"Reconciliation"},
-     *     @OA\Parameter(
-     *         name="reconciliation",
-     *         in="path",
-     *         required=true,
-     *         description="Reconciliation ID",
-     *         @OA\Schema(type="string")
-     *     ),
-     *     @OA\RequestBody(
-     *         required=true,
-     *         @OA\MediaType(
-     *             mediaType="application/json",
-     *             @OA\Schema(
-     *                 required={"ledger", "statement", "action"},
-     *                 @OA\Property(
-     *                     property="ledger",
-     *                     type="object",
-     *                     @OA\Property(property="Date", type="string", description="Date of the ledger entry"),
-     *                     @OA\Property(property="Person", type="string", description="Description of the ledger entry"),
-     *                     @OA\Property(property="Amount", type="integer", description="Amount in the ledger entry")
-     *                 ),
-     *                 @OA\Property(
-     *                     property="statement",
-     *                     type="object",
-     *                     @OA\Property(property="Date", type="string", description="Date of the statement entry"),
-     *                     @OA\Property(property="Person", type="string", description="Description of the statement entry"),
-     *                     @OA\Property(property="Amount", type="integer", description="Amount in the statement entry")
-     *                 ),
-     *                 @OA\Property(
-     *                     property="action",
-     *                     type="string",
-     *                     enum={"match", "unmatch"},
-     *                     description="Reconciliation action to perform"
-     *                 )
-     *             )
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Successful reconciliation",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="message", type="string", example="Reconciliation successful"),
-     *             @OA\Property(property="status", type="string", example="success"),
-     *             @OA\Property(property="status_code", type="integer", example=200),
-     *             @OA\Property(
-     *                 property="data",
-     *                 type="object",
-     *                 @OA\Property(property="matches", type="integer", example=5),
-     *                 @OA\Property(property="only_in_ledger", type="array", @OA\Items(type="object")),
-     *                 @OA\Property(property="only_in_statement", type="array", @OA\Items(type="object"))
-     *             )
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=400,
-     *         description="Bad request",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="error", type="string")
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=422,
-     *         description="Validation error",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="error", type="string")
-     *         )
-     *     )
-     * )
-     */
-    public function matchUnmatch(ManualReconciliationRequest $request, Reconciliation $reconciliation){
-        $validated = $request->validated();
-
-        $res = $this->reconciliationService->matchUnmatch($reconciliation, $validated['statements'], $validated['ledgers'], $validated['action']);
-
-        return response()->json([
-            'message' => 'Reconciliation updated successfully',
-            'status' => 'success',
-            'status_code' => 200,
-            'data' => $res
-        ], 200);
+        $this->reconciliationRepository = $reconciliationRepository;
     }
 
     /**
@@ -257,10 +75,10 @@ class ReconciliationController extends Controller
      *                 ),
      *                 @OA\Property(
      *                     property="title",
-     *                     type="string",
+     *                     type="string"
      *                 )
-     *              ),
-     *          )
+     *             )
+     *         )
      *     ),
      *     @OA\Response(
      *         response=200,
@@ -358,7 +176,7 @@ class ReconciliationController extends Controller
             }
 
             $reconciliation = $this->reconciliationService->storeReconciliation($statements, $ledgers,  $request->input('title'), $request->user()->id);
-            ProcessReconciliation::dispatch($statements, $ledgers, $request->input('mapper'), $request->user(), $reconciliation);
+            ProcessReconciliation::dispatch($statements, $ledgers, $request->input('mapper'), $request->user(), $reconciliation, $this->reconciliationRepository);
 
             return response()->json([
                 "message" => "Reconciliation initiated successfully",
@@ -379,6 +197,255 @@ class ReconciliationController extends Controller
                 ],
             ], 500);
         }
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/api/v1/reconciliations/{reconciliation}/export",
+     *     summary="Export reconciled data as a CSV file",
+     *     description="Generates a CSV file containing matched and unmatched transactions from reconciliation.",
+     *     tags={"Reconciliation"},
+     *     @OA\Parameter(
+     *         name="reconciliation",
+     *         in="path",
+     *         required=true,
+     *         description="Reconciliation ID",
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="CSV file generated successfully",
+     *         @OA\Header(header="Content-Disposition", description="attachment; filename=reconciled-data.csv", @OA\Schema(type="string"))
+     *     ),
+     *     @OA\Response(response=500, description="Server error while generating CSV file")
+     * )
+     */
+    public function export(Reconciliation $reconciliation)
+    {
+        try {
+            return $this->reconciliationService->export($reconciliation);
+        } catch (\Exception $e) {
+            return response()->json([
+                "message" => "Failed to generate report",
+                "status" => "error",
+                "status_code" => 500,
+                'data' => [
+                    'error' => $e->getMessage()
+                ]
+            ], 500);
+        }
+    }
+
+    /**
+     * @OA\Get(
+     *     path="/api/v1/reconciliations/{reconciliation}",
+     *     summary="Get reconciled records",
+     *     description="Fetch reconciled records for the logged-in user",
+     *     tags={"Reconciliation"},
+     *     @OA\Parameter(
+     *         name="reconciliation",
+     *         in="path",
+     *         required=true,
+     *         description="Reconciliation ID",
+     *         @OA\Schema(type="string")
+     *     ),
+     *     security={{ "bearerAuth":{} }},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Reconciled records fetched successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Reconciled records fetched successfully"),
+     *             @OA\Property(property="status", type="string", example="success"),
+     *             @OA\Property(property="status_code", type="integer", example=200),
+     *             @OA\Property(property="data", type="array", @OA\Items(type="object"))
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthorized",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="error", type="string", example="Unauthorized")
+     *         )
+     *     )
+     * )
+     */
+    public function getReconciledRecords(Request $request, Reconciliation $reconciliation)
+    {
+        $user = $request->user();
+
+        if ($reconciliation->user->id != $user->id) {
+            return response()->json([
+                'message' => 'Failed to authenticate',
+                'status' => 'error',
+                'status_code' => 401,
+                'data' => [
+                    'error' => 'Please contact the owner to view this'
+                ]
+            ], 401);
+        }
+
+        $records = $this->reconciliationService->fetchResults($reconciliation, $user);
+
+        return response()->json([
+            'message' => 'Reconciled records fetched successfully',
+            'status' => 'success',
+            'status_code' => 200,
+            'data' => $records
+        ], 200);
+    }
+
+    /**
+     * @OA\Get(
+     *     path="/api/v1/reconciliations/{reconciliation}/result",
+     *     summary="Get reconciliation results",
+     *     description="Fetch reconciliation results for the logged-in user",
+     *     tags={"Reconciliation"},
+     *     @OA\Parameter(
+     *         name="reconciliation",
+     *         in="path",
+     *         required=true,
+     *         description="Reconciliation ID",
+     *         @OA\Schema(type="string")
+     *     ),
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Reconciled records fetched successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Reconciled records fetched successfully"),
+     *             @OA\Property(property="status", type="string", example="success"),
+     *             @OA\Property(property="status_code", type="integer", example=200),
+     *             @OA\Property(property="data", type="array", @OA\Items(type="object"))
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthorized",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="error", type="string", example="Unauthorized")
+     *         )
+     *     )
+     * )
+     */
+    public function getReconResults(Request $request, Reconciliation $reconciliation)
+    {
+        $user = $request->user();
+
+        if ($reconciliation->user->id != $user->id) {
+            return response()->json([
+                'message' => 'Failed to authenticate',
+                'status' => 'error',
+                'status_code' => 401,
+                'data' => [
+                    'error' => 'Please contact the owner to view this'
+                ]
+            ], 401);
+        }
+
+        return $this->reconciliationService->fetchReconResult($reconciliation);
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/api/v1/reconcile/{reconciliation}",
+     *     summary="Reconcile a ledger and a statement",
+     *     description="Perform reconciliation between a ledger and a statement based on specified action",
+     *     tags={"Reconciliation"},
+     *     @OA\Parameter(
+     *         name="reconciliation",
+     *         in="path",
+     *         required=true,
+     *         description="Reconciliation ID",
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\MediaType(
+     *             mediaType="application/json",
+     *             @OA\Schema(
+     *                 required={"matches"},
+     *                 @OA\Property(
+     *                     property="matches",
+     *                     type="array",
+     *                     @OA\Items(
+     *                          type="object",
+     *                          @OA\Property(
+     *                              property="ledger",
+     *                              type="string",
+     *                              format="uuid"
+     *                          ),
+     *                          @OA\Property(
+     *                              property="statement",
+     *                              type="string",
+     *                              format="uuid"
+     *                          ),
+     *                          @OA\Property(
+     *                              property="score",
+     *                              type="string",
+     *                              example="80%"
+     *                          ),
+     *                          @OA\Property(
+     *                              property="matched_by",
+     *                              type="string",
+     *                              enum={"AI", "manual"},
+     *                              example="manual | AI",
+     *                          ),
+     *                          @OA\Property(
+     *                              property="action",
+     *                              type="string",
+     *                              enum={"match", "unmatch"},
+     *                              example="match | unmatch",
+     *                              description="Reconciliation action to perform"
+     *                          )
+     *                     )
+     *                 )
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful reconciliation",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Reconciliation successful"),
+     *             @OA\Property(property="status", type="string", example="success"),
+     *             @OA\Property(property="status_code", type="integer", example=200),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="object",
+     *                 @OA\Property(property="matches", type="integer", example=5),
+     *                 @OA\Property(property="only_in_ledger", type="array", @OA\Items(type="object")),
+     *                 @OA\Property(property="only_in_statement", type="array", @OA\Items(type="object"))
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Bad request",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="error", type="string")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Validation error",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="error", type="string")
+     *         )
+     *     )
+     * )
+     */
+    public function matchUnmatch(ManualReconciliationRequest $request, Reconciliation $reconciliation)
+    {
+        $validated = $request->validated();
+
+        $res = $this->reconciliationService->matchUnmatch($reconciliation, $validated['matches']);
+
+        return response()->json([
+            'message' => 'Reconciliation updated successfully',
+            'status' => 'success',
+            'status_code' => 200,
+            'data' => $res
+        ], 200);
     }
 
     /**
@@ -407,8 +474,53 @@ class ReconciliationController extends Controller
      *     )
      * )
      */
-    public function listUserReconciliations(Request $request){
+    public function listUserReconciliations(Request $request)
+    {
         return $this->reconciliationService->fetchUserReconciliations($request->user());
+    }
+
+    /**
+     * @OA\Get(
+     *     path="/api/v1/reconciliations/{reconciliation}/summary",
+     *     summary="Get reconciliation summary",
+     *     description="Fetch reconciliation summary for the logged-in user",
+     *     tags={"Reconciliation"},
+     *     @OA\Parameter(
+     *         name="reconciliation",
+     *         in="path",
+     *         required=true,
+     *         description="Reconciliation ID",
+     *         @OA\Schema(type="string")
+     *     ),
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Reconciliation summary fetched successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Reconciliation summary fetched successfully"),
+     *            @OA\Property(property="status", type="string", example="success"),
+     *            @OA\Property(property="status_code", type="integer", example=200),
+     *            @OA\Property(
+     *                 property="data",
+     *                 type="object",
+     *                 @OA\Property(property="matches", type="integer", example=5),
+     *                 @OA\Property(property="only_in_ledger", type="array", @OA\Items(type="object")),
+     *                 @OA\Property(property="only_in_statement", type="array", @OA\Items(type="object"))
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthorized",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="error", type="string", example="Unauthorized")
+     *         )
+     *     )
+     * )
+     */
+    public function getSummary(Reconciliation $reconciliation)
+    {
+        return $this->reconciliationService->fetchDetails($reconciliation);
     }
 
 
