@@ -205,6 +205,13 @@ class ChartOfAccountController extends Controller
      *     description="Returns all chart accounts for the authenticated user",
      *     tags={"Chart Accounts"},
      *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="category_name",
+     *         in="query",
+     *         description="Filter categories by title",
+     *         required=false,
+     *         @OA\Schema(type="string")
+     *     ),
      *     @OA\Response(
      *         response=200,
      *         description="List of chart accounts",
@@ -239,9 +246,19 @@ class ChartOfAccountController extends Controller
     public function index(Request $request)
     {
 
-        $accounts = ChartAccount::with('category')
-            ->where('user_id', Auth::id())
-            ->get();
+        $query = ChartAccount::with(['category']);
+
+        // Filter by authenticated user
+        $query->where('user_id', Auth::id());
+
+        // Filter by category title if provided
+        if ($request->has('category_name')) {
+            $query->whereHas('category', function ($q) use ($request) {
+                $q->where('title', 'ILIKE', '%' . $request->category_name . '%');
+            });
+        }
+
+        $accounts = $query->get();
 
         return response()->json([
             'message' => 'Chart accounts retrieved successfully',

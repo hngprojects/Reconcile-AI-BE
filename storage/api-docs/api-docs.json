@@ -19,6 +19,17 @@
                 "summary": "Get all chart account categories",
                 "description": "Retrieves a list of all chart account categories",
                 "operationId": "005e8716cfd5cc06a283c285c3abd541",
+                "parameters": [
+                    {
+                        "name": "name",
+                        "in": "query",
+                        "description": "Filter categories by name",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "Chart account categories retrieved successfully",
@@ -2833,6 +2844,17 @@
                 "summary": "Get all chart accounts",
                 "description": "Returns all chart accounts for the authenticated user",
                 "operationId": "d9131d050ba40c9fd2db2a270e58872c",
+                "parameters": [
+                    {
+                        "name": "category_name",
+                        "in": "query",
+                        "description": "Filter categories by title",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "List of chart accounts",
