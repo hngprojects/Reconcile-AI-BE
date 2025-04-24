@@ -80,8 +80,9 @@ Route::prefix('v1')->group(function () {
         Route::patch('bank-accounts/{bankAccount}/toggle-default', [BankAccountController::class, 'toggleDefault']);
 
         // account setup
-        Route::post('/account/setup', AccountSetupController::class)->name('account.setup');
+        Route::middleware('auth:api')->post('/account/setup', AccountSetupController::class)->name('account.setup');
         // chart account categories
+        Route::middleware('auth:api')->get('/me/chart-account-categories', [AccountChartCategoryController::class, 'user'])->name('user-chart-account-categories');
         Route::prefix('chart-account-categories')->name('chart-account-categories.')->group(function () {
             Route::get('/', [AccountChartCategoryController::class, 'index'])->name('chart-account-categories');
             Route::put('/{id}/toggle', [AccountChartCategoryController::class, 'toggle_category'])->name('update-chart-account-categories');
