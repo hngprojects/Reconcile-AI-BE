@@ -11,6 +11,7 @@ use App\Repositories\StatementFile\StatementFileRepository;
 use App\Repositories\MatchingTransaction\MatchingTransactionRepository;
 use App\Repositories\LedgerPayment\LedgerPaymentRepository;
 use App\Models\Reconciliation;
+use App\Models\ReconciledRecord;
 use App\Models\Statement;
 use App\Models\StatementFile;
 use App\Models\Ledger;
@@ -18,7 +19,6 @@ use App\Models\BookkeepingLedger;
 use App\Models\User;
 use App\Http\Resources\TransactionResource;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Auth;
 use Gemini\Laravel\Facades\Gemini;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
@@ -29,21 +29,22 @@ use Illuminate\Support\Facades\Response;
 use NumConvert;
 use App\Events\ReconciliationProgressUpdated;
 
-class NewReconciliationServiceImplement extends ServiceApi implements NewReconciliationService{
+class NewReconciliationServiceImplement extends ServiceApi implements NewReconciliationService
+{
 
     /**
      * set title message api for CRUD
      * @param string $title
      */
-     protected string $title = "";
-     /**
+    protected string $title = "";
+    /**
      * uncomment this to override the default message
      * protected string $create_message = "";
      * protected string $update_message = "";
      * protected string $delete_message = "";
      */
 
-     /**
+    /**
      * don't change $this->mainRepository variable name
      * because used in extends service class
      */
@@ -63,8 +64,7 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
         StatementRepository $statementRepository,
         StatementFileRepository $statementFileRepository,
         MatchingTransactionRepository $matchedRepository
-    )
-    {
+    ) {
         $this->mainRepository = $mainRepository;
         $this->fileRepository = $fileRepository;
         $this->ledgerRepository = $ledgerRepository;
@@ -144,17 +144,29 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
         $ledgerIds = BookkeepingLedger::whereIn('id', $ledgers)->pluck('id');
         $reconciliation->ledgers()->sync($ledgerIds);
 
+
+
         DB::commit();
 
         return $reconciliation;
     }
 
 
-    public function saveLedger(string $filePath)
+    public function saveLedger(string $filePath, User $user)
     {
+        $filePath = str_replace('public/', '', $filePath);
+        $filePath = str_replace('storage/', '', $filePath);
+
+        // Log::info('File Path: ', ['path' => $filePath]);
+
+        if (!file_exists($filePath)) {
+            throw new \Exception("File not found: {$filePath}");
+        }
+
+        // Log::info('Saving Ledger: ', ['user' => $user->id]);
         $ledger = $this->fileRepository->store([
             'user_id' => $user,
-            'file_name' => $value,
+            'file_name' => $filePath,
             'type' => 'Ledger'
         ]);
     }
@@ -187,25 +199,26 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
             $body = json_decode($response->getBody()->getContents(), true);
 
             return $body['candidates'][0]['content']['parts'][0]['text'] ?? json_encode($body);
-
         } catch (\Exception $e) {
             Log::error("Gemini API Error: " . $e->getMessage());
             return ['error' => $e->getMessage()];
         }
     }
 
-    protected function getOtherData($d, $otherHeaders) {
-            $res = [];
-            foreach ($otherHeaders as $key) {
-                if(array_key_exists($key, $d)){
-                    $res[$key] = $d[$key];
-                }
+    protected function getOtherData($d, $otherHeaders)
+    {
+        $res = [];
+        foreach ($otherHeaders as $key) {
+            if (array_key_exists($key, $d)) {
+                $res[$key] = $d[$key];
             }
-
-            return $res;
         }
 
-    protected function structuringData($files){
+        return $res;
+    }
+
+    protected function structuringData($files)
+    {
         $structured = [];
         // Log::info('Starting data structuring....', ['files' => $files]);
 
@@ -241,38 +254,43 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
         return $structured;
     }
 
-    protected function mappingData(array $files, array $mapper){
+    protected function mappingData(array $files, array $mapper)
+    {
         $mapped = [];
 
         foreach ($files as $file) {
             $data = $this->loadComplexCsv(gettype($file) == 'array' ? $file['path'] : $file);
             foreach ($data as $row) {
-                Log::info('Statement: ', ['data' => $row]);
                 $mapped[] = [
                     'Date' => $row[$mapper['date']],
                     'Person' => $row[$mapper['description']],
                     'Amount' => $row[$mapper['amount']],
                     'Other Information' => collect($row)->except([
-                                                $mapper['date'],
-                                                $mapper['description'],
-                                                $mapper['amount']
-                                            ])->toArray(),
+                        $mapper['date'],
+                        $mapper['description'],
+                        $mapper['amount']
+                    ])->toArray(),
                 ];
             }
         }
 
+
+
         return $mapped;
     }
 
-    protected function savingStatements(array $statements, Reconciliation $reconciliation){
+    protected function savingStatements(array $statements, Reconciliation $reconciliation)
+    {
         $this->statementRepository->storeMany($statements, $reconciliation);
     }
 
-    protected function savingLedgers(array $ledgers){
+    protected function savingLedgers(array $ledgers)
+    {
         $this->ledgerRepository->storeMany($ledgers);
     }
 
-    protected function getEmbedding(string $text){
+    protected function getEmbedding(string $text)
+    {
         $response = Gemini::embeddingModel()->embedContent($text);
 
         return $response->embedding->values;
@@ -292,7 +310,8 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
         return false;
     }
 
-    protected function generateStatementEmbeddings(Collection $statements){
+    protected function generateStatementEmbeddings(Collection $statements)
+    {
         $statements->map(function (Statement $statement) {
             $formattedDate = date('Y-m-d', strtotime($statement->date));
             $amt = NumConvert::word($statement->amount);
@@ -302,12 +321,14 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
         });
     }
 
-    protected function generateLedgerEmbeddings(Collection $ledgers){
+    protected function generateLedgerEmbeddings(Collection $ledgers)
+    {
         $ledgers->map(function (Ledger $ledger) {
             $payment = $this->ledgerPaymentRepository->findByLedger($ledger);
             $formattedDate = date('Y-m-d', strtotime($ledger->date));
             $amt = NumConvert::word($ledger->amount);
-            $combinedText = "Person's name: {$ledger->person}, Amount: {$ledger->amount}, Amount in words: {$amt}, Date: {$formattedDate}, Amount Paid: {$payment->amount_paid}, Payment Status: {$payment->payment_status}, Bank Account: {$payment->account->bank_name} Other Relevant Information: {$ledger->other_information}";
+            $paymentStr = $payment !== null ? ", Amount Paid: {$payment->amount_paid}, Payment Status: {$payment->payment_status}, Bank Account: {$payment->account->bank_name}" : "";
+            $combinedText = "Person's name: {$ledger->person}, Amount: {$ledger->amount}, Amount in words: {$amt}, Date: {$formattedDate} Other Relevant Information: {$ledger->other_information}" . $paymentStr;
             $embedding = $this->getEmbedding($combinedText);
             $this->ledgerRepository->addVector($ledger, $embedding);
         });
@@ -329,42 +350,11 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
             $newStatement = (new TransactionResource($this->statementRepository->findById($match->statement_id)))->toArray(request());
             $newLedger = (new TransactionResource($this->ledgerRepository->findById($match->ledger_id)))->toArray(request());
 
-            $statementGroup = $matches->firstWhere('statements.0.statement.id', $newStatement['id']);
-            $ledgerGroup = $matches->firstWhere('ledgers.0.ledger.id', $newLedger['id']);
-
-            if ($statementGroup) {
-                if (!$statementGroup['ledgers']->contains('ledger.id', $newLedger['id'])) {
-                    $statementGroup['ledgers']->push([
-                        'ledger' => $newLedger,
-                        'score' => $percent
-                    ]);
-                }
-                break;
-            }
-
-            if ($ledgerGroup) {
-                if (!$ledgerGroup['statements']->contains('statement.id', $newLedger['id'])) {
-                    $ledgerGroup['statements']->push([
-                        'statement' => $newStatement,
-                        'score' => $percent
-                    ]);
-                }
-                break;
-            }
-
             $matches->push([
-                'statements' => collect([
-                    [
-                        'statement' => $newStatement,
-                        'score' => $percent
-                    ]
-                ]),
-                'ledgers' => collect([
-                    [
-                        'ledger' => $newLedger,
-                        'score' => $percent
-                    ]
-                ])
+                'statement' => $newStatement,
+                'ledger' => $newLedger,
+                'score' => $percent,
+                'matched_by' => 'AI'
             ]);
 
             $matchedLedgerIds[] = $match->ledger_id;
@@ -400,56 +390,90 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
 
     public function usingEmbeddings(array $statements, array $ledgers, array $mapper, User $user, Reconciliation $reconciliation)
     {
-        try{
+        $startTime = microtime(true);
+        try {
             event(new ReconciliationProgressUpdated($reconciliation->id, 'Structuring bank statements...'));
             $structuredStatements = $this->mappingData($statements, $mapper);
+            $this->mainRepository->updateRecon($reconciliation, [
+                ...$reconciliation->toArray(),
+                'step' => 2
+            ]);
 
             event(new ReconciliationProgressUpdated($reconciliation->id, 'Saving bank statements...'));
             $this->savingStatements($structuredStatements, $reconciliation);
+            $this->mainRepository->updateRecon($reconciliation, [
+                ...$reconciliation->toArray(),
+                'step' => 3
+            ]);
 
             event(new ReconciliationProgressUpdated($reconciliation->id, 'Fetching ledger entries...'));
             $savedStatements = $this->statementRepository->findAll($reconciliation);
-            $ledgers = $reconciliation->ledgers->pluck('id')->toArray();
+            $ledgers = $reconciliation->ledgers()->pluck('bookkeeping_ledger_id')->toArray();
             $savedLedgers = $this->ledgerRepository->findAllByType($ledgers);
+            $this->mainRepository->updateRecon($reconciliation, [
+                ...$reconciliation->toArray(),
+                'step' => 4
+            ]);
 
             event(new ReconciliationProgressUpdated($reconciliation->id, 'Preparation for AI matching...'));
             $this->generateStatementEmbeddings($savedStatements);
             $this->generateLedgerEmbeddings($savedLedgers);
+            $this->mainRepository->updateRecon($reconciliation, [
+                ...$reconciliation->toArray(),
+                'step' => 5
+            ]);
 
             event(new ReconciliationProgressUpdated($reconciliation->id, 'AI matching in progress...'));
             $response = $this->matchUsingEmbeddings($savedStatements, $savedLedgers);
+            $this->mainRepository->updateRecon($reconciliation, [
+                ...$reconciliation->toArray(),
+                'step' => 6
+            ]);
 
             event(new ReconciliationProgressUpdated($reconciliation->id, 'Compiling response...'));
-            $record = $this->mainRepository->storeResponse([
+            $this->mainRepository->storeResponse([
                 'reconciliation_id' => $reconciliation->id,
                 'data' => $response
+            ]);
+            $this->mainRepository->updateRecon($reconciliation, [
+                ...$reconciliation->toArray(),
+                'step' => 7
             ]);
 
             Mail::to($user->email)->send(new ReconciliationCompleted($reconciliation, $user));
             event(new ReconciliationProgressUpdated($reconciliation->id, 'Reconciliation completed successfully!'));
+            $duration = round(microtime(true) - $startTime, 2);
+            $this->mainRepository->updateRecon($reconciliation, [
+                ...$reconciliation->toArray(),
+                'duration' => $duration,
+                'status' => 'completed',
+            ]);
+            Log::info("Reconciliation completed in {$duration} seconds");
+
             Log::info('Reconciliation: ', ['status' => 'done!']);
 
             return [
                 'reconciliation_id' => $reconciliation->id,
                 ...$response
             ];
-        } catch(\Exception $e){
+        } catch (\Exception $e) {
             Log::error('Failed to run job', ['error' =>  $e]);
             event(new ReconciliationProgressUpdated($reconciliation->id, 'Reconciliation failed. Please try again!'));
             throw $e;
         }
     }
 
-    public function export(Reconciliation $reconciliation){
+    public function export(Reconciliation $reconciliation)
+    {
         $record = $this->fetchResults($reconciliation);
 
         $file = $this->generateCSV($record);
 
         return Response::download($file)->deleteFileAfterSend(true);
-
     }
 
-    protected function generateCSV($data){
+    protected function generateCSV($data)
+    {
         $timestamp = now()->format('Y-m-d_H-i-s');
         $exportFileName = public_path("reconciled-data-" . now()->format('Y-m-d_H-i-s') . ".csv");
 
@@ -458,29 +482,25 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
         fputcsv($exportFile, ['Date', 'Description', 'Amount', 'Status', 'Score', 'Date', 'Description', 'Amount']);
 
         foreach ($data['matches'] as $match) {
-            foreach ($match['statements'] as $key => $statement) {
-                foreach ($match['ledgers'] as $key => $ledger) {
-                    $arr = [
-                        $statement['statement']['Date'],
-                        $statement['statement']['Description'],
-                        $statement['statement']['Amount'],
-                        'Matched',
-                        $statement['score'],
-                        $ledger['ledger']['Date'],
-                        $ledger['ledger']['Description'],
-                        $ledger['ledger']['Amount'],
-                    ];
-                    fputcsv($exportFile, $arr);
-                }
-            }
+            $arr = [
+                $match['statement']['Date'],
+                $match['statement']['Description'],
+                $match['statement']['Amount'],
+                'Matched',
+                $match['matched_by'],
+                $match['score'],
+                $match['ledger']['Date'],
+                $match['ledger']['Description'],
+                $match['ledger']['Amount'],
+            ];
         }
 
         foreach ($data['unmatched_statements'] as $row) {
             fputcsv($exportFile, [$row['Date'], $row['Description'], $row['Amount'], 'Unmatched']);
         }
 
-        foreach($data['unmatched_ledgers'] as $row){
-            $updated = ['', '', '','Unmatched', '', $row['Date'], $row['Description'], $row['Amount']];
+        foreach ($data['unmatched_ledgers'] as $row) {
+            $updated = ['', '', '', 'Unmatched', '', $row['Date'], $row['Description'], $row['Amount']];
             fputcsv($exportFile, $updated);
         }
 
@@ -489,7 +509,8 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
         return $exportFileName;
     }
 
-    public function fetchResults(Reconciliation $reconciliation){
+    public function fetchResults(Reconciliation $reconciliation)
+    {
         $savedStatements = $this->statementRepository->findAll($reconciliation);
         $ledgerTypes = $reconciliation->ledgers->pluck('id')->toArray();
         $savedLedgers = $this->ledgerRepository->findAllByType($ledgerTypes);
@@ -506,42 +527,11 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
             $newStatement = (new TransactionResource($this->statementRepository->findById($match->statement_id)))->toArray(request());
             $newLedger = (new TransactionResource($this->ledgerRepository->findById($match->ledger_id)))->toArray(request());
 
-            $statementGroup = $matches->firstWhere('statements.0.statement.id', $newStatement['id']);
-            $ledgerGroup = $matches->firstWhere('ledgers.0.ledger.id', $newLedger['id']);
-
-            if ($statementGroup) {
-                if (!$statementGroup['ledgers']->contains('ledger.id', $newLedger['id'])) {
-                    $statementGroup['ledgers']->push([
-                        'ledger' => $newLedger,
-                        'score' => $percent
-                    ]);
-                }
-                break;
-            }
-
-            if ($ledgerGroup) {
-                if (!$ledgerGroup['statements']->contains('statement.id', $newStatement['id'])) {
-                    $ledgerGroup['statements']->push([
-                        'statement' => $newStatement,
-                        'score' => $percent
-                    ]);
-                }
-                break;
-            }
-
             $matches->push([
-                'statements' => collect([
-                    [
-                        'statement' => $newStatement,
-                        'score' => $percent
-                    ]
-                ]),
-                'ledgers' => collect([
-                    [
-                        'ledger' => $newLedger,
-                        'score' => $percent
-                    ]
-                ])
+                'statement' => $newStatement,
+                'ledger' => $newLedger,
+                'score' => $percent,
+                'matched_by' => 'AI'
             ]);
 
             $matchedLedgerIds[] = $match->ledger_id;
@@ -571,50 +561,42 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
             'unmatched_statements' => $unmatchedStatements,
             'summary' => [
                 'totalMatched' => count($matches),
-                'totalUnmatched' => count($unmatchedLedgers) + count($unmatchedStatements),
-                'total' => count($unmatchedLedgers) + count($unmatchedStatements) + count($matches)
+                'totalUnmatched' => count($unmatchedStatements),
+                'total' => count($unmatchedLedgers) + count($unmatchedStatements) + count($matches),
+                'manual_matched' => count($matches->filter(fn($match) => $match['matched_by'] === 'manual')),
+                'ai_matched' => count($matches->filter(fn($match) => $match['matched_by'] === 'AI')),
+                'duration' => $reconciliation->duration,
+                'status' => $reconciliation->status,
+                'updated_at' => $reconciliation->updated_at,
             ]
-        ];
-;
+        ];;
     }
 
-    public function matchUnmatch(Reconciliation $reconciliation, array $statements, array $ledgers, string $action){
-        if($action == 'match'){
-            if(count($statements) == 1){
-                foreach ($ledgers as $key => $ledger) {
-                    $this->matchedRepository->storeByIds($ledger, $statements[0], 100);
-                }
-            }else if(count($ledgers) == 1){
-                foreach ($statements as $key => $statement) {
-                    $this->matchedRepository->storeByIds($ledgers[0], $statement, 100);
-                }
-            }
-        }else if ($action == 'unmatch'){
-            if(count($statements) == 1){
-                foreach ($ledgers as $key => $ledger) {
-                    $this->matchedRepository->removeByIds($ledger, $statements[0]);
-                }
-            }else if(count($ledgers) == 1){
-                foreach ($statements as $key => $statement) {
-                    $this->matchedRepository->removeByIds($ledgers[0], $statement);
-                }
+    public function matchUnmatch(Reconciliation $reconciliation, array $matches)
+    {
+        foreach ($matches as $match) {
+            if ($match['action'] == 'match') {
+                $this->matchedRepository->storeByIds($match['ledger'], $match['statement'], $match['score'], $match['matched_by']);
+            } else if ($match['action'] == 'unmatch') {
+                $this->matchedRepository->removeByIds($match['ledger'], $match['statement']);
             }
         }
 
         return $this->fetchResults($reconciliation);
     }
 
-    public function fetchUserReconciliations(User $user){
+    public function fetchUserReconciliations(User $user)
+    {
         try {
-        $reconciliations = $this->mainRepository->list($user);
+            $reconciliations = $this->mainRepository->list($user);
 
-        return [
-            'status_code' => 200,
-            'status' => 'success',
-            'message' => "User's reconciliations fetched successfuly!",
-            'data' => $reconciliations
-        ];
-        } catch(\Exception $e) {
+            return [
+                'status_code' => 200,
+                'status' => 'success',
+                'message' => "User's reconciliations fetched successfuly!",
+                'data' => $reconciliations
+            ];
+        } catch (\Exception $e) {
             return response()->json([
                 "message" => "Failed to fetch reconciliations",
                 "status" => "error",
@@ -626,10 +608,11 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
         }
     }
 
-    public function uploadLedger(array $data){
+    public function uploadLedger(array $data)
+    {
         try {
             $structured = $this->mappingData([$data['ledger_file']], $data['mapper']);
-            $formatted = collect($structured)->map(function($ledg) use ($data){
+            $formatted = collect($structured)->map(function ($ledg) use ($data) {
                 return [
                     ...$ledg,
                     'Transaction Type' => $data['transaction_type'],
@@ -644,7 +627,7 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
                 'status_code' => 200,
                 'data' => []
             ], 200);
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
             return response()->json([
                 "message" => "Failed to fetch reconciliations",
                 "status" => "error",
@@ -654,5 +637,46 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
                 ]
             ], 500);
         }
+    }
+
+    public function fetchReconResult(Reconciliation $reconciliation)
+    {
+        $record = ReconciledRecord::where('reconciliation_id', '=', $reconciliation->id)->first();
+
+        if (!$record) {
+            return response()->json([
+                "message" => "Reconciliation's result doesn't exist",
+                "status" => "error",
+                "status_code" => 404,
+                'data' => []
+            ], 404);
+        }
+
+        return response()->json([
+            "message" => "Successfully fetched reconciliation\'s results",
+            "status" => "success",
+            "status_code" => 200,
+            "data" => $record->data
+        ]);
+    }
+
+    public function fetchDetails(Reconciliation $reconciliation)
+    {
+        return response()->json([
+            "message" => "Successfully fetched reconciliation\'s summary",
+            "status" => "success",
+            "status_code" => 200,
+            "data" => [
+                'last_updated' => $reconciliation->updated_at,
+                'title' => $reconciliation->title,
+                'bank_accounts' => $reconciliation->statementFiles->map(function ($statement) {
+                    return $statement->bankAccount;
+                }),
+                'ledgers' => $reconciliation->ledgers,
+                'status' => $reconciliation->status,
+                'duration' => $reconciliation->duration,
+                'step' => $reconciliation->step,
+            ]
+        ]);
     }
 }

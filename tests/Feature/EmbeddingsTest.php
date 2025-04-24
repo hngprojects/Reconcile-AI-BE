@@ -121,9 +121,9 @@ class EmbeddingsTest extends TestCase
             ],
             'bank_statements' => [
                 [
-                'file' => $statementFile,
-                'bank_account' => $acc->id,
-                'period' => 'Jan 2025 - Mar 2025'
+                    'file' => $statementFile,
+                    'bank_account' => $acc->id,
+                    'period' => 'Jan 2025 - Mar 2025'
                 ]
             ],
             'ledgers' => [$ledg->id],
@@ -198,9 +198,15 @@ class EmbeddingsTest extends TestCase
 
         // Prepare test request data
         $payload = [
-            'ledgers' => [$ledger->id],
-            'statements' => [$statement->id],
-            'action' => 'match'
+            'matches' => [
+                [
+                    'ledger' => $ledger->id,
+                    'statement' => $statement->id,
+                    'matched_by' => 'manual',
+                    'score' => 100,
+                    'action' => 'match'
+                ]
+            ],
         ];
 
         // Send request
@@ -225,9 +231,15 @@ class EmbeddingsTest extends TestCase
         ]);
 
         $data = [
-            'ledgers' => [$ledger->id],
-            'statements' => [$statement->id],
-            'action' => 'unmatch'
+            'matches' => [
+                [
+                    'ledger' => $ledger->id,
+                    'statement' => $statement->id,
+                    'matched_by' => 'manual',
+                    'score' => 100,
+                    'action' => 'match'
+                ]
+            ],
         ];
 
         $response = $this->postJson("/api/v1/reconcile/{$reconciliation->id}", $data);
@@ -248,22 +260,27 @@ class EmbeddingsTest extends TestCase
         $ledger = Ledger::factory()->create();
 
         $data = [
-            'ledgers' => [$ledger->id],
-            'statements' => [$statement->id],
-            'action' => 'invalid_action'
+            'matches' => [
+                [
+                    'ledger' => $ledger->id,
+                    'statement' => $statement->id,
+                    'matched_by' => 'manual',
+                    'score' => 100,
+                    'action' => 'invalid_action'
+                ]
+            ],
         ];
 
         $response = $this->postJson("/api/v1/reconcile/{$reconciliation->id}", $data);
 
         $response->assertStatus(422);
         $response->assertJson([
-            "message" => "The selected action is invalid.",
+            "message" => "The selected matches.0.action is invalid.",
             "errors" => [
-                "action"=> [
-                    "The selected action is invalid."
+                "matches.0.action" => [
+                    "The selected matches.0.action is invalid."
                 ]
             ]
         ]);
     }
-
 }

@@ -9,7 +9,7 @@ use App\Models\Reconciliation;
 
 interface MatchingTransactionRepository extends Repository{
     public function store(Ledger $ledger, Statement $statement, int $score);
-    public function storeByIds(string $ledger, string $statement, int $score);
+    public function storeByIds(string $ledger, string $statement, int $score, string $method);
     public function removeByIds(string $ledger, string $statement);
     public function remove(Ledger $ledger, Statement $statement);
     public function matchTransactions(Reconciliation $reconciliation);

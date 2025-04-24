@@ -10,13 +10,14 @@ use App\Models\Reconciliation;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
-class MatchingTransactionRepositoryImplement extends Eloquent implements MatchingTransactionRepository{
+class MatchingTransactionRepositoryImplement extends Eloquent implements MatchingTransactionRepository
+{
 
     /**
-    * Model class to be used in this repository for the common methods inside Eloquent
-    * Don't remove or change $this->model variable name
-    * @property Model|mixed $model;
-    */
+     * Model class to be used in this repository for the common methods inside Eloquent
+     * Don't remove or change $this->model variable name
+     * @property Model|mixed $model;
+     */
     protected MatchingTransaction $model;
 
     public function __construct(MatchingTransaction $model)
@@ -24,7 +25,8 @@ class MatchingTransactionRepositoryImplement extends Eloquent implements Matchin
         $this->model = $model;
     }
 
-    public function store(Ledger $ledger, Statement $statement, int $score){
+    public function store(Ledger $ledger, Statement $statement, int $score)
+    {
         return $this->model->create([
             'ledger_id' => $ledger->id,
             'statement_id' => $statement->id,
@@ -32,63 +34,69 @@ class MatchingTransactionRepositoryImplement extends Eloquent implements Matchin
         ]);
     }
 
-    public function storeByIds(string $ledger, string $statement, int $score){
+    public function storeByIds(string $ledger, string $statement, int $score, string $method)
+    {
         return $this->model->create([
             'ledger_id' => $ledger,
             'statement_id' => $statement,
-            'score' => $score
+            'score' => $score,
+            'matched_by' => $method
         ]);
     }
 
-    public function getMatches(string $reconciliationId) {
+    public function getMatches(string $reconciliationId)
+    {
         return $this->model
-                    ->whereHas('statement', function ($query) use ($reconciliationId) {
-                        $query->where('reconciliation_id', $reconciliationId);
-                    })
-                    ->orWhereHas('ledger.ledgerType.reconciliations', function ($query) use ($reconciliationId) {
-                        $query->where('reconciliation_id', $reconciliationId);
-                    })
-                    ->with(['statement', 'ledger.bookkeepingLedger.reconciliations'])
-                    ->select([
-                        'matched_statements.statement_id',
-                        'matched_statements.ledger_id',
-                        'matched_statements.score'
-                    ])
-                    ->get();
+            ->whereHas('statement', function ($query) use ($reconciliationId) {
+                $query->where('reconciliation_id', $reconciliationId);
+            })
+            ->orWhereHas('ledger.ledgerType.reconciliations', function ($query) use ($reconciliationId) {
+                $query->where('reconciliation_id', $reconciliationId);
+            })
+            ->with(['statement', 'ledger.ledgerType.reconciliations'])
+            ->select([
+                'matched_statements.statement_id',
+                'matched_statements.ledger_id',
+                'matched_statements.score'
+            ])
+            ->get();
     }
 
-    public function remove(Ledger $ledger, Statement $statement){
+    public function remove(Ledger $ledger, Statement $statement)
+    {
         $match = $this->model->where([
             'ledger_id' => $ledger->id,
             'statement_id' => $statement->id,
         ])->first();
-        if($match){
+        if ($match) {
             return $match->delete();
         }
 
         return;
     }
 
-    public function removeByIds(string $ledger, string $statement){
+    public function removeByIds(string $ledger, string $statement)
+    {
         $match = $this->model->where([
             'ledger_id' => $ledger,
             'statement_id' => $statement,
         ])->first();
-        if($match){
+        if ($match) {
             return $match->delete();
         }
 
         return;
     }
 
-    public function matchTransactions(Reconciliation $reconciliation){
+    public function matchTransactions(Reconciliation $reconciliation)
+    {
         $matches = DB::select("
             WITH reconciliation_ledgers AS (
                 SELECT l.id AS ledger_id
                 FROM ledgers l
                 JOIN bookkeeping_ledgers bl ON l.bookkeeping_ledger_id = bl.id
                 JOIN reconciliation_ledgers blr ON blr.bookkeeping_ledger_id = bl.id
-                WHERE blr.reconciliation_id = ?
+                WHERE blr.reconciliation_id = :reconciliation_id
             ),
             ranked_matches AS (
                 SELECT
@@ -100,7 +108,7 @@ class MatchingTransactionRepositoryImplement extends Eloquent implements Matchin
                 FROM statements s
                 JOIN reconciliation_ledgers rl ON TRUE
                 JOIN ledgers l ON rl.ledger_id = l.id
-                WHERE s.reconciliation_id = ?
+                WHERE s.reconciliation_id = :reconciliation_id
                   AND 1 - (s.embedding <=> l.embedding) > 0.82
             )
             SELECT
@@ -110,7 +118,7 @@ class MatchingTransactionRepositoryImplement extends Eloquent implements Matchin
             FROM ranked_matches
             WHERE statement_rank = 1 AND ledger_rank = 1
             ORDER BY cosine_similarity DESC
-        ", [$reconciliation->id, $reconciliation->id]);
+        ", ['reconciliation_id' => $reconciliation->id]);
 
         /*
         $saved = [];
