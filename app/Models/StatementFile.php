@@ -15,12 +15,12 @@ class StatementFile extends Model
         'user_file_id'
     ];
 
-    public function file(): BelongsTo
+    public function file()
     {
         return $this->belongsTo(UserFile::class);
     }
 
-    public function bankAccount(): BelongsTo
+    public function bankAccount()
     {
         return $this->belongsTo(BankAccount::class);
     }

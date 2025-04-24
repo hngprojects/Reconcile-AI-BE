@@ -18,7 +18,8 @@ class MatchingTransaction extends Pivot
         'statement_id',
         'ledger_id',
         'user_id',
-        'score'
+        'score',
+        'matched_by'
     ];
     protected $keyType = 'string';
     public $incrementing = false;

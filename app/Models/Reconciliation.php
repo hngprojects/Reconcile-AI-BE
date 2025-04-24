@@ -20,6 +20,9 @@ class Reconciliation extends Model
     protected $fillable = [
         'user_id',
         'title',
+        'status',
+        'step',
+        'duration'
     ];
     protected $keyType = 'string';
 
@@ -60,5 +63,18 @@ class Reconciliation extends Model
         return $this->belongsToMany(BookkeepingLedger::class, 'reconciliation_ledgers');
     }
 
+    public function matchedTransactions()
+    {
+        return app(\App\Repositories\MatchingTransaction\MatchingTransactionRepository::class)->getMatches($this->id);
+    }
 
+    public function getMatchesCount()
+    {
+        return $this->matchedTransactions()->count();
+    }
+
+    public function getUnmatchedCount()
+    {
+        return app(\App\Repositories\Statement\StatementRepository::class)->findAll($this)->count() - $this->matchedTransactions()->count();
+    }
 }
