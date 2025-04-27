@@ -273,6 +273,27 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
             }
         }
 
+        return $mapped;
+    }
+
+
+    protected function mappingStatement(array $stmt, array $mapper)
+    {
+        $mapped = [];
+
+        $data = $this->loadComplexCsv($stmt['path']);
+        foreach ($data as $row) {
+            $mapped[] = [
+                'Date' => $row[$mapper['date']],
+                'Person' => $row[$mapper['description']],
+                'Amount' => $row[$mapper['amount']],
+                'Other Information' => collect($row)->except([
+                    $mapper['date'],
+                    $mapper['description'],
+                    $mapper['amount']
+                ])->toArray(),
+            ];
+        }
 
 
         return $mapped;
@@ -414,6 +435,65 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
             ]
         ];
     }
+
+    public function addStatementsToRecon(Reconciliation $reconciliation, array $data)
+    {
+        $statementFileIds = [];
+
+        foreach ($data['statements'] as $statementData) {
+            $savedFile = $this->fileRepository->store([
+                'user_id' => $data['user_id'],
+                'file_name' => $statementData['name'],
+                'file_path' => $statementData['path'],
+                'type' => 'Statement',
+            ]);
+
+            Log::info('Saved File: ', ['file' => $savedFile]);
+
+            $statementFile = $this->statementFileRepository->store([
+                'user_file_id' => $savedFile->id,
+                ...collect($statementData)->except([
+                    'period'
+                ])->toArray(),
+                ...$statementData['period']
+            ]);
+
+            $structuredStatements = $this->mappingStatement($statementData, $statementData['mapper']);
+            $this->savingStatements($structuredStatements, $reconciliation);
+
+            $statementFileIds[] = $statementFile->id;
+        }
+
+        $reconciliation->statementFiles()->attach($statementFileIds);
+
+
+        $this->mainRepository->updateRecon($reconciliation, [
+            ...$reconciliation->toArray(),
+            'step' => 3,
+            'status' => 'draft'
+        ]);
+
+        return [
+            'status_code' => 200,
+            'status' => 'success',
+            'message' => "Statements added successfully!",
+            'data' => [
+                ...$reconciliation->toArray(),
+                'statements' => $reconciliation->statementFiles->map(function ($statement) {
+                    return [
+                        'id' => $statement->id,
+                        'name' => $statement->userFile->file_name,
+                        'period' => [
+                            'from' => $statement->start_date,
+                            'to' => $statement->end_date,
+                        ],
+                        'bank_account' => $statement->bankAccount->bank_name,
+                    ];
+                })->toArray(),
+            ]
+        ];
+    }
+
 
     public function usingEmbeddings(array $statements, array $ledgers, array $mapper, User $user, Reconciliation $reconciliation)
     {

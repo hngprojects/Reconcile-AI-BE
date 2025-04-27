@@ -11,11 +11,12 @@ class StatementFile extends Model
 
     protected $fillable = [
         'bank_account_id',
-        'period',
+        'start_date',
+        'end_date',
         'user_file_id'
     ];
 
-    public function file()
+    public function userFile()
     {
         return $this->belongsTo(UserFile::class);
     }

@@ -31,6 +31,204 @@ class ReconciliationController extends Controller
 
     /**
      * @OA\Post(
+     *     path="/api/v1/reconciliations/create",
+     *     summary="Create reconciliation with ledgers",
+     *     description="Create a new reconciliation with specified ledgers",
+     *     tags={"Reconciliation"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\MediaType(
+     *             mediaType="application/json",
+     *             @OA\Schema(
+     *                 required={"title", "ledgers"},
+     *                 @OA\Property(
+     *                     property="title",
+     *                     type="string",
+     *                     example="Monthly Reconciliation"
+     *                 ),
+     *                 @OA\Property(
+     *                     property="ledgers",
+     *                     type="array",
+     *                     @OA\Items(
+     *                         type="string",
+     *                         format="uuid",
+     *                         example="550e8400-e29b-41d4-a716-446655440000"
+     *                     )
+     *                 )
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Reconciliation created successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Reconciliation created successfully"),
+     *             @OA\Property(property="status", type="string", example="success"),
+     *             @OA\Property(property="status_code", type="integer", example=200),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="object",
+     *                 @OA\Property(property="reconciliation_id", type="string", example="550e8400-e29b-41d4-a716-446655440000")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Bad request",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="error", type="string", example="Invalid input data")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Validation error", 
+     *        @OA\JsonContent(
+     *            @OA\Property(property="error", type="string", example="The title field is required.")
+     *        )
+     *     )
+     * )
+     */
+    public function createReconWithLedgers(Request $request): JsonResponse
+    {
+        $request->validate([
+            'title' => 'required|string',
+            'ledgers' => 'required|array',
+            'ledgers.*' => 'required|string|exists:bookkeeping_ledgers,id',
+        ]);
+
+        return response()->json($this->reconciliationService->createReconWithLedgers($request->all(), $request->user()));
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/api/v1/reconciliations/{reconciliation}/statements",
+     *     summary="Add statements to reconciliation",
+     *     description="Upload and add bank statements to an existing reconciliation",
+     *     tags={"Reconciliation"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="reconciliation",
+     *         in="path",
+     *         required=true,
+     *         description="Reconciliation ID",
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\MediaType(
+     *             mediaType="multipart/form-data",
+     *             @OA\Schema(
+     *                 type="object",
+     *                 @OA\Property(
+     *                     property="statements[0][file]",
+     *                     type="string",
+     *                     format="binary"
+     *                 ),
+     *                 @OA\Property(
+     *                     property="statements[0][bank_account]",
+     *                     type="string",
+     *                     format="uuid"
+     *                 ),
+     *                 @OA\Property(
+     *                     property="statements[0][period][from]",
+     *                     type="string"
+     *                 ),
+     *                 @OA\Property(
+     *                     property="statements[0][period][to]",
+     *                     type="string"
+     *                 ),
+     *                 @OA\Property(
+     *                     property="statements[0][mapper][date]",
+     *                     type="string"
+     *                 ),
+     *                 @OA\Property(
+     *                     property="statements[0][mapper][description]",
+     *                     type="string"
+     *                 ),
+     *                 @OA\Property(
+     *                     property="statements[0][mapper][amount]",
+     *                     type="string"
+     *                 ),
+     *             )
+     *         )
+     *      ),
+     *
+     *    @OA\Response(
+     *        response=200,
+     *       description="Statements added successfully",
+     *       @OA\JsonContent(
+     *           @OA\Property(property="message", type="string", example="Statements added successfully"),
+     *          @OA\Property(property="status", type="string", example="success"),
+     *          @OA\Property(property="status_code", type="integer", example=200),
+     *          @OA\Property(
+     *              property="data",
+     *             type="object",
+     *            @OA\Property(property="reconciliation_id", type="string", example="550e8400-e29b-41d4-a716-446655440000")
+     *           )
+     *      )
+     *   ),
+     *    @OA\Response(
+     *       response=422,
+     *      description="Validation error",
+     *      @OA\JsonContent(
+     *          @OA\Property(property="error", type="string", example="The statements field is required.")
+     *     )
+     *  )
+     * )
+     */
+    public function addStatementsToRecon(Request $request, Reconciliation $reconciliation)
+    {
+        $request->validate([
+            'statements' => 'required|array',
+            'statements.*.file' => 'required|file|mimes:csv|max:2048',
+            'statements.*.bank_account' => 'required|uuid|exists:bank_accounts,id',
+            'statements.*.period' => 'required|array',
+            'statements.*.period.from' => 'required|string',
+            'statements.*.period.to' => 'required|string',
+            'statements.*.mapper' => 'required|array',
+            'statements.*.mapper.date' => 'required|string',
+            'statements.*.mapper.description' => 'required|string',
+            'statements.*.mapper.amount' => 'required|string',
+        ]);
+
+        $statements = [];
+        foreach ($request->input('statements') as $index => $statementData) {
+            $file = $request->file("statements.$index.file");
+            $bankAccount = $statementData['bank_account'];
+            $period = $statementData['period'];
+            $mapper = $statementData['mapper'];
+            $originalName = $file->getClientOriginalName();
+
+            if (!$file) {
+                return response()->json(['error' => "Missing file for statements[$index]."], 422);
+            }
+
+            $statementPath = $file->store('uploads');
+            $statementFullPath = Storage::path($statementPath);
+
+            if (!$this->isValidFileFormat($statementFullPath)) {
+                Storage::delete([$statementPath]);
+                return response()->json(['error' => 'One of the files is not in the correct format.'], 422);
+            }
+
+            $statements[] = [
+                'name' => $originalName,
+                'path' => $statementFullPath,
+                'bank_account_id' => $bankAccount,
+                'period' => [
+                    'start_date' => $period['from'],
+                    'end_date' => $period['to'],
+                ],
+                'mapper' => $mapper,
+            ];
+        }
+
+        return response()->json($this->reconciliationService->addStatementsToRecon($reconciliation, ['statements' => $statements, 'user_id' => $request->user()->id]), 200);
+    }
+
+    /**
+     * @OA\Post(
      *     path="/api/v1/reconcile",
      *     summary="New Reconciliation Approach - Embeddings",
      *     description="Upload and compare two sets of files using various reconciliation methods",
@@ -523,76 +721,8 @@ class ReconciliationController extends Controller
         return $this->reconciliationService->fetchDetails($reconciliation);
     }
 
-    /**
-     * @OA\Post(
-     *     path="/api/v1/reconciliations/create",
-     *     summary="Create reconciliation with ledgers",
-     *     description="Create a new reconciliation with specified ledgers",
-     *     tags={"Reconciliation"},
-     *     security={{"bearerAuth":{}}},
-     *     @OA\RequestBody(
-     *         required=true,
-     *         @OA\MediaType(
-     *             mediaType="application/json",
-     *             @OA\Schema(
-     *                 required={"title", "ledgers"},
-     *                 @OA\Property(
-     *                     property="title",
-     *                     type="string",
-     *                     example="Monthly Reconciliation"
-     *                 ),
-     *                 @OA\Property(
-     *                     property="ledgers",
-     *                     type="array",
-     *                     @OA\Items(
-     *                         type="string",
-     *                         format="uuid",
-     *                         example="550e8400-e29b-41d4-a716-446655440000"
-     *                     )
-     *                 )
-     *             )
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Reconciliation created successfully",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="message", type="string", example="Reconciliation created successfully"),
-     *             @OA\Property(property="status", type="string", example="success"),
-     *             @OA\Property(property="status_code", type="integer", example=200),
-     *             @OA\Property(
-     *                 property="data",
-     *                 type="object",
-     *                 @OA\Property(property="reconciliation_id", type="string", example="550e8400-e29b-41d4-a716-446655440000")
-     *             )
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=400,
-     *         description="Bad request",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="error", type="string", example="Invalid input data")
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=422,
-     *         description="Validation error", 
-     *        @OA\JsonContent(
-     *            @OA\Property(property="error", type="string", example="The title field is required.")
-     *        )
-     *     )
-     * )
-     */
-    public function createReconWithLedgers(Request $request): JsonResponse
-    {
-        $request->validate([
-            'title' => 'required|string',
-            'ledgers' => 'required|array',
-            'ledgers.*' => 'required|string|exists:bookkeeping_ledgers,id',
-        ]);
 
-        return response()->json($this->reconciliationService->createReconWithLedgers($request->all(), $request->user()));
-    }
+
 
     private function isValidFileFormat(string $filePath): bool
     {

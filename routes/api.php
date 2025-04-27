@@ -122,6 +122,7 @@ Route::prefix('v1')->group(function () {
 
     // reconciliations
     Route::middleware('auth:api')->post('/reconciliations/create', [ReconciliationController::class, 'createReconWithLedgers'])->whereUuid('reconciliation')->name('reconciled-results');
+    Route::middleware('auth:api')->post('/reconciliations/{reconciliation}/statements', [ReconciliationController::class, 'addStatementsToRecon'])->whereUuid('reconciliation')->name('add-statements');
     Route::middleware('auth:api')->get('/reconciliations/{reconciliation}/result', [ReconciliationController::class, 'getReconResults'])->whereUuid('reconciliation')->name('reconciled-results');
     Route::middleware('auth:api')->get('/reconciliations/{reconciliation}/summary', [ReconciliationController::class, 'getSummary'])->whereUuid('reconciliation')->name('reconciled-summary');
     Route::middleware('auth:api')->get('/reconciliations/{reconciliation}', [ReconciliationController::class, 'getReconciledRecords'])->whereUuid('reconciliation')->name('reconciled-records');
