@@ -523,6 +523,76 @@ class ReconciliationController extends Controller
         return $this->reconciliationService->fetchDetails($reconciliation);
     }
 
+    /**
+     * @OA\Post(
+     *     path="/api/v1/reconciliations/create",
+     *     summary="Create reconciliation with ledgers",
+     *     description="Create a new reconciliation with specified ledgers",
+     *     tags={"Reconciliation"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\MediaType(
+     *             mediaType="application/json",
+     *             @OA\Schema(
+     *                 required={"title", "ledgers"},
+     *                 @OA\Property(
+     *                     property="title",
+     *                     type="string",
+     *                     example="Monthly Reconciliation"
+     *                 ),
+     *                 @OA\Property(
+     *                     property="ledgers",
+     *                     type="array",
+     *                     @OA\Items(
+     *                         type="string",
+     *                         format="uuid",
+     *                         example="550e8400-e29b-41d4-a716-446655440000"
+     *                     )
+     *                 )
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Reconciliation created successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Reconciliation created successfully"),
+     *             @OA\Property(property="status", type="string", example="success"),
+     *             @OA\Property(property="status_code", type="integer", example=200),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="object",
+     *                 @OA\Property(property="reconciliation_id", type="string", example="550e8400-e29b-41d4-a716-446655440000")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Bad request",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="error", type="string", example="Invalid input data")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Validation error", 
+     *        @OA\JsonContent(
+     *            @OA\Property(property="error", type="string", example="The title field is required.")
+     *        )
+     *     )
+     * )
+     */
+    public function createReconWithLedgers(Request $request): JsonResponse
+    {
+        $request->validate([
+            'title' => 'required|string',
+            'ledgers' => 'required|array',
+            'ledgers.*' => 'required|string|exists:bookkeeping_ledgers,id',
+        ]);
+
+        return response()->json($this->reconciliationService->createReconWithLedgers($request->all(), $request->user()));
+    }
 
     private function isValidFileFormat(string $filePath): bool
     {

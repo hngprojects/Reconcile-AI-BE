@@ -151,7 +151,6 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
         return $reconciliation;
     }
 
-
     public function saveLedger(string $filePath, User $user)
     {
         $filePath = str_replace('public/', '', $filePath);
@@ -384,6 +383,34 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
                 'totalMatched' => count($matches),
                 'totalUnmatched' => count($unmatchedLedgers) + count($unmatchedStatements),
                 'total' => count($unmatchedLedgers) + count($unmatchedStatements) + count($matches)
+            ]
+        ];
+    }
+
+    public function createReconWithLedgers(array $data, User $user)
+    {
+        $reconciliation = $this->mainRepository->store([
+            'user_id' => $user->id,
+            'title' => $data['title'],
+            'status' => 'draft',
+        ]);
+
+        $reconciliation->ledgers()->sync($data['ledgers']);
+
+        return [
+            'status_code' => 200,
+            'status' => 'success',
+            'message' => "Reconciliation created successfully!",
+            'data' => [
+                ...$reconciliation->toArray(),
+                'ledgers' => $reconciliation->ledgers->map(function ($ledger) {
+                    return [
+                        'id' => $ledger->id,
+                        'name' => $ledger->name,
+                        'type' => $ledger->type,
+                        'description' => $ledger->description
+                    ];
+                })->toArray(),
             ]
         ];
     }
