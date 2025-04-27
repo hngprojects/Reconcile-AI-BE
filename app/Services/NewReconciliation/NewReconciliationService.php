@@ -11,6 +11,7 @@ interface NewReconciliationService extends BaseService
 
     public function usingEmbeddings(array $statements, array $ledgers, array $mapper, User $user, Reconciliation $reconciliation);
     public function storeReconciliation($statements, $ledgers, $title, $user);
+    public function createReconWithLedgers(array $data, User $user);
     public function matchUnmatch(Reconciliation $reconciliation, array $matches);
     public function fetchResults(Reconciliation $reconciliation);
     public function fetchDetails(Reconciliation $reconciliation);
