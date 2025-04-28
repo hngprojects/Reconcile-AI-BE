@@ -119,7 +119,8 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
 
         $reconciliation = $this->mainRepository->store([
             'user_id' => $userId,
-            'title' => $title
+            'title' => $title,
+            'status' => 'in-progress',
         ]);
 
         $statementFileIds = [];
