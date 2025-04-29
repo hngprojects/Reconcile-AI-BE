@@ -5628,6 +5628,385 @@
                 }
             }
         },
+        "/api/v1/reconciliations": {
+            "get": {
+                "tags": [
+                    "Reconciliation"
+                ],
+                "summary": "Get reconciliations",
+                "description": "Fetch reconciliations for the logged-in user",
+                "operationId": "1fb9ac5ce601c63e275abe07c764d59d",
+                "responses": {
+                    "200": {
+                        "description": "Reconciliations fetched successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Reconciled records fetched successfully"
+                                        },
+                                        "status": {
+                                            "type": "string",
+                                            "example": "success"
+                                        },
+                                        "status_code": {
+                                            "type": "integer",
+                                            "example": 200
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Unauthorized"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Reconciliation"
+                ],
+                "summary": "Create a new reconciliation",
+                "description": "Create a new reconciliation with the specified title",
+                "operationId": "cc1ad3b71dd2d7d42ecc26ede6b5d9ae",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "title"
+                                ],
+                                "properties": {
+                                    "title": {
+                                        "type": "string",
+                                        "example": "Monthly Reconciliation"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Reconciliation created successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Reconciliation created successfully"
+                                        },
+                                        "status": {
+                                            "type": "string",
+                                            "example": "success"
+                                        },
+                                        "status_code": {
+                                            "type": "integer",
+                                            "example": 200
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "reconciliation_id": {
+                                                    "type": "string",
+                                                    "example": "550e8400-e29b-41d4-a716-446655440000"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Invalid input data"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "error": {
+                                            "type": "string",
+                                            "example": "The title field is required."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/reconciliations/{reconciliation}/ledgers": {
+            "post": {
+                "tags": [
+                    "Reconciliation"
+                ],
+                "summary": "Add ledgers to reconciliation",
+                "description": "Add ledgers to reconciliation",
+                "operationId": "ce88c61780e865feba609c7233b0e4f1",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "ledgers"
+                                ],
+                                "properties": {
+                                    "ledgers": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string",
+                                            "format": "uuid",
+                                            "example": "550e8400-e29b-41d4-a716-446655440000"
+                                        }
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Reconciliation created successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Reconciliation created successfully"
+                                        },
+                                        "status": {
+                                            "type": "string",
+                                            "example": "success"
+                                        },
+                                        "status_code": {
+                                            "type": "integer",
+                                            "example": 200
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "reconciliation_id": {
+                                                    "type": "string",
+                                                    "example": "550e8400-e29b-41d4-a716-446655440000"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Invalid input data"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "error": {
+                                            "type": "string",
+                                            "example": "The title field is required."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/reconciliations/{reconciliation}/statements": {
+            "post": {
+                "tags": [
+                    "Reconciliation"
+                ],
+                "summary": "Add statements to reconciliation",
+                "description": "Upload and add bank statements to an existing reconciliation",
+                "operationId": "2358bcc0194ed5b0c47fee16cf74d9d4",
+                "parameters": [
+                    {
+                        "name": "reconciliation",
+                        "in": "path",
+                        "description": "Reconciliation ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "properties": {
+                                    "statements[0][file]": {
+                                        "type": "string",
+                                        "format": "binary"
+                                    },
+                                    "statements[0][bank_account]": {
+                                        "type": "string",
+                                        "format": "uuid"
+                                    },
+                                    "statements[0][period][from]": {
+                                        "type": "string"
+                                    },
+                                    "statements[0][period][to]": {
+                                        "type": "string"
+                                    },
+                                    "statements[0][mapper][date]": {
+                                        "type": "string"
+                                    },
+                                    "statements[0][mapper][description]": {
+                                        "type": "string"
+                                    },
+                                    "statements[0][mapper][amount]": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Statements added successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Statements added successfully"
+                                        },
+                                        "status": {
+                                            "type": "string",
+                                            "example": "success"
+                                        },
+                                        "status_code": {
+                                            "type": "integer",
+                                            "example": 200
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "reconciliation_id": {
+                                                    "type": "string",
+                                                    "example": "550e8400-e29b-41d4-a716-446655440000"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "error": {
+                                            "type": "string",
+                                            "example": "The statements field is required."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/api/v1/reconcile": {
             "post": {
                 "tags": [
@@ -5784,43 +6163,6 @@
                 ]
             }
         },
-        "/api/v1/reconciliations/{reconciliation}/export": {
-            "post": {
-                "tags": [
-                    "Reconciliation"
-                ],
-                "summary": "Export reconciled data as a CSV file",
-                "description": "Generates a CSV file containing matched and unmatched transactions from reconciliation.",
-                "operationId": "07922d063e1c02d8f98dda6bf0ac25b4",
-                "parameters": [
-                    {
-                        "name": "reconciliation",
-                        "in": "path",
-                        "description": "Reconciliation ID",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "CSV file generated successfully",
-                        "headers": {
-                            "Content-Disposition": {
-                                "description": "attachment; filename=reconciled-data.csv",
-                                "schema": {
-                                    "type": "string"
-                                }
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Server error while generating CSV file"
-                    }
-                }
-            }
-        },
         "/api/v1/reconciliations/{reconciliation}": {
             "get": {
                 "tags": [
@@ -5893,6 +6235,115 @@
                         "bearerAuth": []
                     }
                 ]
+            },
+            "put": {
+                "tags": [
+                    "Reconciliation"
+                ],
+                "summary": "Save reconciliation draft",
+                "description": "Save the current state of the reconciliation as a draft",
+                "operationId": "8a90e3b728fde189822bc0cd104e0a3d",
+                "parameters": [
+                    {
+                        "name": "reconciliation",
+                        "in": "path",
+                        "description": "Reconciliation ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Reconciliation saved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Reconciliation saved successfully"
+                                        },
+                                        "status": {
+                                            "type": "string",
+                                            "example": "success"
+                                        },
+                                        "status_code": {
+                                            "type": "integer",
+                                            "example": 200
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Unauthorized"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/reconciliations/{reconciliation}/export": {
+            "post": {
+                "tags": [
+                    "Reconciliation"
+                ],
+                "summary": "Export reconciled data as a CSV file",
+                "description": "Generates a CSV file containing matched and unmatched transactions from reconciliation.",
+                "operationId": "07922d063e1c02d8f98dda6bf0ac25b4",
+                "parameters": [
+                    {
+                        "name": "reconciliation",
+                        "in": "path",
+                        "description": "Reconciliation ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "CSV file generated successfully",
+                        "headers": {
+                            "Content-Disposition": {
+                                "description": "attachment; filename=reconciled-data.csv",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Server error while generating CSV file"
+                    }
+                }
             }
         },
         "/api/v1/reconciliations/{reconciliation}/result": {
@@ -6119,69 +6570,6 @@
                 }
             }
         },
-        "/api/v1/reconciliations": {
-            "get": {
-                "tags": [
-                    "Reconciliation"
-                ],
-                "summary": "Get reconciliations",
-                "description": "Fetch reconciliations for the logged-in user",
-                "operationId": "1fb9ac5ce601c63e275abe07c764d59d",
-                "responses": {
-                    "200": {
-                        "description": "Reconciliations fetched successfully",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Reconciled records fetched successfully"
-                                        },
-                                        "status": {
-                                            "type": "string",
-                                            "example": "success"
-                                        },
-                                        "status_code": {
-                                            "type": "integer",
-                                            "example": 200
-                                        },
-                                        "data": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "object"
-                                            }
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "error": {
-                                            "type": "string",
-                                            "example": "Unauthorized"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
-            }
-        },
         "/api/v1/reconciliations/{reconciliation}/summary": {
             "get": {
                 "tags": [
@@ -6256,116 +6644,6 @@
                                         "error": {
                                             "type": "string",
                                             "example": "Unauthorized"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
-            }
-        },
-        "/api/v1/reconciliations/create": {
-            "post": {
-                "tags": [
-                    "Reconciliation"
-                ],
-                "summary": "Create reconciliation with ledgers",
-                "description": "Create a new reconciliation with specified ledgers",
-                "operationId": "485d3b0da1b297ab61ab54ae23090e67",
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "required": [
-                                    "title",
-                                    "ledgers"
-                                ],
-                                "properties": {
-                                    "title": {
-                                        "type": "string",
-                                        "example": "Monthly Reconciliation"
-                                    },
-                                    "ledgers": {
-                                        "type": "array",
-                                        "items": {
-                                            "type": "string",
-                                            "format": "uuid",
-                                            "example": "550e8400-e29b-41d4-a716-446655440000"
-                                        }
-                                    }
-                                },
-                                "type": "object"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "Reconciliation created successfully",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Reconciliation created successfully"
-                                        },
-                                        "status": {
-                                            "type": "string",
-                                            "example": "success"
-                                        },
-                                        "status_code": {
-                                            "type": "integer",
-                                            "example": 200
-                                        },
-                                        "data": {
-                                            "properties": {
-                                                "reconciliation_id": {
-                                                    "type": "string",
-                                                    "example": "550e8400-e29b-41d4-a716-446655440000"
-                                                }
-                                            },
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Bad request",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "error": {
-                                            "type": "string",
-                                            "example": "Invalid input data"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    },
-                    "422": {
-                        "description": "Validation error",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "error": {
-                                            "type": "string",
-                                            "example": "The title field is required."
                                         }
                                     },
                                     "type": "object"

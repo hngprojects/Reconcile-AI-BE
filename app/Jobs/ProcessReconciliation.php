@@ -27,12 +27,11 @@ class ProcessReconciliation implements ShouldQueue
     public $timeout = 10800;
     protected $mainRepository;
 
-    public function __construct(array $statements, array $ledgers, array $mapper, User $user, Reconciliation $reconciliation, ReconciliationRepository $mainRepository)
+    public function __construct(array $statements, array $ledgers, User $user, Reconciliation $reconciliation, ReconciliationRepository $mainRepository)
     {
         $this->mainRepository = $mainRepository;
         $this->statements = $statements;
         $this->ledgers = $ledgers;
-        $this->mapper = $mapper;
         $this->user = $user;
         $this->reconciliation = $reconciliation;
     }
@@ -41,7 +40,7 @@ class ProcessReconciliation implements ShouldQueue
     public function handle(NewReconciliationService $service)
     {
         try {
-            $service->usingEmbeddings($this->statements, $this->ledgers, $this->mapper, $this->user, $this->reconciliation);
+            $service->usingEmbeddings($this->statements, $this->ledgers, $this->user, $this->reconciliation);
         } catch (Throwable $e) {
             Log::error("ProcessReconciliation Job Failed: " . $e->getMessage());
             $this->mainRepository->updateRecon($this->reconciliation, [
