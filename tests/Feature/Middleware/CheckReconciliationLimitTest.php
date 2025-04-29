@@ -89,16 +89,19 @@ class CheckReconciliationLimitTest extends TestCase
 
         $response = $this->actingAs($this->user)
             ->postJson(route('reconcile'), [
-                'mapper' => [
-                    'date' => 'Date',
-                    'description' => 'Description',
-                    'amount' => 'Amount'
-                ],
                 'bank_statements' => [
                     [
-                    'file' => $file1,
-                    'bank_account' => $acc->id,
-                    'period' => 'Jan 2025 - Mar 2025'
+                        'file' => $file1,
+                        'bank_account' => $acc->id,
+                        'period' => [
+                            'from' => now()->subMonth()->format('Y-m-d'),
+                            'to' => now()->format('Y-m-d')
+                        ],
+                        'mapper' => [
+                            'date' => 'Date',
+                            'description' => 'Description',
+                            'amount' => 'Amount'
+                        ]
                     ]
                 ],
                 'ledgers' => [$ledgerType->id],
@@ -131,16 +134,19 @@ class CheckReconciliationLimitTest extends TestCase
 
         $response = $this->actingAs($this->user)
             ->postJson(route('reconcile'), [
-                'mapper' => [
-                    'date' => 'Date',
-                    'description' => 'Description',
-                    'amount' => 'Amount'
-                ],
                 'bank_statements' => [
                     [
-                    'file' => $file1,
-                    'bank_account' => $acc->id,
-                    'period' => 'Jan 2025 - Mar 2025'
+                        'file' => $file1,
+                        'bank_account' => $acc->id,
+                        'period' => [
+                            'from' => now()->subMonth()->format('Y-m-d'),
+                            'to' => now()->format('Y-m-d')
+                        ],
+                        'mapper' => [
+                            'date' => 'Date',
+                            'description' => 'Description',
+                            'amount' => 'Amount'
+                        ]
                     ]
                 ],
                 'ledgers' => [$ledgerType->id],
@@ -186,16 +192,19 @@ class CheckReconciliationLimitTest extends TestCase
 
         $this->actingAs($this->user)
             ->postJson(route('reconcile'), [
-                'mapper' => [
-                    'date' => 'Date',
-                    'description' => 'Description',
-                    'amount' => 'Amount'
-                ],
                 'bank_statements' => [
                     [
-                    'file' => $file1,
-                    'bank_account' => $acc->id,
-                    'period' => 'Jan 2025 - Mar 2025'
+                        'file' => $file1,
+                        'bank_account' => $acc->id,
+                        'period' => [
+                            'from' => now()->subMonth()->format('Y-m-d'),
+                            'to' => now()->format('Y-m-d')
+                        ],
+                        'mapper' => [
+                            'date' => 'Date',
+                            'description' => 'Description',
+                            'amount' => 'Amount'
+                        ]
                     ]
                 ],
                 'ledgers' => [$ledgerType->id],
@@ -219,16 +228,19 @@ class CheckReconciliationLimitTest extends TestCase
         $acc  = BankAccount::factory()->create();
 
         $response = $this->actingAs($user)->postJson(route('reconcile'), [
-            'mapper' => [
-                'date' => 'Date',
-                'description' => 'Description',
-                'amount' => 'Amount'
-            ],
             'bank_statements' => [
                 [
-                'file' => $file1,
-                'bank_account' => $acc->id,
-                'period' => 'Jan 2025 - Mar 2025'
+                    'file' => $file1,
+                    'bank_account' => $acc->id,
+                    'period' => [
+                        'from' => now()->subMonth()->format('Y-m-d'),
+                        'to' => now()->format('Y-m-d')
+                    ],
+                    'mapper' => [
+                        'date' => 'Date',
+                        'description' => 'Description',
+                        'amount' => 'Amount'
+                    ]
                 ]
             ],
             'ledgers' => [$ledgerType->id],
@@ -269,20 +281,23 @@ class CheckReconciliationLimitTest extends TestCase
 
         $response = $this->actingAs($this->user)
             ->postJson(route('reconcile'), [
-            'mapper' => [
-                'date' => 'Date',
-                'description' => 'Description',
-                'amount' => 'Amount'
-            ],
-            'bank_statements' => [
-                [
-                'file' => $file1,
-                'bank_account' => $acc->id,
-                'period' => 'Jan 2025 - Mar 2025'
-                ]
-            ],
-            'ledgers' => [$ledgerType->id],
-            'title' => 'Reconciliation Test'
+                'bank_statements' => [
+                    [
+                        'file' => $file1,
+                        'bank_account' => $acc->id,
+                        'period' => [
+                            'from' => now()->subMonth()->format('Y-m-d'),
+                            'to' => now()->format('Y-m-d')
+                        ],
+                        'mapper' => [
+                            'date' => 'Date',
+                            'description' => 'Description',
+                            'amount' => 'Amount'
+                        ]
+                    ]
+                ],
+                'ledgers' => [$ledgerType->id],
+                'title' => 'Reconciliation Test'
             ])
             ->assertStatus(200);
     }
@@ -305,20 +320,23 @@ class CheckReconciliationLimitTest extends TestCase
 
         $this->actingAs($this->user)
             ->postJson(route('reconcile'), [
-            'mapper' => [
-                'date' => 'Date',
-                'description' => 'Description',
-                'amount' => 'Amount'
-            ],
-            'bank_statements' => [
-                [
-                'file' => $file1,
-                'bank_account' => $acc->id,
-                'period' => 'Jan 2025 - Mar 2025'
-                ]
-            ],
-            'ledgers' => [$ledgerType->id],
-            'title' => 'Reconciliation Test'
+                'bank_statements' => [
+                    [
+                        'file' => $file1,
+                        'bank_account' => $acc->id,
+                        'period' => [
+                            'from' => now()->subMonth()->format('Y-m-d'),
+                            'to' => now()->format('Y-m-d')
+                        ],
+                        'mapper' => [
+                            'date' => 'Date',
+                            'description' => 'Description',
+                            'amount' => 'Amount'
+                        ]
+                    ]
+                ],
+                'ledgers' => [$ledgerType->id],
+                'title' => 'Reconciliation Test'
             ])
             ->assertStatus(403)
             ->assertJson(['message' => 'No active plan found. Please subscribe.']);
