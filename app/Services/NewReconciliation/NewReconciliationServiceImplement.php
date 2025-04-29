@@ -28,6 +28,7 @@ use Illuminate\Support\Sleep;
 use Illuminate\Support\Facades\Response;
 use NumConvert;
 use App\Events\ReconciliationProgressUpdated;
+use Illuminate\Support\Arr;
 
 class NewReconciliationServiceImplement extends ServiceApi implements NewReconciliationService
 {
@@ -120,7 +121,7 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
         $reconciliation = $this->mainRepository->store([
             'user_id' => $userId,
             'title' => $title,
-            'status' => 'in-progress',
+            'status' => 'draft',
         ]);
 
         $statementFileIds = [];
@@ -128,13 +129,17 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
         foreach ($statements as $statementData) {
             $savedFile = $this->fileRepository->store([
                 'user_id' => $userId,
-                'file_name' => $statementData['path'],
+                'file_name' => $statementData['name'],
+                'file_path' => $statementData['path'],
                 'type' => 'Statement'
             ]);
 
             $statementFile = $this->statementFileRepository->store([
                 'user_file_id' => $savedFile->id,
-                ...$statementData
+                ...collect($statementData)->except([
+                    'period'
+                ])->toArray(),
+                ...$statementData['period']
             ]);
 
             $statementFileIds[] = $statementFile->id;
@@ -144,8 +149,6 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
 
         $ledgerIds = BookkeepingLedger::whereIn('id', $ledgers)->pluck('id');
         $reconciliation->ledgers()->sync($ledgerIds);
-
-
 
         DB::commit();
 
@@ -409,20 +412,30 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
         ];
     }
 
-    public function createReconWithLedgers(array $data, User $user)
+    public function store(array $data)
     {
         $reconciliation = $this->mainRepository->store([
-            'user_id' => $user->id,
+            'user_id' => $data['user_id'],
             'title' => $data['title'],
             'status' => 'draft',
         ]);
-
-        $reconciliation->ledgers()->sync($data['ledgers']);
 
         return [
             'status_code' => 200,
             'status' => 'success',
             'message' => "Reconciliation created successfully!",
+            'data' => $reconciliation
+        ];
+    }
+
+    public function addLedgersToRecon(Reconciliation $reconciliation, array $data)
+    {
+        $reconciliation->ledgers()->sync($data['ledgers']);
+
+        return [
+            'status_code' => 200,
+            'status' => 'success',
+            'message' => "Reconciliation updated successfully!",
             'data' => [
                 ...$reconciliation->toArray(),
                 'ledgers' => $reconciliation->ledgers->map(function ($ledger) {
@@ -496,12 +509,14 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
     }
 
 
-    public function usingEmbeddings(array $statements, array $ledgers, array $mapper, User $user, Reconciliation $reconciliation)
+    public function usingEmbeddings(array $statements, array $ledgers, User $user, Reconciliation $reconciliation)
     {
         $startTime = microtime(true);
         try {
             event(new ReconciliationProgressUpdated($reconciliation->id, 'Structuring bank statements...'));
-            $structuredStatements = $this->mappingData($statements, $mapper);
+            foreach ($statements as $statement) {
+                $structuredStatements = $this->mappingStatement($statement, $statement['mapper']);
+            }
             $this->mainRepository->updateRecon($reconciliation, [
                 ...$reconciliation->toArray(),
                 'step' => 2
@@ -569,6 +584,14 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
             event(new ReconciliationProgressUpdated($reconciliation->id, 'Reconciliation failed. Please try again!'));
             throw $e;
         }
+    }
+
+    public function saveDraft(Reconciliation $reconciliation)
+    {
+        $this->mainRepository->updateRecon($reconciliation, [
+            ...$reconciliation->toArray(),
+            'status' => 'draft'
+        ]);
     }
 
     public function export(Reconciliation $reconciliation)

@@ -31,9 +31,9 @@ class ReconciliationController extends Controller
 
     /**
      * @OA\Post(
-     *     path="/api/v1/reconciliations/create",
-     *     summary="Create reconciliation with ledgers",
-     *     description="Create a new reconciliation with specified ledgers",
+     *     path="/api/v1/reconciliations",
+     *     summary="Create a new reconciliation",
+     *     description="Create a new reconciliation with the specified title",
      *     tags={"Reconciliation"},
      *     security={{"bearerAuth":{}}},
      *     @OA\RequestBody(
@@ -41,12 +41,67 @@ class ReconciliationController extends Controller
      *         @OA\MediaType(
      *             mediaType="application/json",
      *             @OA\Schema(
-     *                 required={"title", "ledgers"},
-     *                 @OA\Property(
-     *                     property="title",
-     *                     type="string",
+     *                 required={"title"},
+     *                @OA\Property(
+     *                    property="title",
+     *                    type="string",
      *                     example="Monthly Reconciliation"
      *                 ),
+     *            ) 
+     *         )
+     *    ),
+     *    @OA\Response(
+     *        response=200,
+     *       description="Reconciliation created successfully",
+     *      @OA\JsonContent(
+     *          @OA\Property(property="message", type="string", example="Reconciliation created successfully"),
+     *          @OA\Property(property="status", type="string", example="success"),
+     *          @OA\Property(property="status_code", type="integer", example=200),
+     *          @OA\Property(
+     *              property="data",
+     *              type="object",
+     *              @OA\Property(property="reconciliation_id", type="string", example="550e8400-e29b-41d4-a716-446655440000")
+     *         )
+     *       )
+     *    ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Bad request",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="error", type="string", example="Invalid input data")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Validation error", 
+     *        @OA\JsonContent(
+     *            @OA\Property(property="error", type="string", example="The title field is required.")
+     *        )
+     *     )
+     * )
+     */
+    public function store(Request $request): JsonResponse
+    {
+        $request->validate([
+            'title' => 'required|string',
+        ]);
+
+        return response()->json($this->reconciliationService->store($request->all(), $request->user()));
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/api/v1/reconciliations/{reconciliation}/ledgers",
+     *     summary="Add ledgers to reconciliation",
+     *     description="Add ledgers to reconciliation",
+     *     tags={"Reconciliation"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\MediaType(
+     *             mediaType="application/json",
+     *             @OA\Schema(
+     *                 required={"ledgers"},
      *                 @OA\Property(
      *                     property="ledgers",
      *                     type="array",
@@ -89,15 +144,14 @@ class ReconciliationController extends Controller
      *     )
      * )
      */
-    public function createReconWithLedgers(Request $request): JsonResponse
+    public function createReconWithLedgers(Request $request, Reconciliation $reconciliation): JsonResponse
     {
         $request->validate([
-            'title' => 'required|string',
             'ledgers' => 'required|array',
             'ledgers.*' => 'required|string|exists:bookkeeping_ledgers,id',
         ]);
 
-        return response()->json($this->reconciliationService->createReconWithLedgers($request->all(), $request->user()));
+        return response()->json($this->reconciliationService->addLedgersToRecon($reconciliation, $request->all()));
     }
 
     /**
@@ -326,20 +380,25 @@ class ReconciliationController extends Controller
      *     )
      * )
      */
-    public function testEmbeddings(Request $request): JsonResponse
+    public function testEmbeddings(Request $request, Reconciliation $reconciliation): JsonResponse
     {
         $request->validate([
             'title' => 'required|string',
             'bank_statements' => 'required|array',
-            'ledgers' => 'required|array',
-            'mapper' => 'required',
-            'mapper.date' => 'required|string',
-            'mapper.description' => 'required|string',
-            'mapper.amount' => 'required|string',
+            'bank_statements.*.mapper' => 'required|array',
+            'bank_statements.*.mapper.date' => 'required|string',
+            'bank_statements.*.mapper.description' => 'required|string',
+            'bank_statements.*.mapper.amount' => 'required|string',
             'bank_statements.*.file' => 'required|file|mimes:csv|max:2048',
             'bank_statements.*.bank_account' => 'required|uuid|exists:bank_accounts,id',
-            'bank_statements.*.period' => 'required|string',
+            'bank_statements.*.period' => 'required|array',
+            'bank_statements.*.period.from' => 'required|string',
+            'bank_statements.*.period.to' => 'required|string',
+            'ledgers' => 'required|array',
             'ledgers.*' => 'required|string|exists:bookkeeping_ledgers,id',
+            'statements.*.period' => 'required|array',
+            'statements.*.period.from' => 'required|string',
+            'statements.*.period.to' => 'required|string',
         ], [
             'bank_statements.*.file.mimes' => 'Bank Statement must be a CSV.',
             'bank_statements.*.file.max' => 'Bank statement must not be larger than 2MB.',
@@ -353,6 +412,8 @@ class ReconciliationController extends Controller
                 $file = $request->file("bank_statements.$index.file");
                 $bankAccount = $statementData['bank_account'];
                 $period = $statementData['period'];
+                $mapper = $statementData['mapper'];
+                $originalName = $file->getClientOriginalName();
 
                 if (!$file) {
                     return response()->json(['error' => "Missing file for bank_statements[$index]."], 422);
@@ -367,21 +428,40 @@ class ReconciliationController extends Controller
                 }
 
                 $statements[] = [
+                    'name' => $originalName,
                     'path' => $statementFullPath,
                     'bank_account_id' => $bankAccount,
-                    'period' => $period,
+                    'period' => [
+                        'start_date' => $period['from'],
+                        'end_date' => $period['to'],
+                    ],
+                    'mapper' => $mapper,
                 ];
             }
 
             $reconciliation = $this->reconciliationService->storeReconciliation($statements, $ledgers,  $request->input('title'), $request->user()->id);
-            ProcessReconciliation::dispatch($statements, $ledgers, $request->input('mapper'), $request->user(), $reconciliation, $this->reconciliationRepository);
+            ProcessReconciliation::dispatch($statements, $ledgers, $request->user(), $reconciliation, $this->reconciliationRepository);
 
             return response()->json([
                 "message" => "Reconciliation initiated successfully",
                 "status" => "success",
                 "status_code" => 200,
                 'data' => [
-                    'reconciliation_id' => $reconciliation->id
+                    'reconciliation_id' => $reconciliation->id,
+                    'bank_accounts' => $reconciliation->statementFiles->map(function ($statement) {
+                        return [
+                            'id' => $statement->bankAccount->id,
+                            'name' => $statement->bankAccount->bank_name,
+                            'account' => $statement->bankAccount->account_name,
+                        ];
+                    }),
+                    'ledgers' => $reconciliation->ledgers->map(function ($ledger) {
+                        return [
+                            'id' => $ledger->id,
+                            'name' => $ledger->name,
+                            'description' => $ledger->description,
+                        ];
+                    }),
                 ],
             ], 200);
         } catch (\Exception $e) {
@@ -395,6 +475,53 @@ class ReconciliationController extends Controller
                 ],
             ], 500);
         }
+    }
+
+
+    /**
+     * @OA\Put(
+     *     path="/api/v1/reconciliations/{reconciliation}",
+     *     summary="Save reconciliation draft",
+     *     description="Save the current state of the reconciliation as a draft",
+     *     tags={"Reconciliation"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="reconciliation",
+     *         in="path",
+     *         required=true,
+     *         description="Reconciliation ID",
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Reconciliation saved successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Reconciliation saved successfully"),
+     *             @OA\Property(property="status", type="string", example="success"),
+     *             @OA\Property(property="status_code", type="integer", example=200),
+     *             @OA\Property(property="data", type="array", @OA\Items(type="object"))
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthorized",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="error", type="string", example="Unauthorized")
+     *         )
+     *     )
+     * )
+     */
+    public function saveDraft(Reconciliation $reconciliation)
+    {
+        $this->reconciliationService->saveDraft($reconciliation);
+        return response()->json([
+            'message' => 'Reconciliation saved successfully',
+            'status' => 'success',
+            'status_code' => 200,
+            'data' => [
+                ...$reconciliation->toArray()
+            ]
+        ], 200);
     }
 
     /**

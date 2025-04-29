@@ -14,7 +14,6 @@ use App\Http\Controllers\BankAccountController;
 use App\Http\Controllers\LedgerEntryController;
 use App\Http\Controllers\PaymentPlanController;
 use App\Http\Controllers\AccountSetupController;
-use App\Http\Middleware\ThrottleUnauthenticated;
 use App\Http\Middleware\CheckReconciliationLimit;
 use App\Http\Controllers\Api\NewsLetterController;
 use App\Http\Controllers\JobApplicationController;
@@ -121,10 +120,12 @@ Route::prefix('v1')->group(function () {
     Route::post('/partners', [PartnerController::class, 'submit'])->name('partners');
 
     // reconciliations
-    Route::middleware('auth:api')->post('/reconciliations/create', [ReconciliationController::class, 'createReconWithLedgers'])->whereUuid('reconciliation')->name('reconciled-results');
+    Route::middleware('auth:api')->post('/reconciliations', [ReconciliationController::class, 'store'])->middleware([CheckReconciliationLimit::class])->name('reconciliations');
+    Route::middleware('auth:api')->post('/reconciliations/{reconciliation}/ledgers', [ReconciliationController::class, 'createReconWithLedgers'])->whereUuid('reconciliation')->name('reconciled-results');
     Route::middleware('auth:api')->post('/reconciliations/{reconciliation}/statements', [ReconciliationController::class, 'addStatementsToRecon'])->whereUuid('reconciliation')->name('add-statements');
     Route::middleware('auth:api')->get('/reconciliations/{reconciliation}/result', [ReconciliationController::class, 'getReconResults'])->whereUuid('reconciliation')->name('reconciled-results');
     Route::middleware('auth:api')->get('/reconciliations/{reconciliation}/summary', [ReconciliationController::class, 'getSummary'])->whereUuid('reconciliation')->name('reconciled-summary');
+    Route::middleware('auth:api')->put('/reconciliations/{reconciliation}', [ReconciliationController::class, 'saveDraft'])->whereUuid('reconciliation')->name('draft');
     Route::middleware('auth:api')->get('/reconciliations/{reconciliation}', [ReconciliationController::class, 'getReconciledRecords'])->whereUuid('reconciliation')->name('reconciled-records');
     Route::middleware('auth:api')->get('/reconciliations', [ReconciliationController::class, 'listUserReconciliations'])->name('list');
     Route::get('/reconciliations/{reconciliation}/export', [ReconciliationController::class, 'export'])->name('export');
