@@ -6032,13 +6032,13 @@
                                     "bank_statements[0][period]": {
                                         "type": "string"
                                     },
-                                    "mapper[date]": {
+                                    "bank_statements[0][mapper][date]": {
                                         "type": "string"
                                     },
-                                    "mapper[description]": {
+                                    "bank_statements[0][mapper][description]": {
                                         "type": "string"
                                     },
-                                    "mapper[amount]": {
+                                    "bank_statements[0][mapper][amount]": {
                                         "type": "string"
                                     },
                                     "ledgers[]": {
