@@ -305,19 +305,23 @@ class ReconciliationController extends Controller
      *                     format="uuid"
      *                 ),
      *                 @OA\Property(
-     *                     property="bank_statements[0][period]",
+     *                     property="bank_statements[0][period][from]",
      *                     type="string"
      *                 ),
      *                 @OA\Property(
-     *                     property="mapper[date]",
+     *                     property="bank_statements[0][period][to]",
      *                     type="string"
      *                 ),
      *                 @OA\Property(
-     *                     property="mapper[description]",
+     *                     property="bank_statements[0][mapper][date]",
      *                     type="string"
      *                 ),
      *                 @OA\Property(
-     *                     property="mapper[amount]",
+     *                     property="bank_statements[0][mapper][description]",
+     *                     type="string"
+     *                 ),
+     *                 @OA\Property(
+     *                     property="bank_statements[0][mapper][amount]",
      *                     type="string"
      *                 ),
      *                 @OA\Property(

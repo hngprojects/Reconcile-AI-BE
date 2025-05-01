@@ -720,12 +720,24 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
     {
         try {
             $reconciliations = $this->mainRepository->list($user);
+            $statements = [];
+            foreach ($reconciliations as $reconciliation) {
+                $statements[] = $this->statementRepository->findAll($reconciliation);
+            }
 
             return [
                 'status_code' => 200,
                 'status' => 'success',
                 'message' => "User's reconciliations fetched successfuly!",
-                'data' => $reconciliations
+                'data' => [
+                    'reconciliations' => $reconciliations,
+                    'summary' => [
+                        'total' => count($reconciliations),
+                        'completed' => collect($reconciliations)->filter(fn($recon) => $recon->status == 'completed')->count(),
+                        'pending' => collect($reconciliations)->filter(fn($recon) => $recon->status == 'in-progress')->count(),
+                        'total_transactions' => collect($statements)->sum(fn($stmt) => $stmt->amount)
+                    ]
+                ]
             ];
         } catch (\Exception $e) {
             return response()->json([
