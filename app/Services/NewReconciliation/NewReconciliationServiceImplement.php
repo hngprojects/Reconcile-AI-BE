@@ -722,7 +722,7 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
             $reconciliations = $this->mainRepository->list($user);
             $statements = [];
             foreach ($reconciliations as $recon) {
-                $reconciliation = $this->mainRepository->get($recon->id);
+                $reconciliation = $this->mainRepository->get($recon['id']);
                 $statements[] = $this->statementRepository->findAll($reconciliation);
             }
 

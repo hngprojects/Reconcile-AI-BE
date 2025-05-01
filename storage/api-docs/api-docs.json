@@ -6029,7 +6029,10 @@
                                         "type": "string",
                                         "format": "uuid"
                                     },
-                                    "bank_statements[0][period]": {
+                                    "bank_statements[0][period][from]": {
+                                        "type": "string"
+                                    },
+                                    "bank_statements[0][period][to]": {
                                         "type": "string"
                                     },
                                     "bank_statements[0][mapper][date]": {
