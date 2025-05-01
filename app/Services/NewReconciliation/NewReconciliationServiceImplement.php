@@ -736,7 +736,7 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
                         'total' => count($reconciliations),
                         'completed' => collect($reconciliations)->filter(fn($recon) => $recon['status'] == 'completed')->count(),
                         'pending' => collect($reconciliations)->filter(fn($recon) => $recon['status'] == 'in-progress')->count(),
-                        'total_transactions' => collect($statements)->sum(fn($stmt) => $stmt->amount)
+                        'total_transactions' => collect($statements)->sum(fn($stmt) => $stmt['amount'])
                     ]
                 ]
             ];
