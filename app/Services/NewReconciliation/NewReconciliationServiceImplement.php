@@ -723,8 +723,11 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
             $statements = [];
             foreach ($reconciliations as $recon) {
                 $reconciliation = $this->mainRepository->get($recon['id']);
-                $statements[] = array_merge($statements, $this->statementRepository->findAll($reconciliation)->toArray());
+                $statements = array_merge($statements, $this->statementRepository->findAll($reconciliation)->toArray());
             }
+
+            Log::info(['data' => collect($statements)->sum(fn($stmt) => $stmt['amount'])]);
+            // collect($stmt)->sum(fn($st) => $st['amount']))
 
             return [
                 'status_code' => 200,
@@ -736,11 +739,12 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
                         'total' => count($reconciliations),
                         'completed' => collect($reconciliations)->filter(fn($recon) => $recon['status'] == 'completed')->count(),
                         'pending' => collect($reconciliations)->filter(fn($recon) => $recon['status'] == 'in-progress')->count(),
-                        'total_transactions' => collect($statements)->sum(fn($stmt) => $stmt[0]['amount'])
+                        'total_transactions' => round(collect($statements)->sum(fn($stmt) => $stmt['amount']), 2)
                     ]
                 ]
             ];
         } catch (\Exception $e) {
+            Log::error('Reconciliation error', ['data' => $e]);
             return response()->json([
                 "message" => "Failed to fetch reconciliations",
                 "status" => "error",
