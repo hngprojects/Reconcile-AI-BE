@@ -515,9 +515,13 @@ class ReconciliationController extends Controller
      *     )
      * )
      */
-    public function saveDraft(Reconciliation $reconciliation)
+    public function saveDraft(Request $request, Reconciliation $reconciliation)
     {
-        $this->reconciliationService->saveDraft($reconciliation);
+        $validated = $request->validate([
+            'step' => 'required|integer'
+        ]);
+
+        $this->reconciliationService->saveDraft($validated, $reconciliation);
         return response()->json([
             'message' => 'Reconciliation saved successfully',
             'status' => 'success',
