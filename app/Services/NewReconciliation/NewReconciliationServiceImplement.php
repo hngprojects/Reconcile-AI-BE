@@ -412,10 +412,10 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
         ];
     }
 
-    public function store(array $data)
+    public function store(array $data, User $user)
     {
         $reconciliation = $this->mainRepository->store([
-            'user_id' => $data['user_id'],
+            'user_id' => $user->id,
             'title' => $data['title'],
             'status' => 'draft',
         ]);
@@ -513,7 +513,10 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
     {
         $startTime = microtime(true);
         try {
-            event(new ReconciliationProgressUpdated($reconciliation->id, 'Structuring bank statements...'));
+            broadcast(new ReconciliationProgressUpdated($reconciliation->id, [
+                'message' => 'Structuring bank statements...',
+                'step' => 1
+            ]));
             foreach ($statements as $statement) {
                 $structuredStatements = $this->mappingStatement($statement, $statement['mapper']);
             }
@@ -522,14 +525,20 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
                 'step' => 2
             ]);
 
-            event(new ReconciliationProgressUpdated($reconciliation->id, 'Saving bank statements...'));
+            broadcast(new ReconciliationProgressUpdated($reconciliation->id, [
+                'message' => 'Saving bank statements...',
+                'step' => 2
+            ]));
             $this->savingStatements($structuredStatements, $reconciliation);
             $this->mainRepository->updateRecon($reconciliation, [
                 ...$reconciliation->toArray(),
                 'step' => 3
             ]);
 
-            event(new ReconciliationProgressUpdated($reconciliation->id, 'Fetching ledger entries...'));
+            broadcast(new ReconciliationProgressUpdated($reconciliation->id, [
+                'message' => 'Fetching ledger entries...',
+                'step' => 3
+            ]));
             $savedStatements = $this->statementRepository->findAll($reconciliation);
             $ledgers = $reconciliation->ledgers()->pluck('bookkeeping_ledger_id')->toArray();
             $savedLedgers = $this->ledgerRepository->findAllByType($ledgers);
@@ -538,7 +547,10 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
                 'step' => 4
             ]);
 
-            event(new ReconciliationProgressUpdated($reconciliation->id, 'Preparation for AI matching...'));
+            broadcast(new ReconciliationProgressUpdated($reconciliation->id, [
+                'message' => 'Preparation for AI matching...',
+                'step' => 4
+            ]));
             $this->generateStatementEmbeddings($savedStatements);
             $this->generateLedgerEmbeddings($savedLedgers);
             $this->mainRepository->updateRecon($reconciliation, [
@@ -546,14 +558,20 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
                 'step' => 5
             ]);
 
-            event(new ReconciliationProgressUpdated($reconciliation->id, 'AI matching in progress...'));
+            broadcast(new ReconciliationProgressUpdated($reconciliation->id, [
+                'message' => 'AI matching in progress...',
+                'step' => 5
+            ]));
             $response = $this->matchUsingEmbeddings($savedStatements, $savedLedgers);
             $this->mainRepository->updateRecon($reconciliation, [
                 ...$reconciliation->toArray(),
                 'step' => 6
             ]);
 
-            event(new ReconciliationProgressUpdated($reconciliation->id, 'Compiling response...'));
+            broadcast(new ReconciliationProgressUpdated($reconciliation->id, [
+                'message' => 'Compiling response...',
+                'step' => 6
+            ]));
             $this->mainRepository->storeResponse([
                 'reconciliation_id' => $reconciliation->id,
                 'data' => $response
@@ -564,7 +582,10 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
             ]);
 
             Mail::to($user->email)->send(new ReconciliationCompleted($reconciliation, $user));
-            event(new ReconciliationProgressUpdated($reconciliation->id, 'Reconciliation completed successfully!'));
+            broadcast(new ReconciliationProgressUpdated($reconciliation->id, [
+                'message' => 'Reconciliation completed successfully!',
+                'step' => 7
+            ]));
             $duration = round(microtime(true) - $startTime, 2);
             $this->mainRepository->updateRecon($reconciliation, [
                 ...$reconciliation->toArray(),
@@ -581,16 +602,20 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
             ];
         } catch (\Exception $e) {
             Log::error('Failed to run job', ['error' =>  $e]);
-            event(new ReconciliationProgressUpdated($reconciliation->id, 'Reconciliation failed. Please try again!'));
+            event(new ReconciliationProgressUpdated($reconciliation->id, [
+                'message' => 'Reconciliation failed. Please try again!',
+                'step' => $reconciliation->step
+            ]));
             throw $e;
         }
     }
 
-    public function saveDraft(Reconciliation $reconciliation)
+    public function saveDraft(array $data, Reconciliation $reconciliation)
     {
         $this->mainRepository->updateRecon($reconciliation, [
             ...$reconciliation->toArray(),
-            'status' => 'draft'
+            'status' => 'draft',
+            'step' => $data['step']
         ]);
     }
 
