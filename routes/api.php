@@ -24,6 +24,7 @@ use App\Http\Controllers\OutboundMarketingController;
 use App\Http\Controllers\BillingTransactionController;
 use App\Http\Controllers\Api\V1\BusinessInfoController;
 use App\Http\Controllers\AccountChartCategoryController;
+use Illuminate\Support\Facades\Broadcast;
 
 Route::prefix('v1')->group(function () {
     Route::get('/', function () {
@@ -51,6 +52,7 @@ Route::prefix('v1')->group(function () {
 
     Route::middleware('auth:api')->get('/user', [GoogleAuthController::class, 'fetchUser'])->name('user');
 
+    Broadcast::routes(['middleware' => ['auth:api']]);
 
     Route::middleware('auth:api')->group(function () {
         Route::post('/profile/update', [UserController::class, 'updateProfile'])->name('update-profile');

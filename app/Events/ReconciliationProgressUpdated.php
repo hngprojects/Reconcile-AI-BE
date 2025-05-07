@@ -14,10 +14,10 @@ class ReconciliationProgressUpdated implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    public string $message;
+    public array $message;
     public string $reconciliationId;
 
-    public function __construct($reconciliationId, $message)
+    public function __construct(string $reconciliationId, array $message)
     {
         $this->reconciliationId = $reconciliationId;
         $this->message = $message;
@@ -26,5 +26,15 @@ class ReconciliationProgressUpdated implements ShouldBroadcast
     public function broadcastOn()
     {
         return new PrivateChannel('reconciliation.' . $this->reconciliationId);
+    }
+
+    public function broadcastAs()
+    {
+        return 'reconciliation-progress-updated';
+    }
+
+    public function broadcastWith()
+    {
+        return $this->message;
     }
 }
