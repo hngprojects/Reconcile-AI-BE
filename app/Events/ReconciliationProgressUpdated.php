@@ -2,30 +2,35 @@
 
 namespace App\Events;
 
-use Illuminate\Broadcasting\Channel;
+use App\Models\Reconciliation;
+use App\Models\User;
 use Illuminate\Broadcasting\InteractsWithSockets;
-use Illuminate\Broadcasting\PresenceChannel;
 use Illuminate\Broadcasting\PrivateChannel;
-use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
+use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Log;
 
-class ReconciliationProgressUpdated implements ShouldBroadcast
+class ReconciliationProgressUpdated implements ShouldBroadcastNow
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     public array $message;
-    public string $reconciliationId;
+    public Reconciliation $reconciliation;
+    public User $user;
 
-    public function __construct(string $reconciliationId, array $message)
+    public function __construct(Reconciliation $reconciliation, User $owner, array $message)
     {
-        $this->reconciliationId = $reconciliationId;
+        $this->reconciliation = $reconciliation;
+        $this->user = $owner;
         $this->message = $message;
     }
 
     public function broadcastOn()
     {
-        return new PrivateChannel('reconciliation.' . $this->reconciliationId);
+
+        Log::info('Broadcasting to channel: reconciliation.' . $this->reconciliation->id);
+        return new PrivateChannel('reconciliation.' . $this->reconciliation->id);
     }
 
     public function broadcastAs()

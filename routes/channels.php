@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Reconciliation;
+use App\Models\User;
 use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Log;
 
@@ -10,25 +11,15 @@ Broadcast::channel('App.Models.User.{id}', function ($user, $id) {
 
 
 Broadcast::channel('reconciliation.{reconciliationId}', function ($user, $reconciliationId) {
-    Log::info('Channel auth attempt', [
-        'user_id' => $user->id ?? 'null',
-        'reconciliation_id' => $reconciliationId
-    ]);
-
-    $reconciliation = Reconciliation::where('id', '=', $reconciliationId)->with('user')->first();
+    $reconciliation = Reconciliation::find($reconciliationId);
 
     if (!$reconciliation) {
-        Log::info('Reconciliation not found');
+        Log::warning("Reconciliation not found: {$reconciliationId}");
         return false;
     }
 
-    if (!$reconciliation->user) {
-        Log::info('Reconciliation user not found');
-        return false;
-    }
+    $isOwner = $reconciliation->user_id === $user->id;
+    Log::info("Channel auth for {$user->id}: " . ($isOwner ? 'GRANTED' : 'DENIED'));
 
-    $authorized = $reconciliation->user->id === $user->id;
-    Log::info('Auth result', ['authorized' => $authorized]);
-
-    return $authorized;
+    return $isOwner;
 });
