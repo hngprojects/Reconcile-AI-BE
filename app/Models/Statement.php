@@ -19,7 +19,8 @@ class Statement extends Model
         'person',
         'amount',
         'other_information',
-        'reconciliation_id'
+        'reconciliation_id',
+        'statement_file_id'
     ];
     protected $keyType = 'string';
     public $incrementing = false;
@@ -32,5 +33,10 @@ class Statement extends Model
     public function reconciliation(): BelongsTo
     {
         return $this->belongsTo(Reconciliation::class);
+    }
+
+    public function statementFile(): BelongsTo
+    {
+        return $this->belongsTo(StatementFile::class);
     }
 }

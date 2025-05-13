@@ -13,11 +13,9 @@ use App\Repositories\LedgerPayment\LedgerPaymentRepository;
 use App\Models\Reconciliation;
 use App\Models\ReconciledRecord;
 use App\Models\Statement;
-use App\Models\StatementFile;
 use App\Models\Ledger;
 use App\Models\BookkeepingLedger;
 use App\Models\User;
-use App\Http\Resources\TransactionResource;
 use Illuminate\Support\Facades\DB;
 use Gemini\Laravel\Facades\Gemini;
 use Illuminate\Support\Collection;
@@ -28,6 +26,8 @@ use Illuminate\Support\Sleep;
 use Illuminate\Support\Facades\Response;
 use NumConvert;
 use App\Events\ReconciliationProgressUpdated;
+use App\Http\Resources\LedgerResource;
+use App\Http\Resources\StatementResource;
 use Illuminate\Support\Arr;
 
 class NewReconciliationServiceImplement extends ServiceApi implements NewReconciliationService
@@ -281,9 +281,15 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
     }
 
 
-    protected function mappingStatement(array $stmt, array $mapper)
+    protected function mappingStatement(array $stmt, array $mapper, Reconciliation $reconciliation)
     {
         $mapped = [];
+        $files = $reconciliation->statementFiles;
+        $stmtFile = $files->first(fn($stm) => $stm->userFile->file_path === $stmt['path']);
+
+        if (!$stmtFile) {
+            throw new \Exception("Statement file not found for path: " . $stmt['path']);
+        }
 
         $data = $this->loadComplexCsv($stmt['path']);
         foreach ($data as $row) {
@@ -296,6 +302,7 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
                     $mapper['description'],
                     $mapper['amount']
                 ])->toArray(),
+                'statement_file_id' => $stmtFile->id
             ];
         }
 
@@ -371,8 +378,8 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
 
         foreach ($matched as $match) {
             $percent = ceil($match->cosine_similarity * 100);
-            $newStatement = (new TransactionResource($this->statementRepository->findById($match->statement_id)))->toArray(request());
-            $newLedger = (new TransactionResource($this->ledgerRepository->findById($match->ledger_id)))->toArray(request());
+            $newStatement = (new StatementResource($this->statementRepository->findById($match->statement_id)))->toArray(request());
+            $newLedger = (new LedgerResource($this->ledgerRepository->findById($match->ledger_id)))->toArray(request());
 
             $matches->push([
                 'statement' => $newStatement,
@@ -389,13 +396,13 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
 
         $unmatchedStatements = $statements
             ->whereNotIn('id', $matchedStatementIds)
-            ->map(fn($stat) => (new TransactionResource($stat))->toArray(request()))
+            ->map(fn($stat) => (new StatementResource($stat))->toArray(request()))
             ->values()
             ->all();
 
         $unmatchedLedgers = $ledgers
             ->whereNotIn('id', $matchedLedgerIds)
-            ->map(fn($ledg) => (new TransactionResource($ledg))->toArray(request()))
+            ->map(fn($ledg) => (new LedgerResource($ledg))->toArray(request()))
             ->values()
             ->all();
 
@@ -472,7 +479,7 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
                 ...$statementData['period']
             ]);
 
-            $structuredStatements = $this->mappingStatement($statementData, $statementData['mapper']);
+            $structuredStatements = $this->mappingStatement($statementData, $statementData['mapper'], $reconciliation);
             $this->savingStatements($structuredStatements, $reconciliation);
 
             $statementFileIds[] = $statementFile->id;
@@ -513,19 +520,19 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
     {
         $startTime = microtime(true);
         try {
-            broadcast(new ReconciliationProgressUpdated($reconciliation->id, [
+            broadcast(new ReconciliationProgressUpdated($reconciliation, $user, [
                 'message' => 'Structuring bank statements...',
                 'step' => 1
             ]));
             foreach ($statements as $statement) {
-                $structuredStatements = $this->mappingStatement($statement, $statement['mapper']);
+                $structuredStatements = $this->mappingStatement($statement, $statement['mapper'], $reconciliation);
             }
             $this->mainRepository->updateRecon($reconciliation, [
                 ...$reconciliation->toArray(),
                 'step' => 2
             ]);
 
-            broadcast(new ReconciliationProgressUpdated($reconciliation->id, [
+            broadcast(new ReconciliationProgressUpdated($reconciliation, $user, [
                 'message' => 'Saving bank statements...',
                 'step' => 2
             ]));
@@ -535,7 +542,7 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
                 'step' => 3
             ]);
 
-            broadcast(new ReconciliationProgressUpdated($reconciliation->id, [
+            broadcast(new ReconciliationProgressUpdated($reconciliation, $user, [
                 'message' => 'Fetching ledger entries...',
                 'step' => 3
             ]));
@@ -547,7 +554,7 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
                 'step' => 4
             ]);
 
-            broadcast(new ReconciliationProgressUpdated($reconciliation->id, [
+            broadcast(new ReconciliationProgressUpdated($reconciliation, $user, [
                 'message' => 'Preparation for AI matching...',
                 'step' => 4
             ]));
@@ -558,7 +565,7 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
                 'step' => 5
             ]);
 
-            broadcast(new ReconciliationProgressUpdated($reconciliation->id, [
+            broadcast(new ReconciliationProgressUpdated($reconciliation, $user, [
                 'message' => 'AI matching in progress...',
                 'step' => 5
             ]));
@@ -568,7 +575,7 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
                 'step' => 6
             ]);
 
-            broadcast(new ReconciliationProgressUpdated($reconciliation->id, [
+            broadcast(new ReconciliationProgressUpdated($reconciliation, $user, [
                 'message' => 'Compiling response...',
                 'step' => 6
             ]));
@@ -582,7 +589,7 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
             ]);
 
             Mail::to($user->email)->send(new ReconciliationCompleted($reconciliation, $user));
-            broadcast(new ReconciliationProgressUpdated($reconciliation->id, [
+            broadcast(new ReconciliationProgressUpdated($reconciliation, $user, [
                 'message' => 'Reconciliation completed successfully!',
                 'step' => 7
             ]));
@@ -602,7 +609,7 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
             ];
         } catch (\Exception $e) {
             Log::error('Failed to run job', ['error' =>  $e]);
-            event(new ReconciliationProgressUpdated($reconciliation->id, [
+            event(new ReconciliationProgressUpdated($reconciliation, $user, [
                 'message' => 'Reconciliation failed. Please try again!',
                 'step' => $reconciliation->step
             ]));
@@ -680,8 +687,8 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
 
         foreach ($matched as $match) {
             $percent = $match->score;
-            $newStatement = (new TransactionResource($this->statementRepository->findById($match->statement_id)))->toArray(request());
-            $newLedger = (new TransactionResource($this->ledgerRepository->findById($match->ledger_id)))->toArray(request());
+            $newStatement = (new StatementResource($this->statementRepository->findById($match->statement_id)))->toArray(request());
+            $newLedger = (new LedgerResource($this->ledgerRepository->findById($match->ledger_id)))->toArray(request());
 
             $matches->push([
                 'statement' => $newStatement,
@@ -700,13 +707,13 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
 
         $unmatchedStatements = $savedStatements
             ->whereNotIn('id', $matchedStatementIds)
-            ->map(fn($stat) => (new TransactionResource($stat))->toArray(request()))
+            ->map(fn($stat) => (new StatementResource($stat))->toArray(request()))
             ->values()
             ->all();
 
         $unmatchedLedgers = $savedLedgers
             ->whereNotIn('id', $matchedLedgerIds)
-            ->map(fn($ledg) => (new TransactionResource($ledg))->toArray(request()))
+            ->map(fn($ledg) => (new LedgerResource($ledg))->toArray(request()))
             ->values()
             ->all();
 

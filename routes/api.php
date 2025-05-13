@@ -52,8 +52,6 @@ Route::prefix('v1')->group(function () {
 
     Route::middleware('auth:api')->get('/user', [GoogleAuthController::class, 'fetchUser'])->name('user');
 
-    Broadcast::routes(['middleware' => ['auth:api']]);
-
     Route::middleware('auth:api')->group(function () {
         Route::post('/profile/update', [UserController::class, 'updateProfile'])->name('update-profile');
         Route::delete('/user', [UserController::class, 'deleteAccount'])->name('user.delete');
