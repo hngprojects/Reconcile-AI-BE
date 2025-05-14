@@ -41,9 +41,9 @@ class ReconciliationRepositoryImplement extends Eloquent implements Reconciliati
     public function list(User $user)
     {
         return $this->model
-            ->where('user_id', '=', $user->id)
+            ->where('user_id', $user->id)
+            ->orderBy('created_at', 'DESC')
             ->get()
-            ->sortBy('created_at')
             ->map(function ($rec) {
                 return [
                     'id' => $rec->id,

@@ -11,6 +11,8 @@ use App\Models\Reconciliation;
 use App\Http\Requests\ManualReconciliationRequest;
 use App\Jobs\ProcessReconciliation;
 use Illuminate\Support\Facades\Log;
+use App\Jobs\ProcessDraftReconciliation;
+use Illuminate\Support\Facades\Auth;
 
 /**
  * @OA\Tag(
@@ -856,12 +858,202 @@ class ReconciliationController extends Controller
         return $this->reconciliationService->fetchDetails($reconciliation);
     }
 
+    /**
+     * @OA\Post(
+     *     path="/api/reconciliations/{reconciliation}/start",
+     *     tags={"Reconciliation"},
+     *     summary="Start reconciliation process",
+     *     description="Dispatches a job to perform AI-powered matching of existing statements and ledgers in a reconciliation",
+     *     security={{"bearerAuth": {}}},
+     *     @OA\Parameter(
+     *         name="reconciliation",
+     *         in="path",
+     *         description="ID of the reconciliation to process",
+     *         required=true,
+     *         @OA\Schema(
+     *             type="integer",
+     *             format="int64"
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=202,
+     *         description="Reconciliation process started successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Reconciliation process started successfully"),
+     *             @OA\Property(property="status", type="string", example="success"),
+     *             @OA\Property(property="status_code", type="integer", example=202),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="object",
+     *                 @OA\Property(property="reconciliation_id", type="integer", example=1)
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Validation error",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Reconciliation must have at least one ledger"),
+     *             @OA\Property(property="status", type="string", example="error"),
+     *             @OA\Property(property="status_code", type="integer", example=400)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="Authorization error",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="You do not own this reconciliation"),
+     *             @OA\Property(property="status", type="string", example="error"),
+     *             @OA\Property(property="status_code", type="integer", example=403)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Server error",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Failed to start reconciliation process"),
+     *             @OA\Property(property="status", type="string", example="error"),
+     *             @OA\Property(property="status_code", type="integer", example=500),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="object",
+     *                 @OA\Property(property="error", type="string", example="Error message details")
+     *             )
+     *         )
+     *     )
+     * )
+     */
+    public function processWithEmbeddings(Reconciliation $reconciliation)
+    {
+        $user = Auth::user();
 
+        try {
+            // Quick validation before dispatching job
+            if ($reconciliation->user_id !== $user->id) {
+                return response()->json([
+                    'message' => 'You do not own this reconciliation',
+                    'status' => 'error',
+                    'status_code' => 403
+                ], 403);
+            }
+
+            if ($reconciliation->ledgers()->count() === 0) {
+                return response()->json([
+                    'message' => 'Reconciliation must have at least one ledger',
+                    'status' => 'error',
+                    'status_code' => 400
+                ], 400);
+            }
+
+            if ($reconciliation->statementFiles()->count() === 0) {
+                return response()->json([
+                    'message' => 'Reconciliation must have at least one statement file',
+                    'status' => 'error',
+                    'status_code' => 400
+                ], 400);
+            }
+
+            ProcessDraftReconciliation::dispatch($reconciliation, $user);
+
+            return response()->json([
+                'message' => 'Reconciliation process started successfully',
+                'status' => 'success',
+                'status_code' => 202,
+                'data' => [
+                    'reconciliation_id' => $reconciliation->id
+                ]
+            ], 202);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to start reconciliation process',
+                'status' => 'error',
+                'status_code' => 500,
+                'data' => [
+                    'error' => $e->getMessage()
+                ]
+            ], 500);
+        }
+    }
 
 
     private function isValidFileFormat(string $filePath): bool
     {
         $extension = pathinfo($filePath, PATHINFO_EXTENSION);
         return in_array(strtolower($extension), ['csv', 'xls', 'xlsx']);
+    }
+
+    /**
+     * @OA\Delete(
+     *     path="/api/v1/reconciliations/{reconciliation}",
+     *     summary="Delete a reconciliation",
+     *     description="Delete a reconciliation by ID",
+     *     tags={"Reconciliation"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="reconciliation",
+     *         in="path",
+     *         required=true,
+     *         description="Reconciliation ID",
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Reconciliation deleted successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Reconciliation deleted successfully"),
+     *             @OA\Property(property="status", type="string", example="success"),
+     *             @OA\Property(property="status_code", type="integer", example=200)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="Forbidden",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="You do not own this reconciliation"),
+     *             @OA\Property(property="status", type="string", example="error"),
+     *             @OA\Property(property="status_code", type="integer", example=403)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Not found",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Reconciliation not found"),
+     *             @OA\Property(property="status", type="string", example="error"),
+     *             @OA\Property(property="status_code", type="integer", example=404)
+     *         )
+     *     )
+     * )
+     */
+    public function destroy(Reconciliation $reconciliation)
+    {
+        $user = auth()->user();
+
+        if ($reconciliation->user_id !== $user->id) {
+            return response()->json([
+                'message' => 'You do not own this reconciliation',
+                'status' => 'error',
+                'status_code' => 403
+            ], 403);
+        }
+
+        try {
+            $reconciliation->delete();
+
+            return response()->json([
+                'message' => 'Reconciliation deleted successfully',
+                'status' => 'success',
+                'status_code' => 200
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to delete reconciliation',
+                'status' => 'error',
+                'status_code' => 500,
+                'data' => [
+                    'error' => $e->getMessage()
+                ]
+            ], 500);
+        }
     }
 }
