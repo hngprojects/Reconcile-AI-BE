@@ -597,7 +597,6 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
             $this->mainRepository->updateRecon($reconciliation, [
                 ...$reconciliation->toArray(),
                 'duration' => $duration,
-                'status' => 'completed',
             ]);
             Log::info("Reconciliation completed in {$duration} seconds");
 
@@ -609,6 +608,97 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
             ];
         } catch (\Exception $e) {
             Log::error('Failed to run job', ['error' =>  $e]);
+            event(new ReconciliationProgressUpdated($reconciliation, $user, [
+                'message' => 'Reconciliation failed. Please try again!',
+                'step' => $reconciliation->step
+            ]));
+            throw $e;
+        }
+    }
+
+    public function reconcileDraft(User $user, Reconciliation $reconciliation)
+    {
+        $startTime = microtime(true);
+        try {
+            broadcast(new ReconciliationProgressUpdated($reconciliation, $user, [
+                'message' => 'Fetching ledger entries...',
+                'step' => 3
+            ]));
+
+            // Get existing statements and ledgers from the reconciliation
+            $savedStatements = $this->statementRepository->findAll($reconciliation);
+            $ledgerIds = $reconciliation->ledgers()->pluck('bookkeeping_ledger_id')->toArray();
+            $savedLedgers = $this->ledgerRepository->findAllByType($ledgerIds);
+
+            if ($savedStatements->isEmpty()) {
+                throw new \Exception('No statements found for this reconciliation');
+            }
+
+            if ($savedLedgers->isEmpty()) {
+                throw new \Exception('No ledgers found for this reconciliation');
+            }
+
+            $this->mainRepository->updateRecon($reconciliation, [
+                ...$reconciliation->toArray(),
+                'step' => 4
+            ]);
+
+            broadcast(new ReconciliationProgressUpdated($reconciliation, $user, [
+                'message' => 'Preparation for AI matching...',
+                'step' => 4
+            ]));
+            $this->generateStatementEmbeddings($savedStatements);
+            $this->generateLedgerEmbeddings($savedLedgers);
+            $this->mainRepository->updateRecon($reconciliation, [
+                ...$reconciliation->toArray(),
+                'step' => 5
+            ]);
+
+            broadcast(new ReconciliationProgressUpdated($reconciliation, $user, [
+                'message' => 'AI matching in progress...',
+                'step' => 5
+            ]));
+            $response = $this->matchUsingEmbeddings($savedStatements, $savedLedgers);
+            $this->mainRepository->updateRecon($reconciliation, [
+                ...$reconciliation->toArray(),
+                'step' => 6
+            ]);
+
+            broadcast(new ReconciliationProgressUpdated($reconciliation, $user, [
+                'message' => 'Compiling response...',
+                'step' => 6
+            ]));
+            $this->mainRepository->storeResponse([
+                'reconciliation_id' => $reconciliation->id,
+                'data' => $response
+            ]);
+            $this->mainRepository->updateRecon($reconciliation, [
+                ...$reconciliation->toArray(),
+                'step' => 7
+            ]);
+
+            Mail::to($user->email)->send(new ReconciliationCompleted($reconciliation, $user));
+            broadcast(new ReconciliationProgressUpdated($reconciliation, $user, [
+                'message' => 'Reconciliation completed successfully!',
+                'step' => 7
+            ]));
+            $duration = round(microtime(true) - $startTime, 2);
+            $this->mainRepository->updateRecon($reconciliation, [
+                ...$reconciliation->toArray(),
+                'duration' => $duration,
+            ]);
+            Log::info("Reconciliation completed in {$duration} seconds");
+
+            return [
+                'reconciliation_id' => $reconciliation->id,
+                ...$response
+            ];
+        } catch (\Exception $e) {
+            Log::error('Failed to run job', ['error' => $e]);
+            $this->mainRepository->updateRecon($reconciliation, [
+                ...$reconciliation->toArray(),
+                'status' => 'failed'
+            ]);
             event(new ReconciliationProgressUpdated($reconciliation, $user, [
                 'message' => 'Reconciliation failed. Please try again!',
                 'step' => $reconciliation->step

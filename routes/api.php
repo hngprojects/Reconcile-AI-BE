@@ -1,7 +1,6 @@
 <?php
 
 use App\Http\Controllers\ChartOfAccountController;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PlanController;
 use App\Http\Controllers\UserController;
@@ -24,7 +23,6 @@ use App\Http\Controllers\OutboundMarketingController;
 use App\Http\Controllers\BillingTransactionController;
 use App\Http\Controllers\Api\V1\BusinessInfoController;
 use App\Http\Controllers\AccountChartCategoryController;
-use Illuminate\Support\Facades\Broadcast;
 
 Route::prefix('v1')->group(function () {
     Route::get('/', function () {
@@ -125,10 +123,12 @@ Route::prefix('v1')->group(function () {
     Route::middleware('auth:api')->post('/reconciliations/{reconciliation}/statements', [ReconciliationController::class, 'addStatementsToRecon'])->whereUuid('reconciliation')->name('add-statements');
     Route::middleware('auth:api')->get('/reconciliations/{reconciliation}/result', [ReconciliationController::class, 'getReconResults'])->whereUuid('reconciliation')->name('reconciled-results');
     Route::middleware('auth:api')->get('/reconciliations/{reconciliation}/summary', [ReconciliationController::class, 'getSummary'])->whereUuid('reconciliation')->name('reconciled-summary');
+    Route::middleware('auth:api')->post('/reconciliations/{reconciliation}/start', [ReconciliationController::class, 'processWithEmbeddings'])->whereUuid('reconciliation')->name('start-reconciliation');
     Route::middleware('auth:api')->put('/reconciliations/{reconciliation}', [ReconciliationController::class, 'saveDraft'])->whereUuid('reconciliation')->name('draft');
     Route::middleware('auth:api')->get('/reconciliations/{reconciliation}', [ReconciliationController::class, 'getReconciledRecords'])->whereUuid('reconciliation')->name('reconciled-records');
     Route::middleware('auth:api')->get('/reconciliations', [ReconciliationController::class, 'listUserReconciliations'])->name('list');
     Route::get('/reconciliations/{reconciliation}/export', [ReconciliationController::class, 'export'])->name('export');
+    Route::middleware('auth:api')->delete('/reconciliations/{reconciliation}', [ReconciliationController::class, 'destroy'])->whereUuid('reconciliation')->name('delete-reconciliation');
     Route::middleware('auth:api')->post('/reconcile', [ReconciliationController::class, 'testEmbeddings'])->middleware([CheckReconciliationLimit::class])->name('reconcile');
     Route::post('/reconcile/{reconciliation}', [ReconciliationController::class, 'matchUnmatch'])->whereUuid('reconciliation')->name('manual-reconciliation');
 
