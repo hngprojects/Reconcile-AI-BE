@@ -21,6 +21,8 @@ class StatementFactory extends Factory
             'person' => fake()->name(),
             'other_information' => fake()->sentence(),
             'amount' => fake()->randomNumber(),
-            'reconciliation_id' => \App\Models\Reconciliation::factory()        ];
+            'reconciliation_id' => \App\Models\Reconciliation::factory(),
+            'statement_file_id' => \App\Models\StatementFile::factory()
+        ];
     }
 }
