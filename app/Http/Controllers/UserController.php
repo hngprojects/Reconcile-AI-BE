@@ -220,14 +220,14 @@ class UserController extends Controller
     public function deleteAccount(Request $request)
     {
         try {
-            $user = Auth::user();
+            $user = User::find($request->user()->id);
 
             // Delete user's avatar if exists
             if ($user->avatar) {
                 Storage::disk('public')->delete($user->avatar);
-            }
+            };
 
-            //$user->delete();
+            $user->delete();
 
             Auth::invalidate(true);
 
