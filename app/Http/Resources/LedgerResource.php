@@ -20,6 +20,7 @@ class LedgerResource extends JsonResource
             'Description' => $this->person,
             'Amount' => $this->amount,
             'type' => $this->transaction_type,
+            'ledger' => $this->ledgerType,
             'status' => $this->payment->payment_status ?? 'Pending',
             'amount_paid' => $this->payment->amount_paid ?? 0,
             'reconciled' => $this->match !== null ? true : false,

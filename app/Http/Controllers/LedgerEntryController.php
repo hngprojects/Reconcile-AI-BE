@@ -215,7 +215,7 @@ class LedgerEntryController extends Controller
                 ], 401);
             }
 
-            $ledgers = Ledger::with(['payment', 'payment.account', 'ledgerType'])
+            $ledgers = Ledger::with(['payment', 'payment.account', 'ledgerType', 'match'])
                 ->orderBy('date', 'desc')
                 ->get();
 

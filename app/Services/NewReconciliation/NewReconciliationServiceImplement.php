@@ -809,6 +809,8 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
 
         return [
             'reconciliation_id' => $reconciliation->id,
+            'project_name' => $reconciliation->title,
+            'created_at' => $reconciliation->created_at,
             'matches' => $matches,
             'unmatched_ledgers' => $unmatchedLedgers,
             'unmatched_statements' => $unmatchedStatements,
