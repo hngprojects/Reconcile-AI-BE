@@ -7,28 +7,30 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use LaravelEasyRepository\ServiceApi;
 use App\Repositories\GoogleAuth\GoogleAuthRepository;
+use App\Models\ChartAccountCategory;
 
-class GoogleAuthServiceImplement extends ServiceApi implements GoogleAuthService{
+class GoogleAuthServiceImplement extends ServiceApi implements GoogleAuthService
+{
 
     /**
      * set title message api for CRUD
      * @param string $title
      */
-     protected string $title = "Google Auth Service";
-     /**
+    protected string $title = "Google Auth Service";
+    /**
      * uncomment this to override the default message
      * protected string $create_message = "";
      * protected string $update_message = "";
      * protected string $delete_message = "";
      */
 
-     /**
+    /**
      * don't change $this->mainRepository variable name
      * because used in extends service class
      */
     public function __construct(protected GoogleAuthRepository $repository)
     {
-      // $this->mainRepository = $mainRepository;
+        // $this->mainRepository = $mainRepository;
     }
 
     /**
@@ -41,7 +43,7 @@ class GoogleAuthServiceImplement extends ServiceApi implements GoogleAuthService
         ]);
 
         $payload = $this->repository->validateGoogleToken($request->id_token);
-        
+
         if (!$payload) {
             throw new \Exception('Invalid Google token', 401);
         }
@@ -51,6 +53,25 @@ class GoogleAuthServiceImplement extends ServiceApi implements GoogleAuthService
 
         if ($isNewUser) {
             $this->sendWelcomeEmail($user, $token);
+        }
+
+        if ($user->accountChartCategories()->count() == 0) {
+            // Get all the REQUIRED categories 
+            $requiredCategories = ChartAccountCategory::where('is_required', true)->get();
+
+            // Create an array of pivot data with UUIDs
+            $pivotData = [];
+            foreach ($requiredCategories as $category) {
+                $pivotData[$category->id] = [
+                    'user_id' => $user->id,
+                    'account_chart_category_id' => $category->id,
+                    'created_at' => now(),
+                    'updated_at' => now()
+                ];
+            }
+
+            // Attach categories with pivot data
+            $user->accountChartCategories()->attach($pivotData);
         }
 
         return [

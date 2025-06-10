@@ -167,7 +167,6 @@ class AuthServiceImplement extends ServiceApi implements AuthService
             $pivotData = [];
             foreach ($requiredCategories as $category) {
                 $pivotData[$category->id] = [
-                    'id' => Str::uuid()->toString(),
                     'user_id' => $user->id,
                     'account_chart_category_id' => $category->id,
                     'created_at' => now(),
