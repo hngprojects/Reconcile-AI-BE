@@ -25,6 +25,7 @@ class Ledger extends Model
     ];
     protected $keyType = 'string';
     public $incrementing = false;
+    protected $hidden = ['embedding', 'other_information'];
 
     public function match(): BelongsTo
     {
