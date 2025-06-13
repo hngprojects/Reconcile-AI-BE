@@ -355,11 +355,9 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
     protected function generateLedgerEmbeddings(Collection $ledgers)
     {
         $ledgers->map(function (Ledger $ledger) {
-            $payment = $this->ledgerPaymentRepository->findByLedger($ledger);
             $formattedDate = date('Y-m-d', strtotime($ledger->date));
             $amt = NumConvert::word($ledger->amount);
-            $paymentStr = $payment != null ? ", Amount Paid: {$payment->amount_paid}, Payment Status: {$payment->payment_status}, Bank Account: {$payment->account->bank_name}" : "";
-            $combinedText = "Person's name: {$ledger->person}, Amount: {$ledger->amount}, Amount in words: {$amt}, Date: {$formattedDate} Other Relevant Information: {$ledger->other_information}" . $paymentStr;
+            $combinedText = "Person's name: {$ledger->person}, Amount: {$ledger->amount}, Amount in words: {$amt}, Date: {$formattedDate} Other Relevant Information: {$ledger->other_information}";
             $embedding = $this->getEmbedding($combinedText);
             $this->ledgerRepository->addVector($ledger, $embedding);
         });
@@ -519,13 +517,14 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
     public function usingEmbeddings(array $statements, array $ledgers, User $user, Reconciliation $reconciliation)
     {
         $startTime = microtime(true);
+        $structuredStatements = [];
         try {
             broadcast(new ReconciliationProgressUpdated($reconciliation, $user, [
                 'message' => 'Structuring bank statements...',
                 'step' => 1
             ]));
             foreach ($statements as $statement) {
-                $structuredStatements = $this->mappingStatement($statement, $statement['mapper'], $reconciliation);
+                $structuredStatements = array_merge($structuredStatements, $this->mappingStatement($statement, $statement['mapper'], $reconciliation));
             }
             $this->mainRepository->updateRecon($reconciliation, [
                 ...$reconciliation->toArray(),
@@ -949,6 +948,22 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
                 'duration' => $reconciliation->duration,
                 'step' => $reconciliation->step,
             ]
+        ]);
+    }
+
+    public function complete(Reconciliation $reconciliation)
+    {
+        $this->mainRepository->updateRecon($reconciliation, [
+            'status' => 'completed',
+            'step' => 6
+        ]);
+
+
+        return response()->json([
+            "message" => "Reconciliation successfully completed",
+            "status" => "success",
+            "status_code" => 200,
+            "data" => $reconciliation
         ]);
     }
 }

@@ -124,6 +124,7 @@ Route::prefix('v1')->group(function () {
     Route::middleware('auth:api')->get('/reconciliations/{reconciliation}/result', [ReconciliationController::class, 'getReconResults'])->whereUuid('reconciliation')->name('reconciled-results');
     Route::middleware('auth:api')->get('/reconciliations/{reconciliation}/summary', [ReconciliationController::class, 'getSummary'])->whereUuid('reconciliation')->name('reconciled-summary');
     Route::middleware('auth:api')->post('/reconciliations/{reconciliation}/start', [ReconciliationController::class, 'processWithEmbeddings'])->whereUuid('reconciliation')->name('start-reconciliation');
+    Route::middleware('auth:api')->put('/reconciliations/{reconciliation}/complete', [ReconciliationController::class, 'complete'])->whereUuid('reconciliation')->name('reconciled-complete');
     Route::middleware('auth:api')->put('/reconciliations/{reconciliation}', [ReconciliationController::class, 'saveDraft'])->whereUuid('reconciliation')->name('draft');
     Route::middleware('auth:api')->get('/reconciliations/{reconciliation}', [ReconciliationController::class, 'getReconciledRecords'])->whereUuid('reconciliation')->name('reconciled-records');
     Route::middleware('auth:api')->get('/reconciliations', [ReconciliationController::class, 'listUserReconciliations'])->name('list');

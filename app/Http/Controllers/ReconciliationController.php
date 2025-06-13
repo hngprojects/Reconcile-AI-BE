@@ -483,7 +483,6 @@ class ReconciliationController extends Controller
         }
     }
 
-
     /**
      * @OA\Put(
      *     path="/api/v1/reconciliations/{reconciliation}",
@@ -526,6 +525,51 @@ class ReconciliationController extends Controller
         $this->reconciliationService->saveDraft($validated, $reconciliation);
         return response()->json([
             'message' => 'Reconciliation saved successfully',
+            'status' => 'success',
+            'status_code' => 200,
+            'data' => [
+                ...$reconciliation->toArray()
+            ]
+        ], 200);
+    }
+    /**
+     * @OA\Put(
+     *     path="/api/v1/reconciliations/{reconciliation}/complete",
+     *     summary="Save reconciliation draft",
+     *     description="Save the current state of the reconciliation as a draft",
+     *     tags={"Reconciliation"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="reconciliation",
+     *         in="path",
+     *         required=true,
+     *         description="Reconciliation ID",
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Reconciliation saved successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Reconciliation saved successfully"),
+     *             @OA\Property(property="status", type="string", example="success"),
+     *             @OA\Property(property="status_code", type="integer", example=200),
+     *             @OA\Property(property="data", type="array", @OA\Items(type="object"))
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthorized",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="error", type="string", example="Unauthorized")
+     *         )
+     *     )
+     * )
+     */
+    public function complete(Reconciliation $reconciliation)
+    {
+        $this->reconciliationService->complete($reconciliation);
+        return response()->json([
+            'message' => 'Reconciliation completed successfully',
             'status' => 'success',
             'status_code' => 200,
             'data' => [

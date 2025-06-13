@@ -22,4 +22,5 @@ interface NewReconciliationService extends BaseService
     public function export(Reconciliation $reconciliation);
     public function fetchUserReconciliations(User $user);
     public function uploadLedger(array $data);
+    public function complete(Reconciliation $reconciliation);
 }
