@@ -358,7 +358,7 @@ class NewReconciliationServiceImplement extends ServiceApi implements NewReconci
             $payment = $this->ledgerPaymentRepository->findByLedger($ledger);
             $formattedDate = date('Y-m-d', strtotime($ledger->date));
             $amt = NumConvert::word($ledger->amount);
-            $paymentStr = $payment !== null ? ", Amount Paid: {$payment->amount_paid}, Payment Status: {$payment->payment_status}, Bank Account: {$payment->account->bank_name}" : "";
+            $paymentStr = $payment != null ? ", Amount Paid: {$payment->amount_paid}, Payment Status: {$payment->payment_status}, Bank Account: {$payment->account->bank_name}" : "";
             $combinedText = "Person's name: {$ledger->person}, Amount: {$ledger->amount}, Amount in words: {$amt}, Date: {$formattedDate} Other Relevant Information: {$ledger->other_information}" . $paymentStr;
             $embedding = $this->getEmbedding($combinedText);
             $this->ledgerRepository->addVector($ledger, $embedding);
