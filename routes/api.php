@@ -23,6 +23,7 @@ use App\Http\Controllers\OutboundMarketingController;
 use App\Http\Controllers\BillingTransactionController;
 use App\Http\Controllers\Api\V1\BusinessInfoController;
 use App\Http\Controllers\AccountChartCategoryController;
+use App\Http\Controllers\Api\V1\DashboardController;
 
 Route::prefix('v1')->group(function () {
     Route::get('/', function () {
@@ -87,6 +88,9 @@ Route::prefix('v1')->group(function () {
         // busines info creation
         Route::post('/business-info', [BusinessInfoController::class, 'store']);
         Route::put('/business-info/{id}', [BusinessInfoController::class, 'update']);
+
+        // Dashboard monthly analytics endpoint
+        Route::get('/dashboard', [DashboardController::class, 'monthlyAnalytics']);
 
         // Assuming this is inside a route file that already has the api/v1 prefix
         Route::controller(ChartOfAccountController::class)->group(function () {
