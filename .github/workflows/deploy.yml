@@ -19,8 +19,9 @@ jobs:
           host: ${{ secrets.SSH_SERVER }}
           username: ${{ secrets.SSH_USERNAME }}
           password: ${{ secrets.SSH_PASSWORD }}
+          envs: GITHUB_REF_NAME
           script: |
-            BRANCH="${GITHUB_REF##*/}"
+            BRANCH="${GITHUB_REF_NAME}"
             echo "Detected branch: $BRANCH"
 
             if [[ "$BRANCH" == "main" ]]; then
