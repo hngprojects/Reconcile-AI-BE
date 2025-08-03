@@ -8,45 +8,53 @@ on:
 
 jobs:
   deployment:
-    runs-on: reconcile
+    runs-on: ubuntu-latest
     timeout-minutes: 10
     if: ${{ github.event_name == 'push' }}
 
     steps:
-      - name: Deploy to the server
+      - name: Deploy inside Docker containers
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.SSH_SERVER }}
           username: ${{ secrets.SSH_USERNAME }}
           password: ${{ secrets.SSH_PASSWORD }}
+          envs: GITHUB_REF_NAME
           script: |
-            if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
-              echo "🚀 Deploying to PRODUCTION..."
-              # cd /var/www/html/BE-main
-              #  echo "🚀 Starting Main Processor..."
-              bash /usr/local/bin/main.sh
-              echo "✅  Processor started successfully."
-              
+            BRANCH="${GITHUB_REF_NAME}"
+            echo "Detected branch: $BRANCH"
+
+            if [[ "$BRANCH" == "main" ]]; then
+              echo "🚀 Updating PRODUCTION..."
+              docker exec -i reconxi-be bash -c "
+                cd /var/www/html &&
+                git pull &&
+                php artisan migrate --force &&
+                php artisan optimize:clear
+              "
               echo "✅ Production deployment complete."
 
-            elif [[ "${{ github.ref }}" == "refs/heads/dev" ]]; then
-              echo "🚀 Deploying to STAGING..."
-              cd /var/www/html/staging
-              
-              echo "🚀 Starting Processor..."
-              bash /usr/local/bin/staging_be_processor.sh
-              echo "✅ Staging Processor started successfully."
+            elif [[ "$BRANCH" == "staging" ]]; then
+              echo "🚀 Updating STAGING..."
+              docker exec -i reconxi-be-staging bash -c "
+                cd /var/www/html &&
+                git pull &&
+                php artisan migrate --force &&
+                php artisan optimize:clear
+              "
+              echo "✅ Staging deployment complete."
 
-            elif [[ "${{ github.ref }}" == "refs/heads/staging" ]]; then
-              echo "🚀 Deploying to STAGING (For-Testing)..."
-              cd /var/www/html/staging-new
-              
-              echo "🚀 Starting New Staging Processor..."
-
-              bash /usr/local/bin/stagingnew_be_processor.sh
-              echo "✅ New Staging Processor started successfully."
+            elif [[ "$BRANCH" == "dev" ]]; then
+              echo "🚀 Updating DEV..."
+              docker exec -i reconxi-be-dev bash -c "
+                cd /var/www/html &&
+                git pull &&
+                php artisan migrate --force &&
+                php artisan optimize:clear
+              "
+              echo "✅ Dev deployment complete."
 
             else
-              echo "❌ Unknown branch: ${{ github.ref }}. Exiting..."
+              echo "❌ Unknown branch: $BRANCH. Exiting..."
               exit 1
             fi
