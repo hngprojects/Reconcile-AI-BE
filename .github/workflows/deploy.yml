@@ -36,7 +36,7 @@ jobs:
 
             elif [[ "$BRANCH" == "staging" ]]; then
               echo "🚀 Updating STAGING..."
-              docker exec -i reconxi-be-staging bash -c "
+              docker exec -i staging-reconxi-be-staging bash -c "
                 cd /var/www/html &&
                 git pull &&
                 php artisan migrate --force &&
