@@ -8,79 +8,61 @@ on:
     branches:
       - '**'
 
-
 jobs:
   test:
-    runs-on: reconcile
-    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    services:
+      postgres:
+        image: ankane/pgvector
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_DB: test_db
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_pass
+        options: >-
+          --health-cmd="pg_isready -U test_user -d test_db"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
 
     steps:
+      # Checkout repository
       - name: Checkout Repository
         uses: actions/checkout@v4
+
+      # Set up PHP
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
         with:
-          ref: ${{ github.event.pull_request.head.sha }} # Checkout the PR branch
-          persist-credentials: false
+          php-version: 8.2
+          extensions: mbstring, bcmath, pdo_pgsql
+          tools: composer
 
+      # Install dependencies
+      - name: Install Composer dependencies
+        run: composer install --no-progress --prefer-dist --no-interaction
 
-      - name: Run Tests Remotely
+      # Prepare .env file
+      - name: Setup environment file
         run: |
-          sshpass -p "${{ secrets.SSH_PASSWORD }}" ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_SERVER }} << 'EOF'
-          
-          # Navigate to project directory
-          cd /var/www/html/runner-be
-
-          # Fetch all branches from remote
-          git fetch --all
-
-          # Store the branch name
-          BRANCH_NAME="${{ github.head_ref || github.ref_name }}"
-
-          # Debug: Print the detected branch
-          echo "Detected branch: $BRANCH_NAME"
-
-          # Ensure the branch exists remotely before checking out
-          if git show-ref --verify --quiet refs/remotes/origin/$BRANCH_NAME; then
-              # If branch exists locally, switch to it
-              if git show-ref --verify --quiet refs/heads/$BRANCH_NAME; then
-                  git checkout $BRANCH_NAME
-              else
-                  git checkout -b $BRANCH_NAME origin/$BRANCH_NAME
-              fi
-
-              # Reset and pull latest changes
-              git reset --hard origin/$BRANCH_NAME
-              git pull origin $BRANCH_NAME
-          else
-              echo "❌ ERROR: Branch '$BRANCH_NAME' not found on remote. Exiting."
-              exit 1
-          fi
-
-          # Install dependencies
-          composer install --no-progress --prefer-dist --no-interaction
-
-          # Set environment variables
-
-          rm .env
           cp .env.example .env
           php artisan key:generate
           php artisan jwt:secret
           echo "APP_KEY=${{ secrets.APP_KEY }}" >> .env
           echo "DB_CONNECTION=pgsql" >> .env
-          echo "DB_HOST=localhost" >> .env
-          echo "DB_PORT=5454" >> .env
+          echo "DB_HOST=127.0.0.1" >> .env
+          echo "DB_PORT=5432" >> .env
           echo "DB_DATABASE=test_db" >> .env
           echo "DB_USERNAME=test_user" >> .env
           echo "DB_PASSWORD=test_pass" >> .env
-          
-          #dropping all tables
-          php artisan migrate:fresh
 
-          # Run migrations
-          # php artisan migrate --force
+      # Migrate database
+      - name: Run database migrations
+        run: php artisan migrate:fresh --force
 
-
-
-          # Run Laravel tests
-          php artisan test
-
-          EOF
+      # Run tests
+      - name: Run Laravel tests
+        run: php artisan test
