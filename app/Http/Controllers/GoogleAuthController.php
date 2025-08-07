@@ -31,7 +31,7 @@ class GoogleAuthController extends Controller
     public function __construct(
         protected GoogleAuthService $googleAuthService
     ) {}
-    
+
     /**
      * @OA\Post(
      *     path="/api/v1/auth/google-login",
@@ -196,7 +196,7 @@ class GoogleAuthController extends Controller
             // Add is_new_user to the user array
             $userData = $result['user']->toArray();
             $userData['is_new_user'] = $result['is_new_user'];
-            
+
             return response()->json([
                 'status_code' => 200,
                 'message' => $result['is_new_user'] ? 'User Created Successfully' : 'Login Successful',
@@ -314,6 +314,9 @@ class GoogleAuthController extends Controller
      *             @OA\Property(property="status_code", type="integer", example=200),
      *             @OA\Property(property="message", type="string", example="User successfully fetched"),
      *             @OA\Property(property="data", type="object",
+     *                 @OA\Property(property="plan", type="object"),
+     *                 @OA\Property(property="business_info", type="object"),
+     *                 @OA\Property(property="onboarded", type="boolean", example="true"),
      *                 @OA\Property(property="user", type="object",
      *                     @OA\Property(property="id", type="integer", example=1),
      *                     @OA\Property(property="name", type="string", example="John Doe"),
@@ -340,7 +343,7 @@ class GoogleAuthController extends Controller
     public function fetchUser(Request $request)
     {
         // $plan = $user->paymentPlan()->with('plan')->first();
-        $user = $request->user()->load('paymentPlan.plan');
+        $user = $request->user()->load('paymentPlan.plan', 'businessInfos');
         $paymentPlan = $user->paymentPlan;
 
         return response()->json([
@@ -349,7 +352,9 @@ class GoogleAuthController extends Controller
             'message' => 'User successfully fetched',
             'data' => [
                 'user' => $user,
-                'plan' => $paymentPlan
+                'plan' => $paymentPlan,
+                'onboarded' => count($user->businessInfos) > 0,
+                'business_info' => $user->businessInfos->first()
             ]
         ]);
     }

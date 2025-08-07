@@ -3967,6 +3967,16 @@
                                         },
                                         "data": {
                                             "properties": {
+                                                "plan": {
+                                                    "type": "object"
+                                                },
+                                                "business_info": {
+                                                    "type": "object"
+                                                },
+                                                "onboarded": {
+                                                    "type": "boolean",
+                                                    "example": "true"
+                                                },
                                                 "user": {
                                                     "properties": {
                                                         "id": {
