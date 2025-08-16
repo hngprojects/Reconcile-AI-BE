@@ -26,32 +26,23 @@ jobs:
 
             if [[ "$BRANCH" == "main" ]]; then
               echo "🚀 Updating PRODUCTION..."
-              docker exec -i reconxi-be bash -c "
-                cd /var/www/html &&
-                git pull &&
-                php artisan migrate --force &&
-                php artisan optimize:clear
-              "
+              cd /home/reconcile/main &&
+              git pull &&
+              make restart
               echo "✅ Production deployment complete."
 
             elif [[ "$BRANCH" == "staging" ]]; then
               echo "🚀 Updating STAGING..."
-              docker exec -i reconxi-be-staging bash -c "
-                cd /var/www/html &&
-                git pull &&
-                php artisan migrate --force &&
-                php artisan optimize:clear
-              "
+              cd /home/reconcile/staging &&
+              git pull &&
+              make restart
               echo "✅ Staging deployment complete."
 
             elif [[ "$BRANCH" == "dev" ]]; then
               echo "🚀 Updating DEV..."
-              docker exec -i reconxi-be-dev bash -c "
-                cd /var/www/html &&
-                git pull &&
-                php artisan migrate --force &&
-                php artisan optimize:clear
-              "
+              cd /home/reconcile/dev &&
+              git pull &&
+              make restart
               echo "✅ Dev deployment complete."
 
             else
