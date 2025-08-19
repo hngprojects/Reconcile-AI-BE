@@ -4,18 +4,14 @@
 return [
     'paths' => ['api/*', 'broadcasting/auth', 'sanctum/csrf-cookie', 'api/broadcasting/auth'],
 
-    // 'allowed_methods' => ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    'allowed_methods' => ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
 
-    // 'allowed_origins' => [
-    //     // Add your frontend URL here, for example:
-    //     'http://localhost:3000',
-    //     // If you have multiple environments:
-    //     env('FRONTEND_URL', 'http://localhost:3000'),
-    // ],
-
-    'allowed_methods' => ['*'],
-
-    'allowed_origins' => ['*'],
+    'allowed_origins' => [
+        // Add your frontend URL here, for example:
+        'http://localhost:3000',
+        // If you have multiple environments:
+        env('FRONTEND_URL', 'http://localhost:3000'),
+    ],
 
     'allowed_origins_patterns' => [],
 
