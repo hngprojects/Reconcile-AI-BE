@@ -205,12 +205,12 @@ class GoogleAuthController extends Controller
                     'user' => $userData,
                     'plan' => $result['plan']
                 ]
-            ]);
+            ], 200);
         } catch (\Exception $e) {
             return response()->json([
                 'status_code' => $e->getCode() ?: 401,
                 'message' => $e->getMessage()
-            ], $e->getCode() ?: 401);
+            ], 500);
         }
     }
 

@@ -20,11 +20,12 @@ class DatabaseSeeder extends Seeder
         ]);
 
         $this->call([
+            AccountChartCategoriesSeeder::class,
             LedgerSeeder::class,
             StatementSeeder::class,
             MatchingTransactionSeeder::class,
             PlanSeeder::class,
-            PaymentPlanSeeder::class,
+            PaymentPlanSeeder::class
         ]);
     }
 }
