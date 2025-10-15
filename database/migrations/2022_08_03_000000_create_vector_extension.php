@@ -12,11 +12,6 @@ return new class extends Migration
      */
     public function up()
     {
-        // Skip vector extension in testing environment
-        if (app()->environment('testing')) {
-            return;
-        }
-        
         DB::statement('CREATE EXTENSION IF NOT EXISTS vector');
     }
 
@@ -27,11 +22,6 @@ return new class extends Migration
      */
     public function down()
     {
-        // Skip vector extension in testing environment
-        if (app()->environment('testing')) {
-            return;
-        }
-        
         DB::statement('DROP EXTENSION vector');
     }
 };
