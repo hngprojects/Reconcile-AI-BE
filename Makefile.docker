@@ -1,0 +1,54 @@
+# Reconcile AI Docker Management
+
+.PHONY: help build up down restart logs shell clean
+
+help: ## Show this help message
+	@echo 'Usage: make [target]'
+	@echo ''
+	@echo 'Targets:'
+	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "  %-15s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
+
+build: ## Build Docker containers
+	docker-compose build --no-cache
+
+up: ## Start all services
+	docker-compose up -d
+
+down: ## Stop all services
+	docker-compose down
+
+restart: ## Restart all services
+	docker-compose down && docker-compose up -d
+
+logs: ## Show logs for all services
+	docker-compose logs -f
+
+logs-app: ## Show logs for the application only
+	docker-compose logs -f reconxi-be
+
+shell: ## Access application container shell
+	docker-compose exec reconxi-be bash
+
+redis-cli: ## Access Redis CLI
+	docker-compose exec redis redis-cli
+
+db-shell: ## Access PostgreSQL shell
+	docker-compose exec db psql -U reconxi -d reconxi
+
+clean: ## Clean up containers, volumes, and images
+	docker-compose down -v --remove-orphans
+	docker system prune -f
+
+reset: ## Complete reset - rebuild and restart
+	make clean
+	make build
+	make up
+
+status: ## Show container status
+	docker-compose ps
+
+test-redis: ## Test Redis connection from app container
+	docker-compose exec reconxi-be redis-cli -h redis ping
+
+test-db: ## Test database connection from app container
+	docker-compose exec reconxi-be pg_isready -h db -p 5432 -U reconxi -d reconxi

@@ -7,9 +7,8 @@ return [
     'allowed_methods' => ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
 
     'allowed_origins' => [
-        // Add your frontend URL here, for example:
         'http://localhost:3000',
-        // If you have multiple environments:
+        'http://127.0.0.1:3000',
         env('FRONTEND_URL', 'http://localhost:3000'),
     ],
 

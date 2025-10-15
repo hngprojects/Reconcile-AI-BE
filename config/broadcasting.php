@@ -73,6 +73,11 @@ return [
             'driver' => 'log',
         ],
 
+        'redis' => [
+            'driver' => 'redis',
+            'connection' => 'default',
+        ],
+
         'null' => [
             'driver' => 'null',
         ],
