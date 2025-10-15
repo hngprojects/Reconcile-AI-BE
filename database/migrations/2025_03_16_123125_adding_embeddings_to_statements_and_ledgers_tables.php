@@ -11,6 +11,18 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Skip vector columns in testing environment
+        if (app()->environment('testing')) {
+            Schema::table('statements', function (Blueprint $table) {
+                $table->text('embedding')->nullable();
+            });
+
+            Schema::table('ledgers', function (Blueprint $table) {
+                $table->text('embedding')->nullable();
+            });
+            return;
+        }
+        
         Schema::table('statements', function (Blueprint $table) {
             $table->vector('embedding', 1536);
         });
@@ -26,11 +38,11 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('statements', function (Blueprint $table) {
-            $table->vector('embedding', 1536);
+            $table->dropColumn('embedding');
         });
 
         Schema::table('ledgers', function (Blueprint $table) {
-            $table->vector('embedding', 1536);
+            $table->dropColumn('embedding');
         });
     }
 };
