@@ -2,25 +2,25 @@
 
 # Development commands
 rebuild:
-	docker compose down
-	docker compose build --no-cache
+	docker compose -f docker-compose.dev.yml down
+	docker compose -f docker-compose.dev.yml build --no-cache
 	docker image prune -f
-	docker compose up -d
+	docker compose -f docker-compose.dev.yml up -d
 
 start:
-	docker compose up -d
+	docker compose -f docker-compose.dev.yml up -d
 
 stop:
-	docker compose down
+	docker compose -f docker-compose.dev.yml down
 
 restart:
-	docker compose down
-	docker compose up -d
+	docker compose -f docker-compose.dev.yml down
+	docker compose -f docker-compose.dev.yml up -d
 
 # Production deployment
 deploy-prod:
-	docker compose -f docker-compose.prod.yml pull
-	docker compose -f docker-compose.prod.yml up -d --no-deps reconxi-be
+	docker compose pull
+	docker compose up -d --no-deps reconxi-be
 	@echo "Waiting for health check..."
 	@sleep 10
 	@curl -f http://localhost:8000/health || (echo "Health check failed" && exit 1)
@@ -49,5 +49,5 @@ clean:
 logs:
 	docker compose logs -f
 
-logs-prod:
-	docker compose -f docker-compose.prod.yml logs -f
+logs-dev:
+	docker compose -f docker-compose.dev.yml logs -f

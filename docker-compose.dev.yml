@@ -1,6 +1,8 @@
 services:
   reconxi-be:
-    image: ghcr.io/hngprojects/reconcile-ai-be:main
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: reconxi-be
     restart: unless-stopped
     working_dir: /var/www/html
@@ -20,7 +22,7 @@ services:
       - .env
     ports:
       - "8000:80"
-      - "8080:8080"  # Reverb WebSocket port
+      - "8080:8080"
 
   db:
     image: ankane/pgvector
@@ -63,10 +65,6 @@ services:
 volumes:
   db_data:
   redis_data:
-
-# networks:
-#   reconxi:
-#     driver: bridge
 
 networks:
   reconxi:
