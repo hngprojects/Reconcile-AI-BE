@@ -207,10 +207,15 @@ class GoogleAuthController extends Controller
                 ]
             ], 200);
         } catch (\Exception $e) {
+            $statusCode = $e->getCode() ?: 401;
+            // Ensure status code is a valid HTTP status code
+            if ($statusCode < 100 || $statusCode > 599) {
+                $statusCode = 401;
+            }
             return response()->json([
-                'status_code' => $e->getCode() ?: 401,
+                'status_code' => $statusCode,
                 'message' => $e->getMessage()
-            ], 500);
+            ], $statusCode);
         }
     }
 
