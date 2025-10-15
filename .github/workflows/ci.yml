@@ -156,11 +156,17 @@ jobs:
             # Build and deploy
             make restart
             
-            # Health check
-            sleep 15
-            if curl -f http://localhost:8000/health > /dev/null 2>&1; then
-              echo "✅ Deployment successful - Health check passed"
-            else
-              echo "❌ Deployment failed - Health check failed"
-              exit 1
-            fi
+            # Wait for application to be ready
+            echo "⏳ Waiting for application to start..."
+            for i in {1..30}; do
+              if curl -f http://localhost:8000/health > /dev/null 2>&1; then
+                echo "✅ Deployment successful - Health check passed"
+                exit 0
+              fi
+              echo "Attempt $i/30 - waiting 10 seconds..."
+              sleep 10
+            done
+            
+            echo "❌ Deployment failed - Health check failed after 5 minutes"
+            docker compose logs reconxi-be --tail=50
+            exit 1
