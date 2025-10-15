@@ -1,0 +1,111 @@
+name: Code Quality
+
+on:
+  pull_request:
+    branches: [main, dev]
+  schedule:
+    - cron: '0 2 * * 1' # Weekly on Monday at 2 AM
+
+jobs:
+  code-quality:
+    name: Code Quality Analysis
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    services:
+      postgres:
+        image: ankane/pgvector:latest
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_DB: test_db
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_pass
+        options: >-
+          --health-cmd="pg_isready -U test_user -d test_db"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd="redis-cli ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: 8.2
+          extensions: mbstring, bcmath, pdo_pgsql, redis
+          tools: composer:v2
+          coverage: xdebug
+
+      - name: Cache Composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: vendor
+          key: composer-${{ hashFiles('composer.lock') }}
+          restore-keys: composer-
+
+      - name: Install dependencies
+        run: composer install --no-progress --prefer-dist --optimize-autoloader
+
+      - name: Setup environment
+        run: |
+          cat > .env << EOF
+          APP_NAME=ReconXi
+          APP_ENV=testing
+          APP_KEY=
+          APP_DEBUG=true
+          APP_TIMEZONE=UTC
+          APP_URL=http://localhost
+          
+          DB_CONNECTION=pgsql
+          DB_HOST=127.0.0.1
+          DB_PORT=5432
+          DB_DATABASE=test_db
+          DB_USERNAME=test_user
+          DB_PASSWORD=test_pass
+          
+          REDIS_HOST=127.0.0.1
+          REDIS_PORT=6379
+          REDIS_PASSWORD=null
+          
+          CACHE_DRIVER=array
+          SESSION_DRIVER=array
+          QUEUE_CONNECTION=sync
+          BROADCAST_CONNECTION=log
+          
+          LOG_CHANNEL=stack
+          LOG_LEVEL=debug
+          
+          JWT_SECRET=
+          
+          GOOGLE_CLIENT_ID=test_client_id
+          GOOGLE_CLIENT_SECRET=test_client_secret
+          GOOGLE_REDIRECT_URI=http://localhost/api/v1/auth/google/callback
+          EOF
+          php artisan key:generate
+          php artisan jwt:secret --force
+
+      - name: Run database migrations
+        run: php artisan migrate:fresh --force
+
+      - name: Run tests with coverage
+        run: php artisan test --coverage --min=60
+
+      - name: Upload coverage reports
+        uses: codecov/codecov-action@v3
+        if: always()
+        with:
+          file: ./coverage.xml
+          fail_ci_if_error: false
