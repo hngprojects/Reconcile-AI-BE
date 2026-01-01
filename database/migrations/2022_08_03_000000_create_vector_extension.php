@@ -12,7 +12,12 @@ return new class extends Migration
      */
     public function up()
     {
-        DB::statement('CREATE EXTENSION IF NOT EXISTS vector');
+        try {
+            DB::statement('CREATE EXTENSION IF NOT EXISTS vector');
+        } catch (\Exception $e) {
+            // Vector extension might already exist or not be available
+            \Log::warning('Vector extension creation failed: ' . $e->getMessage());
+        }
     }
 
     /**

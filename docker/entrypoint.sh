@@ -43,7 +43,7 @@ php artisan migrate --force || echo "Migration failed (likely already run)"
 
 # Run module seeding
 echo "🌱 Running module seeders..."
-php artisan module:seed --force || echo "Module seeding failed or already run"
+php artisan module:seed --force 2>/dev/null || echo "Module seeding failed or already run"
 
 # Run global seeders
 echo "🌱 Running global seeders..."
@@ -51,9 +51,9 @@ php artisan db:seed --force || echo "Seeding skipped or failed"
 
 # Publish assets and config
 php artisan vendor:publish --tag=laravel-assets --ansi --force || true
-php artisan vendor:publish --tag=livewire:config || true
+php artisan vendor:publish --tag=livewire:config 2>/dev/null || true
 
-php artisan livewire:discover
+php artisan livewire:discover 2>/dev/null || echo "Livewire discover skipped"
 
 # Create necessary migration tables if not yet
 php artisan cache:table 2>/dev/null || echo "Cache table migration already exists"
