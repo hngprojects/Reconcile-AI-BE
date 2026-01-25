@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 return new class extends Migration
 {
@@ -16,7 +17,7 @@ return new class extends Migration
             DB::statement('CREATE EXTENSION IF NOT EXISTS vector');
         } catch (\Exception $e) {
             // Vector extension might already exist or not be available
-            \Log::warning('Vector extension creation failed: ' . $e->getMessage());
+            Log::warning('Vector extension creation failed: ' . $e->getMessage());
         }
     }
 

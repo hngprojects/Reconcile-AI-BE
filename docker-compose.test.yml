@@ -1,0 +1,82 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database (mirrors production)
+  postgres:
+    image: pgvector/pgvector:pg17
+    container_name: reconxi-postgres-local
+    environment:
+      POSTGRES_DB: reconcile
+      POSTGRES_USER: reconxi_user
+      POSTGRES_PASSWORD: local_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U reconxi_user -d reconcile"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Redis (mirrors production)
+  redis:
+    image: redis:7-alpine
+    container_name: reconxi-redis-local
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # Your Laravel App (from Dockerfile.prod)
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+    container_name: reconxi-app-local
+    env_file:
+      - .env
+    ports:
+      - "8080:80"
+    environment:
+      # Override for testing
+      APP_ENV: local
+      APP_DEBUG: "true"
+      APP_URL: http://localhost:8080
+      
+      # Database (connects to postgres service)
+      DB_CONNECTION: pgsql
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_DATABASE: reconcile
+      DB_USERNAME: reconxi_user
+      DB_PASSWORD: local_password
+      
+      # Redis (connects to redis service)
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: null
+      
+      # Cache & Queue
+      CACHE_DRIVER: redis
+      QUEUE_CONNECTION: redis
+      SESSION_DRIVER: redis
+      
+      # Mail
+      MAIL_MAILER: log
+      
+      # Other
+      GEMINI_API_KEY: your-test-key-here
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./storage:/var/www/html/storage
+
+volumes:
+  postgres_data:
